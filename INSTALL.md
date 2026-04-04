@@ -14,7 +14,6 @@ php artisan vendor:publish --provider="Barryvdh\DomPDF\ServiceProvider"
         <i class="bi bi-file-earmark-text"></i> Annex 7
     </a>
 </li>
-
 ```
 
 ## Struktura plików do skopiowania do projektu
