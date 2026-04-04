@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.ustawienia')
 @section('title', 'Woźacy')
 @section('module_name', 'BIURO')
 
@@ -29,9 +29,9 @@ tr:hover td { background:#f8f9fa; }
 </style>
 @endsection
 
-@section('content')
+@section('settings_content')
 <div class="wrap">
-    <div class="page-title"><i class="fas fa-truck" style="color:#6EBF58"></i> Woźacy</div>
+    <div class="page-title"><i class="fas fa-truck"></i> WOZACY</div>
     <div class="page-sub">Zaznaczeni klienci pojawiają się jako szybkie przyciski w module ważeń.</div>
 
     <input type="text" class="search-input" placeholder="Szukaj klienta..." id="searchInput" oninput="filterTable()">

@@ -56,43 +56,7 @@
         </a></li>
     </ul>
 </div>
-<div class="dropdown">
-    <button class="btn dropdown-toggle {{ request()->routeIs('biuro.fractions.*') || request()->routeIs('biuro.haulers.*') || request()->routeIs('biuro.clients.*') || request()->routeIs('biuro.vehicles.*') || request()->routeIs('biuro.ls.*') || request()->routeIs('biuro.importers.*') ? 'active' : '' }}"
-            type="button" data-bs-toggle="dropdown">
-        <i class="fa-solid fa-cog"></i> Ustawienia
-    </button>
-    <ul class="dropdown-menu">
-        <li><a class="dropdown-item {{ request()->routeIs('biuro.fractions.*') ? 'active' : '' }}"
-               href="{{ route('biuro.fractions.index') }}">
-            <i class="fa-solid fa-boxes"></i> Towary
-        </a></li>
-        <li><a class="dropdown-item {{ request()->routeIs('biuro.haulers.*') ? 'active' : '' }}"
-               href="{{ route('biuro.haulers.index') }}">
-            <i class="fa-solid fa-truck"></i> Woźacy
-        </a></li>
-        <li><a class="dropdown-item {{ request()->routeIs('biuro.clients.*') ? 'active' : '' }}"
-               href="{{ route('biuro.clients.index') }}">
-            <i class="fa-solid fa-building"></i> Kontrahenci
-        </a></li>
-        <li><a class="dropdown-item {{ request()->routeIs('biuro.vehicles.*') ? 'active' : '' }}"
-               href="{{ route('biuro.vehicles.index') }}">
-            <i class="fa-solid fa-truck-moving"></i> Pojazdy
-        </a></li>
-        <li><a class="dropdown-item {{ request()->routeIs('biuro.importers.*') ? 'active' : '' }}"
-               href="{{ route('biuro.importers.index') }}">
-            <i class="fa-solid fa-industry"></i> Importerzy
-        </a></li>
-        <li><a class="dropdown-item {{ request()->routeIs('biuro.waste-codes.*') ? 'active' : '' }}"
-               href="{{ route('biuro.waste-codes.index') }}">
-            <i class="fa-solid fa-recycle"></i> Kody odpadów
-        </a></li>
-        <li><a class="dropdown-item {{ request()->routeIs('biuro.fuel-vehicles.*') ? 'active' : '' }}"
-               href="{{ route('biuro.fuel-vehicles.index') }}">
-            <i class="fa-solid fa-gas-pump"></i> Pojazdy – Paliwo
-        </a></li>
-        <li><a class="dropdown-item {{ request()->routeIs('biuro.koszty-transportu.*') ? 'active' : '' }}"
-               href="{{ route('biuro.koszty-transportu.index') }}">
-            <i class="fa-solid fa-route"></i> Koszty transportu
-        </a></li>
-    </ul>
-</div>
+<a href="{{ route('biuro.ustawienia') }}"
+   class="btn {{ request()->routeIs('biuro.fractions.*', 'biuro.haulers.*', 'biuro.clients.*', 'biuro.vehicles.*', 'biuro.importers.*', 'biuro.waste-codes.*', 'biuro.fuel-vehicles.*', 'biuro.koszty-transportu.*') ? 'active' : '' }}">
+    <i class="fa-solid fa-cog"></i> Ustawienia
+</a>

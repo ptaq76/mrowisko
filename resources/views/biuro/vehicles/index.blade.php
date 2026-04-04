@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.ustawienia')
 
 @section('title', 'Pojazdy')
 @section('module_name', 'BIURO')
@@ -7,10 +7,10 @@
     @include('biuro._nav')
 @endsection
 
-@section('content')
+@section('settings_content')
 
 <div class="page-header">
-    <h1>Pojazdy</h1>
+    <h1><i class="fa-solid fa-truck-moving"></i> Pojazdy</h1>
     <button class="btn btn-add" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
         <i class="fa-solid fa-plus"></i> Nowy pojazd
     </button>

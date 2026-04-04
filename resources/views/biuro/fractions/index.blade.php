@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.ustawienia')
 
 @section('title', 'Towary')
 @section('module_name', 'BIURO')
@@ -165,7 +165,7 @@
 </style>
 @endsection
 
-@section('content')
+@section('settings_content')
 <div class="fractions-wrap" style="max-width:75%">
 
     <div class="page-header">

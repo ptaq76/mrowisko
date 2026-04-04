@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.ustawienia')
 @section('title', 'Pojazdy – Paliwo')
 @section('module_name', 'BIURO')
 @section('nav_menu') @include('biuro._nav') @endsection
@@ -33,10 +33,10 @@ tr.inactive td { opacity:.4; }
 </style>
 @endsection
 
-@section('content')
+@section('settings_content')
 <div class="wrap">
     <div class="page-header">
-        <div class="page-title"><i class="fas fa-gas-pump" style="color:#f39c12"></i> Pojazdy – Paliwo</div>
+        <div class="page-title"><i class="fas fa-gas-pump"></i> Pojazdy – Paliwo</div>
         <button class="btn-add" onclick="openAdd()"><i class="fas fa-plus"></i> Dodaj pojazd</button>
     </div>
 

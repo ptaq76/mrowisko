@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.ustawienia')
 
 @section('title', 'Kontrahenci')
 @section('module_name', 'BIURO')
@@ -7,10 +7,10 @@
     @include('biuro._nav')
 @endsection
 
-@section('content')
+@section('settings_content')
 
 <div class="page-header">
-    <h1>Kontrahenci</h1>
+    <h1><i class="fa-solid fa-building"></i> Kontrahenci</h1>
     <a href="{{ route('biuro.clients.create') }}" class="btn btn-add">
         <i class="fa-solid fa-plus"></i> Nowy kontrahent
     </a>

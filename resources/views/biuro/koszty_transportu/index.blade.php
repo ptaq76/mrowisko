@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.ustawienia')
 @section('title', 'Koszty transportu')
 @section('module_name', 'BIURO')
 @section('nav_menu') @include('biuro._nav') @endsection
@@ -44,7 +44,7 @@ tr:hover td { background:#f8f9fa; }
 </style>
 @endsection
 
-@section('content')
+@section('settings_content')
 <div class="wrap">
 
     {{-- Przewoźnicy --}}
@@ -67,7 +67,7 @@ tr:hover td { background:#f8f9fa; }
 
     {{-- Koszty transportu --}}
     <div class="page-header">
-        <div class="page-title"><i class="fas fa-route" style="color:#27ae60"></i> Koszty transportu</div>
+        <div class="page-title"><i class="fas fa-route"></i> Koszty transportu</div>
         <button class="btn-add" onclick="openAdd()"><i class="fas fa-plus"></i> Dodaj trasę</button>
     </div>
 

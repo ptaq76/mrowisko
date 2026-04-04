@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.ustawienia')
 @section('title', 'Kody odpadów')
 @section('module_name', 'BIURO')
 @section('nav_menu') @include('biuro._nav') @endsection
@@ -40,10 +40,10 @@ tr:hover td { background:#f8f9fa; }
 </style>
 @endsection
 
-@section('content')
+@section('settings_content')
 <div class="wrap">
     <div class="page-header">
-        <div class="page-title"><i class="fas fa-recycle" style="color:#27ae60"></i> Kody odpadów</div>
+        <div class="page-title"><i class="fas fa-recycle"></i> Kody odpadów</div>
         <button class="btn-add" onclick="openAdd()"><i class="fas fa-plus"></i> Dodaj kod</button>
     </div>
 

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.ustawienia')
 
 @section('title', 'Importerzy')
 @section('module_name', 'BIURO')
@@ -7,10 +7,10 @@
     @include('biuro._nav')
 @endsection
 
-@section('content')
+@section('settings_content')
 
 <div class="page-header">
-    <h1>Importerzy</h1>
+    <h1><i class="fa-solid fa-industry"></i> Importerzy</h1>
     <button class="btn btn-add" data-bs-toggle="modal" data-bs-target="#addImporterModal">
         <i class="fa-solid fa-plus"></i> Nowy importer
     </button>

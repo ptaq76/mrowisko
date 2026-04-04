@@ -45,6 +45,7 @@ Route::prefix('biuro')
     ->name('biuro.')
     ->group(function () {
         Route::get('/dashboard', fn() => view('biuro.dashboard'))->name('dashboard');
+        Route::get('ustawienia', fn() => redirect()->route('biuro.fractions.index'))->name('ustawienia');
 
         // Planowanie
         Route::get('planning', [\App\Http\Controllers\Biuro\PlanningController::class, 'index'])->name('planning.index');
