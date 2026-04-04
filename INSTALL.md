@@ -1,5 +1,3 @@
-TEST
-
 ## Instalacja DomPDF (jeśli jeszcze nie masz)
 
 ```bash
