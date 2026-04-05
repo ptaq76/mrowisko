@@ -56,27 +56,24 @@
     .settings-sidebar .sidebar-link.active i {
         color: var(--green-dark);
     }
+
+    /* ── Ujednolicony tytuł strony ustawień ─────────────────── */
+    .page-title {
+        font-family: 'Barlow Condensed', sans-serif !important;
+        font-size: 22px !important;
+        font-weight: 900 !important;
+        letter-spacing: .06em !important;
+        text-transform: uppercase !important;
+        color: #1a1a1a !important;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 </style>
 
 <div class="settings-sidebar">
     <div class="sidebar-header">Ustawienia</div>
 
-    <a href="{{ route('biuro.fractions.index') }}"
-       class="sidebar-link {{ request()->routeIs('biuro.fractions.*') ? 'active' : '' }}">
-        <i class="fa-solid fa-boxes"></i> Towary
-    </a>
-    <a href="{{ route('biuro.haulers.index') }}"
-       class="sidebar-link {{ request()->routeIs('biuro.haulers.*') ? 'active' : '' }}">
-        <i class="fa-solid fa-truck"></i> Woźacy
-    </a>
-    <a href="{{ route('biuro.clients.index') }}"
-       class="sidebar-link {{ request()->routeIs('biuro.clients.*') ? 'active' : '' }}">
-        <i class="fa-solid fa-building"></i> Kontrahenci
-    </a>
-    <a href="{{ route('biuro.vehicles.index') }}"
-       class="sidebar-link {{ request()->routeIs('biuro.vehicles.*') ? 'active' : '' }}">
-        <i class="fa-solid fa-truck-moving"></i> Pojazdy
-    </a>
     <a href="{{ route('biuro.importers.index') }}"
        class="sidebar-link {{ request()->routeIs('biuro.importers.*') ? 'active' : '' }}">
         <i class="fa-solid fa-industry"></i> Importerzy
@@ -85,12 +82,28 @@
        class="sidebar-link {{ request()->routeIs('biuro.waste-codes.*') ? 'active' : '' }}">
         <i class="fa-solid fa-recycle"></i> Kody odpadów
     </a>
-    <a href="{{ route('biuro.fuel-vehicles.index') }}"
-       class="sidebar-link {{ request()->routeIs('biuro.fuel-vehicles.*') ? 'active' : '' }}">
-        <i class="fa-solid fa-gas-pump"></i> Pojazdy – Paliwo
+    <a href="{{ route('biuro.clients.index') }}"
+       class="sidebar-link {{ request()->routeIs('biuro.clients.*') ? 'active' : '' }}">
+        <i class="fa-solid fa-building"></i> Kontrahenci
     </a>
     <a href="{{ route('biuro.koszty-transportu.index') }}"
        class="sidebar-link {{ request()->routeIs('biuro.koszty-transportu.*') ? 'active' : '' }}">
         <i class="fa-solid fa-route"></i> Koszty transportu
+    </a>
+    <a href="{{ route('biuro.vehicles.index') }}"
+       class="sidebar-link {{ request()->routeIs('biuro.vehicles.*') ? 'active' : '' }}">
+        <i class="fa-solid fa-truck-moving"></i> Pojazdy
+    </a>
+    <a href="{{ route('biuro.fuel-vehicles.index') }}"
+       class="sidebar-link {{ request()->routeIs('biuro.fuel-vehicles.*') ? 'active' : '' }}">
+        <i class="fa-solid fa-gas-pump"></i> Pojazdy – Paliwo
+    </a>
+    <a href="{{ route('biuro.fractions.index') }}"
+       class="sidebar-link {{ request()->routeIs('biuro.fractions.*') ? 'active' : '' }}">
+        <i class="fa-solid fa-boxes"></i> Towary
+    </a>
+    <a href="{{ route('biuro.haulers.index') }}"
+       class="sidebar-link {{ request()->routeIs('biuro.haulers.*') ? 'active' : '' }}">
+        <i class="fa-solid fa-truck"></i> Woźacy
     </a>
 </div>

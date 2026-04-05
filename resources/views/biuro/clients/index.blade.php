@@ -7,10 +7,16 @@
     @include('biuro._nav')
 @endsection
 
+@section('styles')
+<style>
+.page-title { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#1a1a1a; }
+</style>
+@endsection
+
 @section('settings_content')
 
 <div class="page-header">
-    <h1><i class="fa-solid fa-building"></i> Kontrahenci</h1>
+    <div class="page-title"><i class="fa-solid fa-building"></i> Kontrahenci</div>
     <a href="{{ route('biuro.clients.create') }}" class="btn btn-add">
         <i class="fa-solid fa-plus"></i> Nowy kontrahent
     </a>

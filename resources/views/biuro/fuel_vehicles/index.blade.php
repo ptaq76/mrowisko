@@ -7,7 +7,7 @@
 <style>
 .wrap { padding:20px;max-width:800px; }
 .page-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
-.page-title { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase; }
+.page-title { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#1a1a1a; }
 .btn-add { padding:9px 18px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px; }
 .group-block { margin-bottom:20px; }
 .group-title { font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#fff;background:#1a1a1a;padding:6px 14px;border-radius:8px 8px 0 0;display:flex;align-items:center;gap:8px; }

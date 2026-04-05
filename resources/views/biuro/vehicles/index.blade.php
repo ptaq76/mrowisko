@@ -7,10 +7,16 @@
     @include('biuro._nav')
 @endsection
 
+@section('styles')
+<style>
+.page-title { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#1a1a1a; }
+</style>
+@endsection
+
 @section('settings_content')
 
 <div class="page-header">
-    <h1><i class="fa-solid fa-truck-moving"></i> Pojazdy</h1>
+    <div class="page-title"><i class="fa-solid fa-truck-moving"></i> Pojazdy</div>
     <button class="btn btn-add" data-bs-toggle="modal" data-bs-target="#addVehicleModal">
         <i class="fa-solid fa-plus"></i> Nowy pojazd
     </button>

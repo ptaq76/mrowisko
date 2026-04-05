@@ -7,7 +7,7 @@
 <style>
 .wrap { padding:20px;max-width:1000px; }
 .page-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px; }
-.page-title { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase; }
+.page-title { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#1a1a1a; }
 .btn-add { padding:9px 18px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px; }
 .btn-przewoznicy { padding:9px 18px;background:#2980b9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px; }
 .table-wrap { background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden;margin-bottom:20px; }
@@ -20,6 +20,7 @@ tr:hover td { background:#f8f9fa; }
 .btn-edit { background:#eaf4fb;border:1px solid #cce0f5;border-radius:5px;padding:4px 8px;color:#2980b9;cursor:pointer;font-size:12px; }
 .btn-del  { background:#fdecea;border:1px solid #f5c6cb;border-radius:5px;padding:4px 8px;color:#e74c3c;cursor:pointer;font-size:12px;margin-left:4px; }
 .cena-badge { font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:#27ae60; }
+.td-name { font-size:13px;font-weight:700;color:#1a1a1a;font-family:var(--font-body); }
 .arrow { color:#aaa;margin:0 4px; }
 
 /* Modal */
@@ -79,9 +80,9 @@ tr:hover td { background:#f8f9fa; }
             <tbody>
             @forelse($koszty as $k)
             <tr id="kr-{{ $k->id }}">
-                <td style="font-weight:700">{{ $k->start?->short_name ?? '–' }}</td>
+                <td class="td-name">{{ $k->start?->short_name ?? '–' }}</td>
                 <td><i class="fas fa-arrow-right arrow"></i></td>
-                <td style="font-weight:700">{{ $k->stop?->short_name ?? '–' }}</td>
+                <td class="td-name">{{ $k->stop?->short_name ?? '–' }}</td>
                 <td>{{ $k->przewoznik?->nazwa ?? '–' }}</td>
                 <td><span class="cena-badge">{{ number_format($k->cena_eur, 2, ',', ' ') }} €</span></td>
                 <td>

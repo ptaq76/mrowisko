@@ -7,10 +7,16 @@
     @include('biuro._nav')
 @endsection
 
+@section('styles')
+<style>
+.page-title { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#1a1a1a; }
+</style>
+@endsection
+
 @section('settings_content')
 
 <div class="page-header">
-    <h1><i class="fa-solid fa-industry"></i> Importerzy</h1>
+    <div class="page-title"><i class="fa-solid fa-industry"></i> Importerzy</div>
     <button class="btn btn-add" data-bs-toggle="modal" data-bs-target="#addImporterModal">
         <i class="fa-solid fa-plus"></i> Nowy importer
     </button>

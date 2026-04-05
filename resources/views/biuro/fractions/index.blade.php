@@ -51,9 +51,11 @@
 .fractions-table tr:last-child td { border-bottom: none; }
 .fractions-table tr:hover td { background: #f8f9fa; }
 
-.col-num   { width: 40px; color: #aaa; font-size: 12px; text-align:left; }
-.col-name  { text-align: left; font-weight: 700; color: #1a1a1a; min-width: 180px; }
-.col-group { text-align: left; color: #888; font-size: 12px; min-width: 100px; }
+.fractions-table td.col-num   { width: 40px; color: #aaa; font-size: 12px; text-align:left; }
+.fractions-table td.col-name  { text-align: left; font-weight: 700; color: #1a1a1a; min-width: 180px; font-size: 13px; font-family: var(--font-body); }
+.fractions-table td.col-group { text-align: left; color: #888; font-size: 12px; min-width: 100px; }
+.fractions-table th.col-num   { text-align: left; }
+.fractions-table th.col-name  { text-align: left; }
 
 /* Toggle przycisk */
 .toggle-btn {
@@ -113,7 +115,7 @@
 }
 .modal-close {
     background: #f0f2f5; border: none; border-radius: 50%;
-    width: 32px; height: 32px; cursor: pointer; font-size: 16px;
+    width: 38px; height: 38px; cursor: pointer; font-size: 22px;
     display: flex; align-items: center; justify-content: center;
 }
 

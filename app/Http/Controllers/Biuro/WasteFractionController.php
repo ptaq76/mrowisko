@@ -68,6 +68,24 @@ class WasteFractionController extends Controller
         ]);
     }
 
+    public function update(Request $request, WasteFraction $fraction)
+    {
+        $request->validate([
+            'name'     => ['required', 'string', 'max:100', 'unique:waste_fractions,name,' . $fraction->id],
+            'group_id' => ['nullable', 'exists:waste_fraction_groups,id'],
+        ], [
+            'name.required' => 'Podaj nazwę towaru.',
+            'name.unique'   => 'Towar o tej nazwie już istnieje.',
+        ]);
+
+        $fraction->update([
+            'name'     => trim($request->name),
+            'group_id' => $request->group_id ?: null,
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     public function toggle(Request $request, WasteFraction $fraction)
     {
         $request->validate([
