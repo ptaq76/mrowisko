@@ -10,20 +10,46 @@
 @section('styles')
 <style>
     .week-btn { min-width: 38px; }
-    .ls-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .ls-table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 15px; 
+    }
     .ls-table th {
         background: #1a1a1a; color: #fff;
-        padding: 8px 12px; text-align: left;
-        font-family: var(--font-display); font-size: 12px;
+        padding: 10px 12px; text-align: left;
+        font-family: 'Barlow Condensed', sans-serif; 
+        font-size: 13px;
+        font-weight: 700;
         letter-spacing: .05em; text-transform: uppercase; white-space: nowrap;
     }
-    .ls-table td { padding: 7px 12px; vertical-align: middle; }
+    .ls-table td { 
+        padding: 9px 12px; 
+        vertical-align: middle; 
+        font-weight: 500;
+    }
     .ls-table tr.line-light td { border-bottom: 1px solid #d3d3d3; }
     .ls-table tr.line-dark td  { border-bottom: 2px solid #1a1a1a; }
     .ls-table tr:hover td { background: var(--green-light); }
+    
     .status-done    { color: #6EBF58; }
     .status-pending { color: #e2e5e9; }
+    
     .actions-cell { display: flex; align-items: center; gap: 8px; min-height: 28px; min-width: 70px; }
+    
+    .col-waste-code { 
+        font-size: 13px; 
+        color: #888; 
+        font-weight: 600;
+    }
+    
+    /* Nagłówek */
+    .ls-header {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 700;
+        letter-spacing: .04em;
+    }
 </style>
 @endsection
 
@@ -37,7 +63,7 @@
 
 {{-- Pasek nawigacji --}}
 <div class="d-flex justify-content-between align-items-center bg-white rounded shadow-sm p-3 mb-3 border">
-    <div class="fw-bold fs-5" style="font-family:var(--font-display);letter-spacing:.04em">LIEFERSCHEIN</div>
+    <div class="fw-bold fs-5 ls-header">LIEFERSCHEIN</div>
     <div class="d-flex gap-1">
         @foreach($weeks as $offset)
             @php
@@ -58,9 +84,9 @@
             <i class="mdi mdi-view-list-outline"></i>
         </button>
         <button class="btn btn-success btn-sm" onclick="fetchFromMail()" id="fetchBtn" title="Pobierz PDF ze skrzynki ls@iantra.pl">
-                <i class="fas fa-envelope-open-text"></i> Pobierz z maila
-            </button>
-            <a href="{{ route('biuro.ls.create') }}" class="text-dark" style="font-size:1.25rem" title="Dodaj LS">
+            <i class="fas fa-envelope-open-text"></i> Pobierz z maila
+        </button>
+        <a href="{{ route('biuro.ls.create') }}" class="text-dark" style="font-size:1.25rem" title="Dodaj LS">
             <i class="fas fa-plus-square"></i>
         </a>
     </div>
@@ -75,6 +101,7 @@
                     <th>Dzień</th>
                     <th>Data</th>
                     <th>Towary</th>
+                    <th>Kod</th>
                     <th>Okienko</th>
                     <th>Kierunek</th>
                     <th>Numer</th>
@@ -92,15 +119,19 @@
                         <tr class="line-dark">
                             <td style="color:var(--gray-3)">{{ $dayName }}</td>
                             <td style="color:var(--gray-3)">{{ $dateFormatted }}</td>
-                            <td colspan="6"></td>
+                            <td colspan="7"></td>
                         </tr>
                     @else
                         @foreach($items as $item)
-                        @php $lineClass = $loop->last ? 'line-dark' : 'line-light'; @endphp
+                        @php 
+                            $lineClass = $loop->last ? 'line-dark' : 'line-light'; 
+                            $hasOrder = $item->order !== null;
+                        @endphp
                         <tr class="{{ $lineClass }}">
                             <td style="color:var(--gray-3)">{{ $dayName }}</td>
                             <td>{{ Carbon::parse($item->date)->format('d.m') }}</td>
                             <td>{{ $item->goods?->name ?? '–' }}</td>
+                            <td class="col-waste-code">{{ $item->wasteCode?->code ?? '–' }}</td>
                             <td class="text-nowrap">{{ $item->time_window }}</td>
                             <td>{{ $item->client?->short_name ?? '–' }}</td>
                             <td><strong>{{ $item->number }}</strong></td>
@@ -122,11 +153,10 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
 
-                                    {{-- Status --}}
-                                    <button class="btn btn-link p-0 btn-status" data-id="{{ $item->id }}"
-                                            title="{{ $item->status ? 'Zrealizowany' : 'Niezrealizowany' }}">
-                                        <i class="fa-solid fa-square-check {{ $item->status ? 'status-done' : 'status-pending' }}"></i>
-                                    </button>
+                                    {{-- Przypisany do zlecenia --}}
+                                    <span title="{{ $hasOrder ? 'Przypisany do zlecenia' : 'Brak zlecenia' }}">
+                                        <i class="fa-solid fa-square-check {{ $hasOrder ? 'status-done' : 'status-pending' }}"></i>
+                                    </span>
                                 </div>
                             </td>
                         </tr>
@@ -147,7 +177,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <table class="table table-sm table-bordered">
+                <table class="table table-sm table-bordered" style="font-family:'Barlow Condensed',sans-serif;font-size:14px">
                     <tbody>
                         @foreach($weekDays as $date => $items)
                             @foreach($items as $item)
@@ -155,6 +185,7 @@
                                 <td>{{ Carbon::parse($item->date)->format('Y-m-d') }}</td>
                                 <td>{{ $item->importer?->name ?? '–' }}</td>
                                 <td>{{ $item->goods?->name ?? '–' }}</td>
+                                <td>{{ $item->wasteCode?->code ?? '–' }}</td>
                                 <td>{{ $item->client?->short_name ?? '–' }}</td>
                                 <td>{{ $item->number }}</td>
                             </tr>
@@ -171,7 +202,6 @@
 </div>
 
 @endsection
-
 
 @section('scripts')
 <script>
@@ -200,22 +230,5 @@ async function fetchFromMail() {
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-envelope-open-text"></i> Pobierz z maila';
 }
-</script>
-@section('scripts')
-<script>
-document.querySelectorAll('.btn-status').forEach(btn => {
-    btn.addEventListener('click', async function() {
-        const res  = await fetch(`/biuro/ls/${this.dataset.id}/status`, {
-            method: 'POST',
-            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
-        });
-        const data = await res.json();
-        if (data.success) {
-            const icon = this.querySelector('i');
-            icon.classList.toggle('status-done',    data.status);
-            icon.classList.toggle('status-pending', !data.status);
-        }
-    });
-});
 </script>
 @endsection

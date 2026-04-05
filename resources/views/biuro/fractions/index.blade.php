@@ -24,21 +24,35 @@
 .table-wrap {
     background: #fff; border-radius: 10px;
     box-shadow: 0 1px 4px rgba(0,0,0,.08);
-    overflow: hidden;
+    max-height: calc(100vh - 280px);
+    overflow-y: auto;
 }
 
 /* Sticky header */
 .fractions-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 
+.fractions-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
 .fractions-table thead tr {
     background: #1a1a1a; color: #fff;
-    position: sticky; top: 0; z-index: 10;
+}
+.fractions-table thead::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -4px;
+    height: 4px;
+    background: linear-gradient(to bottom, rgba(0,0,0,.1), transparent);
+    pointer-events: none;
 }
 .fractions-table th {
     padding: 11px 14px;
     font-size: 11px; font-weight: 700;
     letter-spacing: .1em; text-transform: uppercase;
     text-align: center; white-space: nowrap;
+    background: #1a1a1a;
 }
 .fractions-table th.col-name { text-align: left; }
 .fractions-table th.col-group { text-align: left; }
