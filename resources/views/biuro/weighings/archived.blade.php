@@ -51,7 +51,7 @@
             <thead><tr>
                 <th>Data</th><th>Klient</th><th>Pojazdy</th>
                 <th>Waga 1</th><th>Waga 2</th><th>Wynik</th>
-                <th>Towar</th><th>Uwagi</th><th style="width:80px"></th>
+                <th>Towar</th><th>Uwagi</th><th>Notatka kierowcy</th><th style="width:80px"></th>
             </tr></thead>
             <tbody>
             @foreach($weighings as $w)
@@ -62,8 +62,8 @@
                 </td>
                 <td class="cell-client">{{ $w->client?->short_name ?? '–' }}</td>
                 <td>
-                    @if($w->plate1)<span class="nr-rej">{{ $w->plate1 }}</span>@endif
-                    @if($w->plate2) <span class="nr-rej">{{ $w->plate2 }}</span>@endif
+                    @if($w->plate1)<span class="nr-rej" style="font-size:10px;padding:1px 4px">{{ $w->plate1 }}</span>@endif
+                    @if($w->plate2) <span class="nr-rej" style="font-size:10px;padding:1px 4px">{{ $w->plate2 }}</span>@endif
                 </td>
                 <td><span class="w-val">{{ $w->weight1 ? number_format($w->weight1,3,',','') : '–' }}</span></td>
                 <td><span class="w-val">{{ $w->weight2 ? number_format($w->weight2,3,',','') : '–' }}</span></td>
@@ -73,7 +73,14 @@
                     @else<span style="color:#ccc">–</span>@endif
                 </td>
                 <td style="font-size:12px;color:#888">{{ $w->goods ?? '–' }}</td>
-                <td style="font-size:12px;color:#aaa">{{ Str::limit($w->notes,40) }}</td>
+                <td style="font-size:12px;color:#aaa;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+                    @if($w->notes) title="{{ $w->notes }}" @endif>
+                    {{ $w->notes ?? '–' }}
+                </td>
+                <td style="font-size:12px;color:#888;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+                    @if($w->order?->driver_notes) title="{{ str_replace(['<br>', '<br/>', '<br />'], "\n", $w->order->driver_notes) }}" @endif>
+                    {{ str_replace(['<br>', '<br/>', '<br />'], ' ', $w->order?->driver_notes) ?? '–' }}
+                </td>
                 <td>
                     <button class="btn-unarch" onclick="unarchive({{ $w->id }})" title="Przywróć">
                         <i class="fas fa-undo"></i> Przywróć

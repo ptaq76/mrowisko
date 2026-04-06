@@ -30,3 +30,15 @@ window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 //     forceTLS: (import.meta.env.VITE_PUSHER_SCHEME ?? 'https') === 'https',
 //     enabledTransports: ['ws', 'wss'],
 // });
+window.axios.interceptors.response.use(
+    response => response, 
+    error => {
+        // Sprawdzamy, czy błąd to 419 (wygaśnięcie CSRF) lub 401 (brak zalogowania)
+        if (error.response && (error.response.status === 419 || error.response.status === 401)) {
+            // Zamiast pozwolić na "zamrożenie" strony, po prostu ją odświeżamy.
+            // Dzięki zmianom w Handler.php, Laravel przekieruje Cię na /login.
+            window.location.reload();
+        }
+        return Promise.reject(error);
+    }
+);

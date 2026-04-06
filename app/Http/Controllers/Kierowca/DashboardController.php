@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Kierowca;
 use App\Http\Controllers\Controller;
 use App\Models\Driver;
 use App\Models\Order;
+use App\Models\Vehicle;
 use App\Models\VehicleSet;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -43,24 +44,68 @@ class DashboardController extends Controller
         return view('kierowca.dashboard', compact('driver', 'orders', 'date'));
     }
 
-    // Formularz ważenia
-    public function weighForm(Order $order)
-    {
-        $driver = $this->getDriver();
+    // Formularz ważenia - sprawdza czy hakowiec i przekierowuje
+    // Formularz ważenia - sprawdza czy hakowiec i przekierowuje
+public function weighForm(Order $order)
+{
+    $driver = $this->getDriver();
 
-        if (!$driver || $order->driver_id !== $driver->id) {
-            abort(403);
-        }
-
-        // Tara z zestawu przypisanego do zlecenia lub domyślnego zestawu kierowcy
-        $tractorId  = $order->tractor_id ?? $driver->tractor_id;
-        $trailerId  = $order->trailer_id ?? $driver->trailer_id;
-        $vehicleSet = VehicleSet::findForVehicles($tractorId, $trailerId);
-
-        return view('kierowca.weigh', compact('order', 'driver', 'vehicleSet'));
+    if (!$driver || $order->driver_id !== $driver->id) {
+        abort(403);
     }
 
-    // Oblicz i zapisz wagę
+    // ZMIANA: Pobieramy tylko to, co jest przypisane bezpośrednio do zlecenia
+    $tractor = $order->tractor; // Usunięto: ?? $driver->tractor
+    $trailer = $order->trailer; // Usunięto: ?? $driver->trailer
+
+    // Sprawdź czy mamy ciągnik (skoro nie ma domyślnego, musimy sprawdzić czy w ogóle jest)
+    if (!$tractor) {
+        // Opcjonalnie: możesz wyrzucić błąd, jeśli zlecenie nie ma przypisanego auta
+        abort(404, 'Do tego zlecenia nie przypisano pojazdu (samochodu).');
+    }
+
+    // Sprawdź czy hakowiec
+    $tractorIsHakowiec = $tractor && $tractor->subtype === 'hakowiec';
+    
+    // Reszta logiki pozostaje bez zmian...
+    if ($tractorIsHakowiec) {
+        return $this->weighFormHakowiec($order, $driver, $tractor, $trailer);
+    }
+
+    $tractorId  = $tractor?->id;
+    $trailerId  = $trailer?->id;
+    $vehicleSet = VehicleSet::findForVehicles($tractorId, $trailerId);
+
+    return view('kierowca.weigh', compact('order', 'driver', 'vehicleSet'));
+}
+
+    // Formularz ważenia dla hakowca
+    private function weighFormHakowiec(Order $order, Driver $driver, Vehicle $tractor, ?Vehicle $trailer)
+    {
+        // Pobierz zestawy dla samochodu (gdzie label zaczyna się od numeru rej.)
+        $tractorPlate = $tractor->plate;
+        $tractorSets = VehicleSet::where('is_active', true)
+            ->where('label', 'LIKE', $tractorPlate . '%')
+            ->orderBy('label')
+            ->get();
+
+        // Pobierz zestawy dla naczepy (jeśli jest)
+        $trailerSets = collect();
+        if ($trailer) {
+            $trailerPlate = $trailer->plate;
+            $trailerSets = VehicleSet::where('is_active', true)
+                ->where('label', 'LIKE', $trailerPlate . '%')
+                ->orderBy('label')
+                ->get();
+        }
+
+        return view('kierowca.weigh_hakowiec', compact(
+            'order', 'driver', 'tractor', 'trailer',
+            'tractorSets', 'trailerSets'
+        ));
+    }
+
+    // Oblicz i zapisz wagę (standardowe)
     public function weighSave(Request $request, Order $order)
     {
         $driver = $this->getDriver();
@@ -92,7 +137,7 @@ class DashboardController extends Controller
         ]);
     }
 
-    // Potwierdź i zapisz do bazy
+    // Potwierdź i zapisz do bazy (standardowe)
     public function weighConfirm(Request $request, Order $order)
     {
         $driver = $this->getDriver();
@@ -117,6 +162,73 @@ class DashboardController extends Controller
             'success' => true,
             'message' => 'Waga zapisana. Status zmieniony na: Zważone.',
             'netto'   => $request->weight_netto,
+        ]);
+    }
+
+    // Potwierdź i zapisz do bazy (hakowiec)
+    public function weighConfirmHakowiec(Request $request, Order $order)
+    {
+        $driver = $this->getDriver();
+
+        if (!$driver || $order->driver_id !== $driver->id) {
+            return response()->json(['success' => false, 'message' => 'Brak dostępu.'], 403);
+        }
+
+        $request->validate([
+            'tractor_set_id'    => ['required', 'exists:vehicle_sets,id'],
+            'tractor_brutto'    => ['required', 'numeric', 'min:0.001'],
+            'trailer_set_id'    => ['nullable', 'exists:vehicle_sets,id'],
+            'trailer_brutto'    => ['nullable', 'numeric', 'min:0.001'],
+        ]);
+
+        // Samochód
+        $tractorSet = VehicleSet::findOrFail($request->tractor_set_id);
+        $tractorBrutto = (float) $request->tractor_brutto;
+        $tractorTare = (float) $tractorSet->tare_kg;
+        $tractorNetto = round($tractorBrutto - $tractorTare, 3);
+
+        // Naczepa (opcjonalna)
+        $trailerNetto = 0;
+        $trailerBrutto = 0;
+        $trailerTare = 0;
+        $trailerSet = null;
+
+        if ($request->filled('trailer_set_id') && $request->filled('trailer_brutto')) {
+            $trailerSet = VehicleSet::findOrFail($request->trailer_set_id);
+            $trailerBrutto = (float) $request->trailer_brutto;
+            $trailerTare = (float) $trailerSet->tare_kg;
+            $trailerNetto = round($trailerBrutto - $trailerTare, 3);
+        }
+
+        // Suma
+        $totalBrutto = $tractorBrutto + $trailerBrutto;
+        $totalNetto = $tractorNetto + $trailerNetto;
+
+        // Uwagi kierowcy
+        $driverNotes = sprintf(
+            "%.3f t - %.3f t = %.3f t (%s)",
+            $tractorBrutto, $tractorTare, $tractorNetto, $tractorSet->label
+        );
+
+        if ($trailerSet) {
+            $driverNotes .= "\n" . sprintf(
+                "%.3f t - %.3f t = %.3f t (%s)",
+                $trailerBrutto, $trailerTare, $trailerNetto, $trailerSet->label
+            );
+        }
+
+        $order->update([
+            'weight_brutto' => $totalBrutto,
+            'weight_netto'  => $totalNetto,
+            'driver_notes'  => $driverNotes,
+            'status'        => 'weighed',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Waga zapisana. Status zmieniony na: Zważone.',
+            'netto'   => $totalNetto,
+            'driver_notes' => $driverNotes,
         ]);
     }
 

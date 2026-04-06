@@ -205,11 +205,10 @@
 
         {{-- Nr rejestracyjne --}}
         <div class="plates-row">
-            <span class="nr-rej">{{ $order->tractor?->plate ?? $driver->tractor?->plate ?? '–' }}</span>
-            @php $trailer = $order->trailer ?? $driver->trailer; @endphp
-            @if($trailer)
+            <span class="nr-rej">{{ $order->tractor?->plate ?? '–' }}</span>
+            @if($order->trailer)
                 <span style="font-size:18px;font-weight:300;color:#aaa">/</span>
-                <span class="nr-rej">{{ $trailer->plate }}</span>
+                <span class="nr-rej">{{ $order->trailer->plate }}</span>
             @endif
         </div>
 

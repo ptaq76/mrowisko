@@ -118,7 +118,7 @@ async function loadOrderData(id) {
     }
 
     checkIfDE(order.client_id);
-    setFavDefaults(order.driver_id);
+    // NIE ustawiaj automatycznie pojazdów - tylko przez gwiazdkę
 }
 
 // ── Budowanie selectów ────────────────────────────────────────
@@ -266,14 +266,6 @@ function setStart(which) {
     if (!_modalData) return;
     const id = which === 'leipa' ? _modalData.leipa : _modalData.ewrant;
     if (id) document.getElementById('order_start').value = id;
-}
-
-function setFavDefaults(driverId) {
-    if (!_modalData || !driverId) return;
-    const dr = _modalData.drivers.find(d => d.id == driverId);
-    if (!dr) return;
-    if (dr.tractor_id) document.getElementById('order_tractor').value = dr.tractor_id;
-    if (dr.trailer_id) document.getElementById('order_trailer').value = dr.trailer_id;
 }
 
 function setFavTractor() {

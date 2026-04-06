@@ -175,7 +175,7 @@
                 <thead><tr>
                     <th>Data</th><th>Klient</th><th>Pojazdy</th>
                     <th>Brutto</th><th>Tara</th><th>Netto</th>
-                    <th>Kierowca</th>
+                    <th>Kierowca</th><th>Notatka kierowcy</th>
                 </tr></thead>
                 <tbody>
                 @foreach($driver as $o)
@@ -189,14 +189,18 @@
                         <span style="color:{{ $o->type==='sale'?'#f39c12':'#27ae60' }};margin-right:4px">{{ $o->type==='sale'?'↑':'↓' }}</span>
                         {{ $o->client?->short_name ?? '–' }}
                     </td>
-                    <td class="plates">
-                        @if($o->tractor)<span class="nr-rej">{{ $o->tractor->plate }}</span>@endif
-                        @if($o->trailer) <span class="nr-rej">{{ $o->trailer->plate }}</span>@endif
+                    <td class="plates" style="white-space:nowrap">
+                        @if($o->tractor)<span class="nr-rej" style="font-size:10px;padding:1px 4px">{{ $o->tractor->plate }}</span>@endif
+                        @if($o->trailer) <span class="nr-rej" style="font-size:10px;padding:1px 4px">{{ $o->trailer->plate }}</span>@endif
                     </td>
                     <td><span class="w-val">{{ $o->weight_brutto ? number_format($o->weight_brutto,3,',','') : '–' }}</span></td>
                     <td><span class="w-val" style="color:#888">{{ $tare ? number_format($tare,3,',','') : '–' }}</span></td>
                     <td><span class="w-result">{{ number_format($o->weight_netto,3,',','') }}</span></td>
                     <td style="font-size:13px;color:#555">{{ $o->driver?->name ?? '–' }}</td>
+                    <td style="font-size:12px;color:#888;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
+                        @if($o->driver_notes) title="{{ str_replace(['<br>', '<br/>', '<br />'], "\n", $o->driver_notes) }}" @endif>
+                        {{ str_replace(['<br>', '<br/>', '<br />'], ' ', $o->driver_notes) ?? '–' }}
+                    </td>
                 </tr>
                 @endforeach
                 </tbody>

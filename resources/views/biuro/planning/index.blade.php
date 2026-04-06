@@ -508,10 +508,9 @@
                         </div>
                         <div class="order-client">{{ $order->client?->short_name ?? '?' }}</div>
                         <div class="mt-1">
-                            <span class="nr_rej" style="font-size:13px">{{ $order->tractor?->plate ?? $driver?->tractor?->plate ?? '–' }}</span>
-                            @php $trailer = $order->trailer ?? $driver?->trailer; @endphp
-                            @if($trailer)
-                                / <span class="nr_rej" style="font-size:13px">{{ $trailer->plate }}</span>
+                            <span class="nr_rej" style="font-size:13px">{{ $order->tractor?->plate ?? '–' }}</span>
+                            @if($order->trailer)
+                                / <span class="nr_rej" style="font-size:13px">{{ $order->trailer->plate }}</span>
                             @endif
                         </div>
                         @if($order->startClient)
