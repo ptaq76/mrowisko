@@ -19,7 +19,7 @@ class DriverSeeder extends Seeder
         $drivers = [
             [
                 'id'        => 1,
-                'user_id'   => 10,  // Sebastian (login: Seba)
+                'user_id'   => 9,  // Sebastian (login: Seba)
                 'name'      => 'Sebastian',
                 'full_name' => 'Sebastian Pawłowski',
                 'color'     => '#987654',
@@ -29,7 +29,7 @@ class DriverSeeder extends Seeder
             ],
             [
                 'id'        => 2,
-                'user_id'   => 11,  // Łukasz
+                'user_id'   => 10,  // Łukasz
                 'name'      => 'Łukasz',
                 'full_name' => 'Łukasz Piątek',
                 'color'     => '#5F9EA0',
@@ -39,7 +39,7 @@ class DriverSeeder extends Seeder
             ],
             [
                 'id'        => 3,
-                'user_id'   => 12,  // Vasyl
+                'user_id'   => 11,  // Vasyl
                 'name'      => 'Vasyl',
                 'full_name' => 'Vasyl Glushko',
                 'color'     => '#0fc0fc',
@@ -49,7 +49,7 @@ class DriverSeeder extends Seeder
             ],
             [
                 'id'        => 4,
-                'user_id'   => 13,  // Karol (Recykler)
+                'user_id'   => 12,  // Karol (Recykler)
                 'name'      => 'Recykler',
                 'full_name' => 'Kierowca Recykler',
                 'color'     => '#EC6A77',
@@ -59,7 +59,7 @@ class DriverSeeder extends Seeder
             ],
             [
                 'id'        => 5,
-                'user_id'   => 14,  // Tomek (hakowiec)
+                'user_id'   => 13,  // Tomek (hakowiec)
                 'name'      => 'Tomek',
                 'full_name' => 'Tomasz Wytrwa',
                 'color'     => '#E8F48C',
@@ -69,7 +69,7 @@ class DriverSeeder extends Seeder
             ],
             [
                 'id'        => 6,
-                'user_id'   => 8,   // Tadek (plac)
+                'user_id'   => 7,   // Tadek (plac)
                 'name'      => 'Tadeusz',
                 'full_name' => 'Tadeusz Miaczkowski',
                 'color'     => '#44e60a',

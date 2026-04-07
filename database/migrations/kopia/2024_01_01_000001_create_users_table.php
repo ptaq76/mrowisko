@@ -13,7 +13,14 @@ return new class extends Migration
             $table->string('name');
             $table->string('login')->unique();
             $table->string('password');
-            $table->enum('module', ['admin', 'biuro', 'kierowca', 'plac', 'hakowiec', 'handlowiec', 'karchem']);
+            $table->enum('module', [
+                'admin',
+                'biuro',
+                'kierowca',
+                'hakowiec',
+                'plac',
+                'handlowiec',
+            ]);
             $table->rememberToken();
             $table->timestamps();
         });

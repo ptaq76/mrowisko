@@ -15,13 +15,12 @@ class DashboardController extends Controller
     private function getDriver(): ?Driver
     {
         $authUser = auth()->user();
-        dd($authUser);
-        return Driver::where('user_id', $authUser->id)->first();
+            return Driver::where('user_id', $authUser->id)->first();
     }
 
     public function index(Request $request)
     {
-dd($request);
+
         $date = $request->filled('data')
             ? Carbon::parse($request->input('data'))->startOfDay()
             : Carbon::today();
