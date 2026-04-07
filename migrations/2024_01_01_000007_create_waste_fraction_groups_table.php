@@ -8,15 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->decimal('weight_receiver', 8, 3)->nullable()->after('weight_netto');
+        // Tabela grup frakcji
+        Schema::create('waste_fraction_groups', function (Blueprint $table) {
+            $table->id();
+            $table->string('name')->unique();
+            $table->timestamps();
         });
     }
 
     public function down(): void
     {
-        Schema::table('orders', function (Blueprint $table) {
-            $table->dropColumn('weight_receiver');
-        });
+        Schema::dropIfExists('waste_fraction_groups');
     }
 };

@@ -8,19 +8,16 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Tabela grup frakcji
-        Schema::create('waste_fraction_groups', function (Blueprint $table) {
+        Schema::create('annex7_recovery_operations', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
+            $table->string('code', 10)->unique();
+            $table->text('description');
             $table->timestamps();
         });
-
-       
     }
 
     public function down(): void
     {
-
-        Schema::dropIfExists('waste_fraction_groups');
+        Schema::dropIfExists('annex7_recovery_operations');
     }
 };

@@ -15,16 +15,19 @@ class DashboardController extends Controller
     private function getDriver(): ?Driver
     {
         $authUser = auth()->user();
+        dd($authUser);
         return Driver::where('user_id', $authUser->id)->first();
     }
 
     public function index(Request $request)
     {
+dd($request);
         $date = $request->filled('data')
             ? Carbon::parse($request->input('data'))->startOfDay()
             : Carbon::today();
 
-        $driver = $this->getDriver();
+        $driver = $this->getDriver(); 
+        
 
         if (!$driver) {
             abort(403, 'Brak przypisanego kierowcy dla tego konta.');

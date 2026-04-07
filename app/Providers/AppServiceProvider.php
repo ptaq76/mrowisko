@@ -7,6 +7,8 @@ use App\Services\ImapReklamacjeService;
 use App\Services\PdfParserService;
 use Illuminate\Support\ServiceProvider;
 use Carbon\Carbon;
+// 1. DODAJEMY TEN IMPORT:
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-         Carbon::setLocale('pl');
+        Carbon::setLocale('pl');
+
+        // 2. DODAJEMY TĘ LINIĘ (ustawia limit znaków dla kluczy indeksów):
+        Schema::defaultStringLength(191);
     }
 }
