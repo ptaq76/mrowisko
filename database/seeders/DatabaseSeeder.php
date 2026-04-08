@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             WasteFractionSeeder::class,
             ImporterSeeder::class,
             LsGoodsSeeder::class,
+            LsSeeder::class,
             
             
             // Szybkie przyciski do zleceń

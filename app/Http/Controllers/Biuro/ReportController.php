@@ -27,7 +27,7 @@ class ReportController extends Controller
                   ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
                   ->where('warehouse_items.origin', 'loading');
             });
-
+           
         if ($request->filled('client_id')) {
             $query->where('client_id', $request->client_id);
         }

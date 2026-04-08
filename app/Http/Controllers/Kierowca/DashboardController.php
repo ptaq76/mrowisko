@@ -46,7 +46,7 @@ class DashboardController extends Controller
         return view('kierowca.dashboard', compact('driver', 'orders', 'date'));
     }
 
-    // Formularz ważenia - sprawdza czy hakowiec i przekierowuje
+
     // Formularz ważenia - sprawdza czy hakowiec i przekierowuje
 public function weighForm(Order $order)
 {

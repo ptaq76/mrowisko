@@ -1,0 +1,47 @@
+Statusy w orders.status
+planned
+Kto ustawia: OrderController::store() – biuro tworzy zlecenie.
+Skąd: zawsze domyślny przy tworzeniu nowego zlecenia.
+Może też wrócić do planned przy cofnięciu wagi (ReportController) gdy nie ma załadunku.
+
+loaded
+Kto ustawia: DashboardController::closeLoading() – moduł Plac.
+Skąd: pracownik placu klika "zamknij załadunek" po dodaniu wszystkich pozycji. Jednocześnie pozycje z loading_items są odejmowane z warehouse_items.
+Może też wrócić z weighed do loaded przy cofnięciu wagi w raporcie biura.
+
+weighed
+Kto ustawia: trzy miejsca:
+
+Kierowca/DashboardController::weighSave() – kierowca wpisuje wagę brutto
+Biuro/WeighingController – biuro wpisuje wagę ręcznie
+Biuro/ReportController – przy dodaniu/edycji wagi w raporcie załadunków
+
+Skąd: pojawia się gdy zlecenie ma wagę wpisaną przez kierowcę lub biuro.
+
+delivered
+Kto ustawia: DeliveryController::close() – moduł Plac.
+Skąd: pracownik placu zamyka dostawę (typ pickup). Pozycje z loading_items są dodawane do warehouse_items z origin = 'delivery'.
+
+closed
+Kto ustawia: dwa miejsca:
+
+Biuro/OrderController::setStatus() – biuro ręcznie zamyka zlecenie przez przycisk statusu w planowaniu
+Kierowca/DashboardController::weighConfirm() – dla zlecenia typu sale kierowca potwierdza wagę u odbiorcy → status od razu closed
+
+
+Statusy obecne w kodzie ale nieużywane aktywnie:
+
+loading – przewidziany dla stanu "w trakcie załadunku na placu", ale plac używa faktycznie planned→loaded bez pośredniego kroku
+in_progress, classified – zaplanowane dla starego modelu statusów kierowcy, nie są już ustawiane
+
+
+Przepływ statusów
+ZAŁADUNEK (sale):
+planned → loaded (plac: closeLoading)
+        → weighed (kierowca/biuro: waga)
+        → closed (biuro: ręcznie lub kierowca: weighConfirm)
+
+DOSTAWA (pickup):
+planned → delivered (plac: closeDelivery)
+        → weighed (biuro/kierowca: waga)
+        → closed (biuro: ręcznie)
