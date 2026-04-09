@@ -14,6 +14,9 @@ class ReportController extends Controller
 {
     public function loadings(Request $request)
     {
+        $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subMonths(3)->startOfMonth()->format('Y-m-d');
+        $dateTo   = $request->filled('date_to')   ? $request->date_to   : now()->format('Y-m-d');
+
         $query = Order::with([
             'client', 'tractor', 'trailer', 'driver',
             'loadingItems.fraction',
@@ -26,8 +29,10 @@ class ReportController extends Controller
                   ->from('warehouse_items')
                   ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
                   ->where('warehouse_items.origin', 'loading');
-            });
-           
+            })
+            ->whereDate('planned_date', '>=', $dateFrom)
+            ->whereDate('planned_date', '<=', $dateTo);
+
         if ($request->filled('client_id')) {
             $query->where('client_id', $request->client_id);
         }
@@ -38,30 +43,23 @@ class ReportController extends Controller
             });
         }
 
-        if ($request->filled('date_from')) {
-            $query->whereDate('planned_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('planned_date', '<=', $request->date_to);
-        }
-
         $orders = $query->orderByDesc('planned_date')->get();
 
         $clients = Client::whereHas('orders', function ($q) {
-            $q->where('type', 'sale')
-            ->whereExists(function ($q2) {
-                $q2->select(\DB::raw(1))
-                    ->from('warehouse_items')
-                    ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
-                    ->where('warehouse_items.origin', 'loading');
-            });
-        })
-        ->orderBy('short_name')
-        ->get();
+                $q->where('type', 'sale')
+                  ->whereExists(function ($q2) {
+                      $q2->select(\DB::raw(1))
+                         ->from('warehouse_items')
+                         ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
+                         ->where('warehouse_items.origin', 'loading');
+                  });
+            })
+            ->orderBy('short_name')
+            ->get();
 
         $fractions = WasteFraction::where('allows_belka', true)
             ->where('is_active', true)
+            ->where('name', 'not like', '%KARCHEM%')
             ->orderBy('name')
             ->get();
 
@@ -70,21 +68,49 @@ class ReportController extends Controller
 
     public function loadingsArchived(Request $request)
     {
+        $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subMonths(3)->startOfMonth()->format('Y-m-d');
+        $dateTo   = $request->filled('date_to')   ? $request->date_to   : now()->format('Y-m-d');
+
         $query = Order::with([
             'client', 'tractor', 'trailer', 'driver',
             'loadingItems.fraction',
         ])
             ->where('type', 'sale')
-            ->where('is_archived', true);
+            ->where('is_archived', true)
+            ->whereDate('planned_date', '>=', $dateFrom)
+            ->whereDate('planned_date', '<=', $dateTo);
 
         if ($request->filled('client_id')) {
             $query->where('client_id', $request->client_id);
         }
 
-        $orders = $query->orderByDesc('planned_date')->get();
-        $clients = Client::orderBy('short_name')->get();
+        if ($request->filled('fraction_id')) {
+            $query->whereHas('loadingItems', function ($q) use ($request) {
+                $q->where('fraction_id', $request->fraction_id);
+            });
+        }
 
-        return view('biuro.reports.loadings_archived', compact('orders', 'clients'));
+        $orders = $query->orderByDesc('planned_date')->get();
+
+        $clients = Client::whereHas('orders', function ($q) {
+                $q->where('type', 'sale')
+                  ->whereExists(function ($q2) {
+                      $q2->select(\DB::raw(1))
+                         ->from('warehouse_items')
+                         ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
+                         ->where('warehouse_items.origin', 'loading');
+                  });
+            })
+            ->orderBy('short_name')
+            ->get();
+
+        $fractions = WasteFraction::where('allows_belka', true)
+            ->where('is_active', true)
+            ->where('name', 'not like', '%KARCHEM%')
+            ->orderBy('name')
+            ->get();
+
+        return view('biuro.reports.loadings_archived', compact('orders', 'clients', 'fractions', 'dateFrom', 'dateTo'));
     }
 
     public function archive(Order $order)
@@ -96,17 +122,13 @@ class ReportController extends Controller
     public function revert(Order $order)
     {
         \DB::transaction(function () use ($order) {
-            // Usuń wpisy magazynowe z tego załadunku
             \App\Models\WarehouseItem::where('origin', 'loading')
                 ->where('origin_order_id', $order->id)
                 ->delete();
 
-            // Ustaw właściwy status po cofnięciu załadunku
             if ($order->weight_netto) {
-                // Waga już była podana – wróć do weighed
                 $order->update(['status' => 'weighed']);
             } else {
-                // Wagi nie było – wróć do planned
                 $order->update(['status' => 'planned']);
             }
         });
@@ -119,17 +141,19 @@ class ReportController extends Controller
         $order->update(['is_archived' => false]);
         return response()->json(['success' => true]);
     }
+
     public function weighings(Request $request)
     {
         $query = Order::with(['client', 'tractor', 'trailer', 'driver'])
             ->whereNotNull('weight_netto')
-            ->select('orders.*'); // weight_receiver jest już kolumną na orders
+            ->select('orders.*');
 
         $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subDays(7)->format('Y-m-d');
         $dateTo   = $request->filled('date_to')   ? $request->date_to   : now()->format('Y-m-d');
 
         $query->whereDate('planned_date', '>=', $dateFrom)
               ->whereDate('planned_date', '<=', $dateTo);
+
         if ($request->filled('driver_id')) {
             $query->where('driver_id', $request->driver_id);
         }
@@ -151,13 +175,10 @@ class ReportController extends Controller
 
     public function revertWeighing(Order $order)
     {
-        // Cofnij status – zachowaj wagi w bazie
-        // Jeśli waga była podana – wróć do weighed, inaczej do planned
         $hasLoading = \App\Models\WarehouseItem::where('origin_order_id', $order->id)
             ->where('origin', 'loading')->exists();
 
         if ($order->weight_netto) {
-            // Waga była podana – status weighed niezależnie od załadunku
             $order->update(['status' => 'weighed']);
         } else {
             $order->update(['status' => $hasLoading ? 'loaded' : 'planned']);
@@ -168,7 +189,6 @@ class ReportController extends Controller
 
     public function deleteWeighing(Order $order)
     {
-        // Usuń wagi i cofnij status
         $hasLoading = \App\Models\WarehouseItem::where('origin_order_id', $order->id)
             ->where('origin', 'loading')->exists();
         $order->update([
@@ -179,9 +199,10 @@ class ReportController extends Controller
 
         return response()->json(['success' => true]);
     }
+
     public function deliveries(Request $request)
     {
-        $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subDays(30)->format('Y-m-d');
+        $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subMonths(3)->startOfMonth()->format('Y-m-d');
         $dateTo   = $request->filled('date_to')   ? $request->date_to   : now()->format('Y-m-d');
 
         $query = Order::with(['client', 'tractor', 'trailer', 'driver', 'loadingItems.fraction'])
@@ -207,9 +228,24 @@ class ReportController extends Controller
             });
         }
 
-        $orders    = $query->orderByDesc('planned_date')->get();
-        $clients   = Client::orderBy('short_name')->get();
-        $fractions = WasteFraction::where('is_active', true)->orderBy('name')->get();
+        $orders = $query->orderByDesc('planned_date')->get();
+
+        $clients = Client::whereHas('orders', function ($q) {
+                $q->where('type', 'pickup')
+                  ->whereExists(function ($q2) {
+                      $q2->select(\DB::raw(1))
+                         ->from('warehouse_items')
+                         ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
+                         ->where('warehouse_items.origin', 'delivery');
+                  });
+            })
+            ->orderBy('short_name')
+            ->get();
+
+        $fractions = WasteFraction::where('is_active', true)
+            ->where('name', 'not like', '%KARCHEM%')
+            ->orderBy('name')
+            ->get();
 
         return view('biuro.reports.deliveries', compact('orders', 'clients', 'fractions'));
     }
@@ -222,18 +258,45 @@ class ReportController extends Controller
 
     public function deliveriesArchived(Request $request)
     {
+        $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subMonths(3)->startOfMonth()->format('Y-m-d');
+        $dateTo   = $request->filled('date_to')   ? $request->date_to   : now()->format('Y-m-d');
+
         $query = Order::with(['client', 'tractor', 'trailer', 'driver', 'loadingItems.fraction'])
             ->where('type', 'pickup')
-            ->where('is_archived', true);
+            ->where('is_archived', true)
+            ->whereDate('planned_date', '>=', $dateFrom)
+            ->whereDate('planned_date', '<=', $dateTo);
 
         if ($request->filled('client_id')) {
             $query->where('client_id', $request->client_id);
         }
 
-        $orders  = $query->orderByDesc('planned_date')->get();
-        $clients = Client::orderBy('short_name')->get();
+        if ($request->filled('fraction_id')) {
+            $query->whereHas('loadingItems', function ($q) use ($request) {
+                $q->where('fraction_id', $request->fraction_id);
+            });
+        }
 
-        return view('biuro.reports.deliveries_archived', compact('orders', 'clients'));
+        $orders = $query->orderByDesc('planned_date')->get();
+
+        $clients = Client::whereHas('orders', function ($q) {
+                $q->where('type', 'pickup')
+                  ->whereExists(function ($q2) {
+                      $q2->select(\DB::raw(1))
+                         ->from('warehouse_items')
+                         ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
+                         ->where('warehouse_items.origin', 'delivery');
+                  });
+            })
+            ->orderBy('short_name')
+            ->get();
+
+        $fractions = WasteFraction::where('is_active', true)
+            ->where('name', 'not like', '%KARCHEM%')
+            ->orderBy('name')
+            ->get();
+
+        return view('biuro.reports.deliveries_archived', compact('orders', 'clients', 'fractions', 'dateFrom', 'dateTo'));
     }
 
     public function unarchiveDelivery(Order $order)
@@ -245,12 +308,10 @@ class ReportController extends Controller
     public function revertDelivery(Order $order)
     {
         \DB::transaction(function () use ($order) {
-            // Usuń wpisy magazynowe z tej dostawy
             \App\Models\WarehouseItem::where('origin', 'delivery')
                 ->where('origin_order_id', $order->id)
                 ->delete();
 
-            // Cofnij status do weighed (waga była podana)
             $order->update(['status' => $order->weight_netto ? 'weighed' : 'planned']);
         });
 

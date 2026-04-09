@@ -14,33 +14,29 @@ class WasteCodeController extends Controller
         return view('biuro.waste_codes.index', compact('codes'));
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'code'        => ['required', 'string', 'max:20', 'unique:waste_codes,code'],
-            'description' => ['required', 'string', 'max:255'],
-        ], [
-            'code.unique'        => 'Ten kod odpadu już istnieje.',
-            'code.required'      => 'Podaj kod odpadu.',
-            'description.required'=> 'Podaj opis.',
-        ]);
+public function store(Request $request)
+{
+    $request->validate([
+        'code' => ['required', 'string', 'max:20', 'unique:waste_codes,code'],
+    ], [
+        'code.unique'   => 'Ten kod odpadu już istnieje.',
+        'code.required' => 'Podaj kod odpadu.',
+    ]);
 
-        WasteCode::create($request->only('code', 'description'));
+    WasteCode::create($request->only('code'));
+    return response()->json(['success' => true]);
+}
 
-        return response()->json(['success' => true]);
-    }
 
     public function update(Request $request, WasteCode $wasteCode)
-    {
-        $request->validate([
-            'code'        => ['required', 'string', 'max:20', "unique:waste_codes,code,{$wasteCode->id}"],
-            'description' => ['required', 'string', 'max:255'],
-        ]);
+{
+    $request->validate([
+        'code' => ['required', 'string', 'max:20', "unique:waste_codes,code,{$wasteCode->id}"],
+    ]);
 
-        $wasteCode->update($request->only('code', 'description', 'is_active'));
-
-        return response()->json(['success' => true]);
-    }
+    $wasteCode->update($request->only('code'));
+    return response()->json(['success' => true]);
+}
 
     public function destroy(WasteCode $wasteCode)
     {

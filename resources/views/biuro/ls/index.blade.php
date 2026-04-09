@@ -93,7 +93,7 @@
 </div>
 
 {{-- Tabela --}}
-<div class="card">
+<div class="card" style="width:75%;margin:0 auto">
     <div class="table-responsive">
         <table class="ls-table">
             <thead>

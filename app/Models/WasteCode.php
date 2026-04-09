@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class WasteCode extends Model
 {
-    protected $fillable = ['code', 'description', 'is_active'];
+    protected $fillable = ['code', 'is_active'];
 
     protected $casts = ['is_active' => 'boolean'];
 

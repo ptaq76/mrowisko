@@ -5,11 +5,16 @@
 
 @section('styles')
 <style>
-.wrap { padding:20px;max-width:1000px; }
-.page-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px; }
+.wrap { padding:20px; }
 .page-title { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#1a1a1a; }
+
+.layout-cols { display:flex;gap:24px;align-items:flex-start; }
+.col-main { width:60%;min-width:0; }
+.col-side { flex:1;min-width:220px; }
+
+.page-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px; }
 .btn-add { padding:9px 18px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px; }
-.btn-przewoznicy { padding:9px 18px;background:#2980b9;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px; }
+
 .table-wrap { background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden;margin-bottom:20px; }
 table { width:100%;border-collapse:collapse;font-size:13px; }
 thead tr { background:#1a1a1a;color:#fff; }
@@ -23,6 +28,18 @@ tr:hover td { background:#f8f9fa; }
 .td-name { font-size:13px;font-weight:700;color:#1a1a1a;font-family:var(--font-body); }
 .arrow { color:#aaa;margin:0 4px; }
 
+/* Przewoźnicy */
+.side-box { background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);padding:16px; }
+.section-title { font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#1a1a1a;margin-bottom:12px;display:flex;align-items:center;gap:8px; }
+.przewoznik-list { display:flex;flex-direction:column;gap:6px;margin-bottom:14px; }
+.przewoznik-chip { display:flex;align-items:center;justify-content:space-between;background:#f4f5f7;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600; }
+.chip-del { background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:0 2px;line-height:1; }
+.chip-del:hover { color:#e74c3c; }
+.add-przewoznik { display:flex;gap:6px;align-items:center; }
+.add-przewoznik input { flex:1;padding:7px 10px;border:1.5px solid #dde0e5;border-radius:8px;font-size:13px;outline:none; }
+.add-przewoznik input:focus { border-color:#1a1a1a; }
+.btn-add-sm { padding:7px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer; }
+
 /* Modal */
 .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center; }
 .modal-overlay.open { display:flex; }
@@ -34,71 +51,72 @@ tr:hover td { background:#f8f9fa; }
 .modal-footer { display:flex;gap:10px;justify-content:flex-end; }
 .btn-cancel { padding:9px 18px;background:#f4f5f7;color:#555;border:1px solid #dde0e5;border-radius:8px;font-size:13px;cursor:pointer; }
 .btn-save   { padding:9px 18px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer; }
-
-/* Sekcja przewoźników */
-.section-title { font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#1a1a1a;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between; }
-.przewoznik-list { display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px; }
-.przewoznik-chip { display:flex;align-items:center;gap:6px;background:#f4f5f7;border-radius:20px;padding:5px 12px;font-size:13px;font-weight:600; }
-.chip-del { background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;padding:0 2px; }
-.chip-del:hover { color:#e74c3c; }
-.btn-add-sm { padding:5px 12px;background:#1a1a1a;color:#fff;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer; }
 </style>
 @endsection
 
 @section('settings_content')
 <div class="wrap">
 
-    {{-- Przewoźnicy --}}
-    <div class="section-title">
-        <span><i class="fas fa-truck" style="color:#2980b9"></i> Przewoźnicy</span>
-    </div>
-    <div class="przewoznik-list" id="przewoznikList">
-        @foreach($przewoznicy as $p)
-        <div class="przewoznik-chip" id="pc-{{ $p->id }}">
-            <span>{{ $p->nazwa }}</span>
-            <button class="chip-del" onclick="deletePrzewoznik({{ $p->id }})" title="Usuń">×</button>
-        </div>
-        @endforeach
-        <div style="display:flex;gap:6px;align-items:center">
-            <input type="text" id="newPrzewoznik" class="m-input" style="margin:0;width:180px;padding:5px 10px;font-size:13px"
-                   placeholder="Nowy przewoźnik..." onkeydown="if(event.key==='Enter')addPrzewoznik()">
-            <button class="btn-add-sm" onclick="addPrzewoznik()"><i class="fas fa-plus"></i></button>
-        </div>
-    </div>
+    <div class="layout-cols">
 
-    {{-- Koszty transportu --}}
-    <div class="page-header">
-        <div class="page-title"><i class="fas fa-route"></i> Koszty transportu</div>
-        <button class="btn-add" onclick="openAdd()"><i class="fas fa-plus"></i> Dodaj trasę</button>
-    </div>
+        {{-- Lewa: tabela koszty --}}
+        <div class="col-main">
+            <div class="page-header">
+                <div class="page-title"><i class="fas fa-route"></i> Koszty transportu</div>
+                <button class="btn-add" onclick="openAdd()"><i class="fas fa-plus"></i> Dodaj trasę</button>
+            </div>
+            <div class="table-wrap">
+                <table id="kosztTable">
+                    <thead><tr>
+                        <th>Start</th><th></th><th>Stop</th><th>Przewoźnik</th><th>Cena €/t</th><th style="width:80px">Akcje</th>
+                    </tr></thead>
+                    <tbody>
+                    @forelse($koszty as $k)
+                    <tr id="kr-{{ $k->id }}">
+                        <td class="td-name">{{ $k->start?->short_name ?? '–' }}</td>
+                        <td><i class="fas fa-arrow-right arrow"></i></td>
+                        <td class="td-name">{{ $k->stop?->short_name ?? '–' }}</td>
+                        <td>{{ $k->przewoznik?->nazwa ?? '–' }}</td>
+                        <td><span class="cena-badge">{{ number_format($k->cena_eur, 2, ',', ' ') }} €</span></td>
+                        <td>
+                            <button class="btn-edit" onclick="openEdit({{ $k->id }}, {{ $k->start_id }}, {{ $k->stop_id }}, {{ $k->przewoznik_id ?? 'null' }}, {{ $k->cena_eur }})">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button class="btn-del" onclick="del({{ $k->id }})">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="6" class="text-center text-muted py-4">Brak zdefiniowanych tras</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <div class="table-wrap">
-        <table id="kosztTable">
-            <thead><tr>
-                <th>Start</th><th></th><th>Stop</th><th>Przewoźnik</th><th>Cena €/t</th><th style="width:90px">Akcje</th>
-            </tr></thead>
-            <tbody>
-            @forelse($koszty as $k)
-            <tr id="kr-{{ $k->id }}">
-                <td class="td-name">{{ $k->start?->short_name ?? '–' }}</td>
-                <td><i class="fas fa-arrow-right arrow"></i></td>
-                <td class="td-name">{{ $k->stop?->short_name ?? '–' }}</td>
-                <td>{{ $k->przewoznik?->nazwa ?? '–' }}</td>
-                <td><span class="cena-badge">{{ number_format($k->cena_eur, 2, ',', ' ') }} €</span></td>
-                <td>
-                    <button class="btn-edit" onclick="openEdit({{ $k->id }}, {{ $k->start_id }}, {{ $k->stop_id }}, {{ $k->przewoznik_id ?? 'null' }}, {{ $k->cena_eur }})">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                    <button class="btn-del" onclick="del({{ $k->id }})">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
-                </td>
-            </tr>
-            @empty
-            <tr><td colspan="6" class="text-center text-muted py-4">Brak zdefiniowanych tras</td></tr>
-            @endforelse
-            </tbody>
-        </table>
+        {{-- Prawa: przewoźnicy --}}
+        <div class="col-side">
+            <div class="side-box">
+                <div class="section-title">
+                    <i class="fas fa-truck" style="color:#2980b9"></i> Przewoźnicy
+                </div>
+                <div class="przewoznik-list" id="przewoznikList">
+                    @foreach($przewoznicy as $p)
+                    <div class="przewoznik-chip" id="pc-{{ $p->id }}">
+                        <span>{{ $p->nazwa }}</span>
+                        <button class="chip-del" onclick="deletePrzewoznik({{ $p->id }})" title="Usuń">×</button>
+                    </div>
+                    @endforeach
+                </div>
+                <div class="add-przewoznik">
+                    <input type="text" id="newPrzewoznik" placeholder="Nowy przewoźnik..."
+                           onkeydown="if(event.key==='Enter')addPrzewoznik()">
+                    <button class="btn-add-sm" onclick="addPrzewoznik()"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
 
@@ -150,7 +168,6 @@ tr:hover td { background:#f8f9fa; }
 <script>
 const CSRF = '{{ csrf_token() }}';
 
-// Przewoźnicy
 async function addPrzewoznik() {
     const nazwa = document.getElementById('newPrzewoznik').value.trim();
     if (!nazwa) return;
@@ -166,16 +183,13 @@ async function addPrzewoznik() {
         const chip = document.createElement('div');
         chip.className = 'przewoznik-chip'; chip.id = 'pc-' + data.id;
         chip.innerHTML = `<span>${data.nazwa}</span><button class="chip-del" onclick="deletePrzewoznik(${data.id})" title="Usuń">×</button>`;
-        list.insertBefore(chip, list.lastElementChild);
-        // Dodaj do selecta
-        ['przewoznikId'].forEach(id => {
-            const sel = document.getElementById(id);
-            if (sel) {
-                const opt = document.createElement('option');
-                opt.value = data.id; opt.textContent = data.nazwa;
-                sel.appendChild(opt);
-            }
-        });
+        list.appendChild(chip);
+        const sel = document.getElementById('przewoznikId');
+        if (sel) {
+            const opt = document.createElement('option');
+            opt.value = data.id; opt.textContent = data.nazwa;
+            sel.appendChild(opt);
+        }
     }
 }
 
@@ -186,7 +200,6 @@ async function deletePrzewoznik(id) {
     else Swal.fire({ icon: 'error', title: 'Błąd', text: data.error });
 }
 
-// Koszty transportu
 function openAdd() {
     document.getElementById('editId').value = '';
     document.getElementById('startId').value = '';

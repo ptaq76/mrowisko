@@ -5,14 +5,13 @@
 
 @section('styles')
 <style>
-.wrap { padding: 20px; max-width: 800px; }
-.page-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:16px; }
-.page-title { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#1a1a1a; }
-.btn-add { padding:9px 18px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px; }
+.wrap { padding: 20px; }
+.page-title { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#1a1a1a;margin-bottom:12px; }
+.btn-add { padding:8px 14px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap; }
 .btn-add:hover { background:#333; }
-.search-input { padding:8px 12px;border:1.5px solid #dde0e5;border-radius:8px;font-size:13px;outline:none;width:250px;margin-bottom:14px; }
+.search-input { flex:1;padding:8px 12px;border:1.5px solid #dde0e5;border-radius:8px;font-size:13px;outline:none; }
 .search-input:focus { border-color:#1a1a1a; }
-.table-wrap { background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden; }
+.table-wrap { background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden;width:25%; }
 table { width:100%;border-collapse:collapse;font-size:13px; }
 thead tr { background:#1a1a1a;color:#fff; }
 th { padding:10px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;text-align:left; }
@@ -20,9 +19,10 @@ td { padding:10px 14px;border-bottom:1px solid #f0f2f5;vertical-align:middle; }
 tr:last-child td { border-bottom:none; }
 tr:hover td { background:#f8f9fa; }
 .code-badge { font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;background:#1a1a1a;color:#fff;padding:2px 10px;border-radius:6px;letter-spacing:.04em; }
+.actions-cell { display:flex;gap:4px;align-items:center; }
 .btn-edit { background:#eaf4fb;border:1px solid #cce0f5;border-radius:5px;padding:5px 9px;color:#2980b9;cursor:pointer;font-size:12px; }
 .btn-edit:hover { background:#2980b9;color:#fff; }
-.btn-del { background:#fdecea;border:1px solid #f5c6cb;border-radius:5px;padding:5px 9px;color:#e74c3c;cursor:pointer;font-size:12px;margin-left:4px; }
+.btn-del { background:#fdecea;border:1px solid #f5c6cb;border-radius:5px;padding:5px 9px;color:#e74c3c;cursor:pointer;font-size:12px; }
 .btn-del:hover { background:#e74c3c;color:#fff; }
 .inactive { opacity:.45; }
 
@@ -42,34 +42,36 @@ tr:hover td { background:#f8f9fa; }
 
 @section('settings_content')
 <div class="wrap">
-    <div class="page-header">
-        <div class="page-title"><i class="fas fa-recycle"></i> Kody odpadów</div>
-        <button class="btn-add" onclick="openAdd()"><i class="fas fa-plus"></i> Dodaj kod</button>
-    </div>
 
-    <input type="text" class="search-input" placeholder="Szukaj kodu lub opisu..." oninput="filterTable(this.value)">
+    <div class="page-title"><i class="fas fa-recycle"></i> Kody odpadów</div>
+
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;width:25%">
+        <input type="text" class="search-input" placeholder="Szukaj kodu..." oninput="filterTable(this.value)">
+        <button class="btn-add" onclick="openAdd()"><i class="fas fa-plus"></i> Nowy</button>
+    </div>
 
     <div class="table-wrap">
         <table id="codesTable">
             <thead><tr>
-                <th>Kod</th><th>Opis</th><th style="width:100px">Akcje</th>
+                <th>Kod</th><th style="width:80px">Akcje</th>
             </tr></thead>
             <tbody>
             @forelse($codes as $code)
             <tr id="cr-{{ $code->id }}" class="{{ !$code->is_active ? 'inactive' : '' }}">
                 <td><span class="code-badge">{{ $code->code }}</span></td>
-                <td style="font-weight:600">{{ $code->description }}</td>
                 <td>
-                    <button class="btn-edit" onclick="openEdit({{ $code->id }}, '{{ $code->code }}', {{ json_encode($code->description) }})">
-                        <i class="fas fa-pen"></i>
-                    </button>
-                    <button class="btn-del" onclick="deleteCode({{ $code->id }})">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <div class="actions-cell">
+                        <button class="btn-edit" onclick="openEdit({{ $code->id }}, '{{ $code->code }}')">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="btn-del" onclick="deleteCode({{ $code->id }})">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
             @empty
-            <tr><td colspan="3" style="text-align:center;color:#ccc;padding:32px">Brak kodów odpadów</td></tr>
+            <tr><td colspan="2" style="text-align:center;color:#ccc;padding:32px">Brak kodów odpadów</td></tr>
             @endforelse
             </tbody>
         </table>
@@ -85,8 +87,6 @@ tr:hover td { background:#f8f9fa; }
         <input type="hidden" id="editId">
         <label class="m-label">Kod odpadu <span style="color:#e74c3c">*</span></label>
         <input type="text" id="wCode" class="m-input" placeholder="np. 150101" maxlength="20">
-        <label class="m-label">Opis <span style="color:#e74c3c">*</span></label>
-        <input type="text" id="wDesc" class="m-input" placeholder="np. Opakowania z papieru i tektury">
         <div class="modal-footer">
             <button class="btn-cancel" onclick="closeModal()">Anuluj</button>
             <button class="btn-save" onclick="saveCode()"><i class="fas fa-check"></i> Zapisz</button>
@@ -109,18 +109,17 @@ function filterTable(q) {
 function openAdd() {
     document.getElementById('editId').value = '';
     document.getElementById('wCode').value  = '';
-    document.getElementById('wDesc').value  = '';
     document.getElementById('modalTitle').textContent = 'Dodaj kod odpadu';
     document.getElementById('codeModal').classList.add('open');
     document.getElementById('wCode').focus();
 }
 
-function openEdit(id, code, desc) {
+function openEdit(id, code) {
     document.getElementById('editId').value = id;
     document.getElementById('wCode').value  = code;
-    document.getElementById('wDesc').value  = desc;
     document.getElementById('modalTitle').textContent = 'Edytuj kod odpadu';
     document.getElementById('codeModal').classList.add('open');
+    document.getElementById('wCode').focus();
 }
 
 function closeModal() {
@@ -130,9 +129,8 @@ function closeModal() {
 async function saveCode() {
     const id   = document.getElementById('editId').value;
     const code = document.getElementById('wCode').value.trim();
-    const desc = document.getElementById('wDesc').value.trim();
-    if (!code || !desc) {
-        Swal.fire({ icon:'warning', title:'Uzupełnij pola', timer:1500, showConfirmButton:false });
+    if (!code) {
+        Swal.fire({ icon:'warning', title:'Podaj kod odpadu', timer:1500, showConfirmButton:false });
         return;
     }
     const url    = id ? `/biuro/waste-codes/${id}` : '/biuro/waste-codes';
@@ -140,7 +138,7 @@ async function saveCode() {
     const res    = await fetch(url, {
         method,
         headers: { 'X-CSRF-TOKEN': CSRF, 'Content-Type':'application/json', 'Accept':'application/json' },
-        body: JSON.stringify({ code, description: desc }),
+        body: JSON.stringify({ code }),
     });
     const data = await res.json();
     if (data.success) {
@@ -170,7 +168,7 @@ async function deleteCode(id) {
     }
 }
 
-document.getElementById('wCode').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('wDesc').focus(); });
-document.getElementById('wDesc').addEventListener('keydown', e => { if(e.key==='Enter') saveCode(); });
+document.getElementById('wCode').addEventListener('keydown', e => { if(e.key==='Enter') saveCode(); });
+document.getElementById('codeModal').addEventListener('click', closeModal);
 </script>
 @endsection

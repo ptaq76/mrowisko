@@ -119,6 +119,24 @@ Route::prefix('biuro')
         Route::post('reports/deliveries/{order}/archive', [\App\Http\Controllers\Biuro\ReportController::class, 'archiveDelivery'])->name('reports.deliveries.archive');
         Route::get('reports/deliveries/archived', [\App\Http\Controllers\Biuro\ReportController::class, 'deliveriesArchived'])->name('reports.deliveries.archived');
         Route::post('reports/deliveries/{order}/unarchive', [\App\Http\Controllers\Biuro\ReportController::class, 'unarchiveDelivery'])->name('reports.deliveries.unarchive');
+        // Raporty
+        Route::get('reports/loadings', [\App\Http\Controllers\Biuro\ReportController::class, 'loadings'])->name('reports.loadings');
+        Route::get('reports/loadings/archived', [\App\Http\Controllers\Biuro\ReportController::class, 'loadingsArchived'])->name('reports.loadings.archived');
+        Route::post('reports/loadings/{order}/revert', [\App\Http\Controllers\Biuro\ReportController::class, 'revert'])->name('reports.loadings.revert');
+        Route::post('reports/loadings/{order}/archive', [\App\Http\Controllers\Biuro\ReportController::class, 'archive'])->name('reports.loadings.archive');
+        Route::get('reports/deliveries', [\App\Http\Controllers\Biuro\ReportController::class, 'deliveries'])->name('reports.deliveries');
+        Route::post('reports/deliveries/{order}/revert', [\App\Http\Controllers\Biuro\ReportController::class, 'revertDelivery'])->name('reports.deliveries.revert');
+        Route::post('reports/deliveries/{order}/archive', [\App\Http\Controllers\Biuro\ReportController::class, 'archiveDelivery'])->name('reports.deliveries.archive');
+        Route::get('reports/deliveries/archived', [\App\Http\Controllers\Biuro\ReportController::class, 'deliveriesArchived'])->name('reports.deliveries.archived');
+        Route::post('reports/deliveries/{order}/unarchive', [\App\Http\Controllers\Biuro\ReportController::class, 'unarchiveDelivery'])->name('reports.deliveries.unarchive');
+        Route::get('/reports/warehouse', [\App\Http\Controllers\Biuro\WarehouseController::class, 'index'])->name('reports.warehouse');
+        Route::get('/reports/warehouse/{fractionId}/history', [\App\Http\Controllers\Biuro\WarehouseController::class, 'history'])->name('reports.warehouse.history');
+
+        Route::get('reports/weighings', [\App\Http\Controllers\Biuro\ReportController::class, 'weighings'])->name('reports.weighings');
+        Route::post('reports/weighings/{order}/revert', [\App\Http\Controllers\Biuro\ReportController::class, 'revertWeighing'])->name('reports.weighings.revert');
+        Route::post('reports/weighings/{order}/delete', [\App\Http\Controllers\Biuro\ReportController::class, 'deleteWeighing'])->name('reports.weighings.delete');
+
+        Route::post('reports/loadings/{order}/unarchive', [\App\Http\Controllers\Biuro\ReportController::class, 'unarchive'])->name('reports.loadings.unarchive');
 
         Route::get('reports/weighings', [\App\Http\Controllers\Biuro\ReportController::class, 'weighings'])->name('reports.weighings');
         Route::post('reports/weighings/{order}/revert', [\App\Http\Controllers\Biuro\ReportController::class, 'revertWeighing'])->name('reports.weighings.revert');

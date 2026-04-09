@@ -42,6 +42,9 @@
             <i class="fa-solid fa-ship"></i> Wysyłki zagraniczne
         </a></li>
         <li><hr class="dropdown-divider"></li>
+        <li><a href="{{ route('biuro.reports.warehouse') }}" class="dropdown-item {{ request()->routeIs('biuro.reports.warehouse*') ? 'active' : '' }}">
+            <i class="fa-solid fa-warehouse"></i> Magazyn
+        </a></li>
         <li><a class="dropdown-item {{ request()->routeIs('biuro.reports.loadings') ? 'active' : '' }}"
                href="{{ route('biuro.reports.loadings') }}">
             <i class="fa-solid fa-truck-loading"></i> Załadunki
