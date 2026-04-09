@@ -48,7 +48,18 @@ class ReportController extends Controller
 
         $orders = $query->orderByDesc('planned_date')->get();
 
-        $clients   = Client::orderBy('short_name')->get();
+        $clients = Client::whereHas('orders', function ($q) {
+            $q->where('type', 'sale')
+            ->whereExists(function ($q2) {
+                $q2->select(\DB::raw(1))
+                    ->from('warehouse_items')
+                    ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
+                    ->where('warehouse_items.origin', 'loading');
+            });
+        })
+        ->orderBy('short_name')
+        ->get();
+
         $fractions = WasteFraction::where('allows_belka', true)
             ->where('is_active', true)
             ->orderBy('name')

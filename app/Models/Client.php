@@ -85,4 +85,9 @@ class Client extends Model
             default  => 'bg-secondary',
         };
     }
+
+        public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
 }
