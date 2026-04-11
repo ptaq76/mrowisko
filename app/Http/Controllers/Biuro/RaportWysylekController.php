@@ -95,6 +95,7 @@ class RaportWysylekController extends Controller
             'lieferschein.goods',
             'lieferschein.wasteCode',
             'client',
+            'driver', 
             'warehouseLoadingItems',
             'wysylkaCena',
             'wysylkaTransport.przewoznik',
@@ -153,45 +154,59 @@ class RaportWysylekController extends Controller
     }
 
     private function dopasujKosztyTransportu($wysylki): void
-    {
-        foreach ($wysylki as $w) {
-            // Pomiń jeśli już ma ręcznie wpisany koszt
-            if ($w->wysylkaTransport && $w->wysylkaTransport->recznie) {
-                continue;
-            }
+{
+    foreach ($wysylki as $w) {
+        // Pomiń jeśli już ma ręcznie wpisany koszt
+        if ($w->wysylkaTransport && $w->wysylkaTransport->recznie) {
+            continue;
+        }
 
-            // Szukaj dopasowania: start = start_client z zlecenia, stop = klient LS
-            $startId = $w->start_client_id;
-            $stopId  = $w->client_id;
+        $startId = $w->start_client_id;
+        $stopId  = $w->client_id;
 
-            if (!$startId || !$stopId) continue;
+        if (!$startId || !$stopId) continue;
 
-            $koszt = KosztTransportu::where('start_id', $startId)
-                ->where('stop_id', $stopId)
-                ->where('is_active', true)
+        // Firma kierowcy – szukamy przewoźnika o tej samej nazwie
+        $firmaKierowcy = $w->driver?->firma;
+
+        $query = KosztTransportu::where('start_id', $startId)
+            ->where('stop_id', $stopId)
+            ->where('is_active', true);
+
+        // Jeśli kierowca ma firmę – spróbuj dopasować przez przewoźnika
+        if ($firmaKierowcy) {
+            $koszt = (clone $query)
+                ->whereHas('przewoznik', fn($q) => $q->where('nazwa', $firmaKierowcy))
                 ->first();
 
-            if (!$koszt) continue;
-
-            // Zapisz automatycznie jeśli nie istnieje lub różni się
-            $existing = $w->wysylkaTransport;
-            if (!$existing) {
-                WysylkaTransport::create([
-                    'order_id'      => $w->id,
-                    'przewoznik_id' => $koszt->przewoznik_id,
-                    'cena_eur'      => $koszt->cena_eur,
-                    'recznie'       => false,
-                ]);
-                $w->load('wysylkaTransport.przewoznik');
-            } elseif (!$existing->recznie && $existing->cena_eur != $koszt->cena_eur) {
-                $existing->update([
-                    'przewoznik_id' => $koszt->przewoznik_id,
-                    'cena_eur'      => $koszt->cena_eur,
-                ]);
-                $w->load('wysylkaTransport.przewoznik');
+            // Fallback: dopasowanie bez warunku na przewoźnika
+            if (!$koszt) {
+                $koszt = $query->first();
             }
+        } else {
+            $koszt = $query->first();
+        }
+
+        if (!$koszt) continue;
+
+        $existing = $w->wysylkaTransport;
+        if (!$existing) {
+            WysylkaTransport::create([
+                'order_id'      => $w->id,
+                'przewoznik_id' => $koszt->przewoznik_id,
+                'cena_eur'      => $koszt->cena_eur,
+                'recznie'       => false,
+            ]);
+            $w->load('wysylkaTransport.przewoznik');
+        } elseif (!$existing->recznie && $existing->cena_eur != $koszt->cena_eur) {
+            $existing->update([
+                'przewoznik_id' => $koszt->przewoznik_id,
+                'cena_eur'      => $koszt->cena_eur,
+            ]);
+            $w->load('wysylkaTransport.przewoznik');
         }
     }
+}
 
     private function tygodnieWMiesiacu(Carbon $miesiac): array
     {

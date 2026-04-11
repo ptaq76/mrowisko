@@ -16,6 +16,7 @@ return new class extends Migration
                   ->nullOnDelete();
             $table->string('name');
             $table->string('full_name');
+            $table->string('firma', 100)->nullable();
             $table->string('color', 20);
             $table->string('phone')->nullable();
             $table->foreignId('tractor_id')

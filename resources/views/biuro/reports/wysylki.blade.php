@@ -41,18 +41,20 @@
 .report-wrap { overflow-x:auto; }
 table { width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap; }
 thead tr { background:#1a1a1a;color:#fff; }
-th { padding:9px 12px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:left; }
-td { padding:8px 12px;border-bottom:1px solid #f0f2f5;vertical-align:middle; }
+th { padding:9px 12px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+     text-align:left;border-right:1px solid rgba(255,255,255,0.08); }
+th:last-child { border-right:none; }
+td { padding:8px 12px;border-bottom:1px solid #f0f2f5;border-right:1px solid #f0f2f5;vertical-align:middle; }
+td:last-child { border-right:none; }
 tr:last-child td { border-bottom:none; }
 tr:hover td { background:#f8f9fa; }
 .ls-nr { font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900; }
-.col-empty { color:#dde0e5;text-align:center; }
 .badge-rekl { background:#fdecea;color:#e74c3c;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700; }
 .badge-gew  { background:#e8f4fb;color:#2980b9;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:700; }
 .col-puste  { background:#fafafa;color:#ccc;font-size:11px;text-align:center; }
 .sum-row td { font-weight:700;background:#f4f5f7;font-family:'Barlow Condensed',sans-serif;font-size:14px; }
 
-/* Modal ceny */
+/* Modal */
 .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center; }
 .modal-overlay.open { display:flex; }
 .modal-box { background:#fff;border-radius:12px;width:100%;max-width:360px;padding:24px;box-shadow:0 8px 32px rgba(0,0,0,.2); }
@@ -80,10 +82,8 @@ tr:hover td { background:#f8f9fa; }
     @endforeach
 </div>
 
-{{-- Tygodnie: ostatnie 11 + bieżący, bieżący ostatni --}}
+{{-- Tygodnie --}}
 @php
-    $biezacyTydzien = now()->isoWeek;
-    $biezacyRok = now()->year;
     $tygodnieNav = [];
     for ($i = 11; $i >= 0; $i--) {
         $d = now()->subWeeks($i);
@@ -152,9 +152,10 @@ tr:hover td { background:#f8f9fa; }
                 <th>Waga</th>
                 <th>R</th>
                 <th>Cena sprzedaży</th>
-                <th class="col-puste">Koszt transportu</th>
-                <th class="col-puste">Cena na placu</th>
-                <th class="col-puste">Wartość</th>
+                <th>T</th>
+                <th>Koszt transportu</th>
+                <th>Cena na placu</th>
+                <th>Wartość</th>
                 <th>Kod towaru</th>
                 <th>Nr LS</th>
                 <th>Kierunek</th>
@@ -173,8 +174,20 @@ tr:hover td { background:#f8f9fa; }
             $hasRekl       = $dok && $dok->firstWhere('typ', 'reklamacja');
             $totalCount++;
             $orderIds[]    = $w->id;
+
+            // Kolumna T – firma kierowcy
+            $firma = $w->driver?->firma;
+            if ($firma === 'Recykler') {
+                $tLabel = 'R'; $tBg = '#e74c3c';
+            } elseif ($firma === 'Zewnętrzny') {
+                $tLabel = 'Z'; $tBg = '#7d3c98';
+            } else {
+                $tLabel = 'E'; $tBg = '#27ae60';
+            }
         @endphp
-        <tr data-order-id="{{ $w->id }}">
+        <tr data-order-id="{{ $w->id }}"
+            data-importer-id="{{ $ls?->importer?->id ?? '' }}"
+            data-goods-id="{{ $ls?->goods?->id ?? '' }}">
             <td style="color:#aaa;font-size:11px">W{{ $tydzienNr }}</td>
             <td>{{ $w->planned_date?->format('d.m.Y') ?? '–' }}</td>
             <td>{{ $dataZaladunku ? \Carbon\Carbon::parse($dataZaladunku)->format('d.m.Y') : '–' }}</td>
@@ -215,6 +228,14 @@ tr:hover td { background:#f8f9fa; }
                     </button>
                 </div>
             </td>
+            {{-- Kolumna T – kierowca --}}
+            <td style="text-align:center">
+                @if($firma)
+                    <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;color:{{ $tBg }}">{{ $tLabel }}</span>
+                @else
+                    <span style="color:#dde0e5">–</span>
+                @endif
+            </td>
             <td>
                 <div style="display:flex;align-items:center;gap:5px">
                     <span class="transport-val" style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;min-width:60px;{{ $transport && $transport->recznie ? 'color:#e67e22' : '' }}">
@@ -232,7 +253,8 @@ tr:hover td { background:#f8f9fa; }
                     <div style="font-size:10px;color:#aaa">{{ $transport->przewoznik->nazwa }}</div>
                 @endif
             </td>
-            <td class="col-empty">–</td>
+            <td class="col-puste">–</td>
+            <td class="col-puste">–</td>
             <td>
                 @if($ls?->wasteCode)
                     <span style="font-family:'Barlow Condensed',sans-serif;font-weight:900">{{ $ls->wasteCode->code }}</span>
@@ -245,13 +267,13 @@ tr:hover td { background:#f8f9fa; }
         </tr>
         @empty
         <tr>
-            <td colspan="14" class="text-center text-muted py-4">Brak wysyłek zagranicznych w wybranym okresie</td>
+            <td colspan="15" class="text-center text-muted py-4">Brak wysyłek zagranicznych w wybranym okresie</td>
         </tr>
         @endforelse
         @if($totalCount > 0)
         <tr class="sum-row">
             <td colspan="5">Razem: {{ $totalCount }} wysyłek</td>
-            <td colspan="9"></td>
+            <td colspan="10"></td>
         </tr>
         @endif
         </tbody>
@@ -264,6 +286,10 @@ tr:hover td { background:#f8f9fa; }
         <div class="modal-title">
             <span>Cena sprzedaży</span>
             <button style="background:none;border:none;font-size:20px;cursor:pointer;color:#aaa" onclick="closeCenaModal()">×</button>
+        </div>
+        <div id="cenaMatchInfo"
+             style="display:none;background:#fff8e1;color:#b7860b;border:1px solid #ffe082;border-radius:7px;
+                    padding:7px 12px;font-size:12px;font-weight:700;margin-bottom:14px">
         </div>
         <input type="hidden" id="cenaOrderId">
         <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:6px">
@@ -282,21 +308,76 @@ tr:hover td { background:#f8f9fa; }
         </button>
     </div>
 </div>
+
+{{-- Modal transportu --}}
+<div class="modal-overlay" id="transportModal">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-title">
+            <span>Koszt transportu</span>
+            <button style="background:none;border:none;font-size:20px;cursor:pointer;color:#aaa" onclick="closeTransportModal()">×</button>
+        </div>
+        <input type="hidden" id="transportOrderId">
+        <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:6px">Przewoźnik</label>
+        <select id="transportPrzewoznik" style="width:100%;padding:10px;border:1.5px solid #dde0e5;border-radius:8px;font-size:14px;outline:none;margin-bottom:14px">
+            <option value="">– brak –</option>
+            @foreach($przewoznicy as $p)
+            <option value="{{ $p->id }}">{{ $p->nazwa }}</option>
+            @endforeach
+        </select>
+        <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:6px">Cena €/t</label>
+        <input type="number" id="transportCena" step="0.01" min="0"
+               style="width:100%;padding:12px;border:1.5px solid #dde0e5;border-radius:8px;font-size:18px;font-weight:700;outline:none;margin-bottom:16px"
+               placeholder="0.00">
+        <button onclick="saveTransport()"
+                style="width:100%;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer">
+            <i class="fas fa-check"></i> Zapisz
+        </button>
+        <button onclick="closeTransportModal()"
+                style="width:100%;padding:12px;background:#f4f5f7;color:#555;border:1px solid #dde0e5;border-radius:8px;font-size:14px;cursor:pointer;margin-top:8px">
+            Anuluj
+        </button>
+    </div>
+</div>
+
 @endsection
 
 @section('scripts')
 <script>
-const CSRF      = '{{ csrf_token() }}';
+const CSRF = '{{ csrf_token() }}';
 
 function copyDateTo() {
     const from = document.getElementById('date_from').value;
     if (from) document.getElementById('date_to').value = from;
 }
-const ORDER_IDS = @json($orderIds ?? []);
+
+// ── Cena sprzedaży ──────────────────────────────────────────────────────────
+
+let _cenaImporterId = null;
+let _cenaGoodsId    = null;
+
+function getMatchingRows(importerId, goodsId) {
+    return [...document.querySelectorAll('tr[data-order-id]')].filter(r =>
+        r.dataset.importerId === importerId && r.dataset.goodsId === goodsId
+    );
+}
 
 function openCenaModal(orderId, cena) {
+    const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
+    _cenaImporterId = row?.dataset.importerId ?? null;
+    _cenaGoodsId    = row?.dataset.goodsId    ?? null;
+
     document.getElementById('cenaOrderId').value = orderId;
     document.getElementById('cenaInput').value   = cena ?? '';
+
+    const matching = getMatchingRows(_cenaImporterId, _cenaGoodsId);
+    const info = document.getElementById('cenaMatchInfo');
+    if (matching.length > 1) {
+        info.textContent = `${matching.length} wysyłek z tym samym odbiorcą i towarem na liście`;
+        info.style.display = 'block';
+    } else {
+        info.style.display = 'none';
+    }
+
     document.getElementById('cenaModal').classList.add('open');
     setTimeout(() => document.getElementById('cenaInput').focus(), 100);
 }
@@ -309,7 +390,6 @@ async function saveCena() {
     const orderId = document.getElementById('cenaOrderId').value;
     const cena    = document.getElementById('cenaInput').value;
 
-    // Zapisz dla jednego rekordu
     const res  = await fetch(`/biuro/raporty/wysylki/cena/${orderId}`, {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': CSRF, 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -321,7 +401,6 @@ async function saveCena() {
         return;
     }
 
-    // Zaktualizuj wyświetlaną cenę w wierszu
     const row = document.querySelector(`tr[data-order-id="${orderId}"]`);
     if (row) {
         const span = row.querySelector('.cena-val');
@@ -330,29 +409,33 @@ async function saveCena() {
 
     closeCenaModal();
 
-    // Zapytaj o zastosowanie dla wszystkich widocznych
-    if (ORDER_IDS.length > 1) {
+    const matchingRows = getMatchingRows(_cenaImporterId, _cenaGoodsId);
+    const otherIds = matchingRows
+        .map(r => parseInt(r.dataset.orderId))
+        .filter(id => id !== parseInt(orderId));
+
+    if (otherIds.length > 0) {
         const bulk = await Swal.fire({
-            title: 'Zastosować dla wszystkich?',
-            text: `Czy ustawić tę cenę dla wszystkich ${ORDER_IDS.length} widocznych wysyłek?`,
+            title: 'Zastosować dla podobnych?',
+            html: `Znaleziono jeszcze <strong>${otherIds.length}</strong> wysyłek z tym samym odbiorcą i towarem.<br>Ustawić tę cenę dla wszystkich <strong>${matchingRows.length}</strong>?`,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#1a1a1a',
-            confirmButtonText: 'Tak, dla wszystkich',
+            confirmButtonText: `Tak, dla wszystkich ${matchingRows.length}`,
             cancelButtonText: 'Nie, tylko ten',
         });
 
         if (bulk.isConfirmed) {
+            const allMatchingIds = matchingRows.map(r => parseInt(r.dataset.orderId));
             const res2 = await fetch('/biuro/raporty/wysylki/cena-bulk', {
                 method: 'POST',
                 headers: { 'X-CSRF-TOKEN': CSRF, 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ cena_eur: cena || null, order_ids: ORDER_IDS }),
+                body: JSON.stringify({ cena_eur: cena || null, order_ids: allMatchingIds }),
             });
             const data2 = await res2.json();
             if (data2.success) {
-                // Zaktualizuj wszystkie widoczne wiersze
-                document.querySelectorAll('tr[data-order-id]').forEach(row => {
-                    const span = row.querySelector('.cena-val');
+                matchingRows.forEach(r => {
+                    const span = r.querySelector('.cena-val');
                     if (span) span.textContent = cena ? parseFloat(cena).toFixed(2).replace('.', ',') + ' €' : '–';
                 });
                 Swal.fire({ icon: 'success', title: `Zaktualizowano ${data2.updated} wysyłek`, timer: 1800, showConfirmButton: false });
@@ -368,10 +451,11 @@ async function saveCena() {
 document.getElementById('cenaModal').addEventListener('click', closeCenaModal);
 document.getElementById('cenaInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveCena(); });
 
-// Transport
+// ── Koszt transportu ────────────────────────────────────────────────────────
+
 function openTransportModal(orderId, cena, przewoznikId) {
-    document.getElementById('transportOrderId').value = orderId;
-    document.getElementById('transportCena').value    = cena ?? '';
+    document.getElementById('transportOrderId').value    = orderId;
+    document.getElementById('transportCena').value       = cena ?? '';
     document.getElementById('transportPrzewoznik').value = przewoznikId ?? '';
     document.getElementById('transportModal').classList.add('open');
     setTimeout(() => document.getElementById('transportCena').focus(), 100);
@@ -412,33 +496,3 @@ document.getElementById('transportModal')?.addEventListener('click', closeTransp
 document.getElementById('transportCena')?.addEventListener('keydown', e => { if (e.key === 'Enter') saveTransport(); });
 </script>
 @endsection
-
-{{-- Modal transportu --}}
-<div class="modal-overlay" id="transportModal">
-    <div class="modal-box" onclick="event.stopPropagation()">
-        <div class="modal-title">
-            <span>Koszt transportu</span>
-            <button style="background:none;border:none;font-size:20px;cursor:pointer;color:#aaa" onclick="closeTransportModal()">×</button>
-        </div>
-        <input type="hidden" id="transportOrderId">
-        <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:6px">Przewoźnik</label>
-        <select id="transportPrzewoznik" style="width:100%;padding:10px;border:1.5px solid #dde0e5;border-radius:8px;font-size:14px;outline:none;margin-bottom:14px">
-            <option value="">– brak –</option>
-            @foreach($przewoznicy as $p)
-            <option value="{{ $p->id }}">{{ $p->nazwa }}</option>
-            @endforeach
-        </select>
-        <label style="display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:6px">Cena €/t</label>
-        <input type="number" id="transportCena" step="0.01" min="0"
-               style="width:100%;padding:12px;border:1.5px solid #dde0e5;border-radius:8px;font-size:18px;font-weight:700;outline:none;margin-bottom:16px"
-               placeholder="0.00">
-        <button onclick="saveTransport()"
-                style="width:100%;padding:14px;background:#1a1a1a;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer">
-            <i class="fas fa-check"></i> Zapisz
-        </button>
-        <button onclick="closeTransportModal()"
-                style="width:100%;padding:12px;background:#f4f5f7;color:#555;border:1px solid #dde0e5;border-radius:8px;font-size:14px;cursor:pointer;margin-top:8px">
-            Anuluj
-        </button>
-    </div>
-</div>

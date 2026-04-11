@@ -13,15 +13,13 @@ class DriverSeeder extends Seeder
         DB::table('drivers')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-        // Mapowanie: stare pojazdy id → nowe vehicles id (te same ID)
-        // user_id ze starej bazy: Sebastian=9→10, Łukasz=10→11, Vasyl=11→12,
-        // Recykler=12→13, Tomek=13→14, Tadeusz=7→8 (po imporcie users)
         $drivers = [
             [
                 'id'        => 1,
-                'user_id'   => 9,  // Sebastian (login: Seba)
+                'user_id'   => 9,
                 'name'      => 'Sebastian',
                 'full_name' => 'Sebastian Pawłowski',
+                'firma'     => 'Ewrant',
                 'color'     => '#987654',
                 'phone'     => '726 427 271',
                 'tractor_id'=> 1,
@@ -29,9 +27,10 @@ class DriverSeeder extends Seeder
             ],
             [
                 'id'        => 2,
-                'user_id'   => 10,  // Łukasz
+                'user_id'   => 10,
                 'name'      => 'Łukasz',
                 'full_name' => 'Łukasz Piątek',
+                'firma'     => 'Ewrant',
                 'color'     => '#5F9EA0',
                 'phone'     => '531 783 316',
                 'tractor_id'=> 3,
@@ -39,9 +38,10 @@ class DriverSeeder extends Seeder
             ],
             [
                 'id'        => 3,
-                'user_id'   => 11,  // Vasyl
+                'user_id'   => 11,
                 'name'      => 'Vasyl',
                 'full_name' => 'Vasyl Glushko',
+                'firma'     => 'Ewrant',
                 'color'     => '#0fc0fc',
                 'phone'     => '579 145 400',
                 'tractor_id'=> 2,
@@ -49,9 +49,10 @@ class DriverSeeder extends Seeder
             ],
             [
                 'id'        => 4,
-                'user_id'   => 12,  // Karol (Recykler)
+                'user_id'   => 12,
                 'name'      => 'Recykler',
                 'full_name' => 'Kierowca Recykler',
+                'firma'     => 'Recykler',
                 'color'     => '#EC6A77',
                 'phone'     => '721 843 598',
                 'tractor_id'=> 14,
@@ -59,9 +60,10 @@ class DriverSeeder extends Seeder
             ],
             [
                 'id'        => 5,
-                'user_id'   => 13,  // Tomek (hakowiec)
+                'user_id'   => 13,
                 'name'      => 'Tomek',
                 'full_name' => 'Tomasz Wytrwa',
+                'firma'     => 'Ewrant',
                 'color'     => '#E8F48C',
                 'phone'     => '504 915 988',
                 'tractor_id'=> 4,
@@ -69,9 +71,10 @@ class DriverSeeder extends Seeder
             ],
             [
                 'id'        => 6,
-                'user_id'   => 7,   // Tadek (plac)
+                'user_id'   => 7,
                 'name'      => 'Tadeusz',
                 'full_name' => 'Tadeusz Miaczkowski',
+                'firma'     => 'Ewrant',
                 'color'     => '#44e60a',
                 'phone'     => '786 994 304',
                 'tractor_id'=> 6,
@@ -82,6 +85,7 @@ class DriverSeeder extends Seeder
                 'user_id'   => null,
                 'name'      => 'Zewnętrzny',
                 'full_name' => 'Pan Zewnętrzny',
+                'firma'     => 'Zewnętrzny',
                 'color'     => '#ffb347',
                 'phone'     => null,
                 'tractor_id'=> 12,
@@ -95,6 +99,7 @@ class DriverSeeder extends Seeder
                 'user_id'    => $d['user_id'],
                 'name'       => $d['name'],
                 'full_name'  => $d['full_name'],
+                'firma'      => $d['firma'],
                 'color'      => $d['color'],
                 'phone'      => $d['phone'],
                 'tractor_id' => $d['tractor_id'],

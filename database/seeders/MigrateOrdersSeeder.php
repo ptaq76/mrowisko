@@ -11,7 +11,7 @@ class MigrateOrdersSeeder extends Seeder
     private bool $testMode = false;
     
     // Limit rekordów do przetworzenia (null = wszystkie)
-    private ?int $limit = 100;
+    private ?int $limit = 1477;
 
     public function run(): void
     {
