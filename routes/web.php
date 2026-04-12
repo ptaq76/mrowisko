@@ -199,6 +199,10 @@ Route::prefix('biuro')
             Route::get('/{annex7}',     [\App\Http\Controllers\Biuro\Annex7Controller::class, 'show'])->name('show');
             Route::get('/{annex7}/pdf', [\App\Http\Controllers\Biuro\Annex7Controller::class, 'generatePdf'])->name('pdf');
         });
+
+        // Zlecenia handlowców
+Route::post('pickup-requests/{pickupRequest}/odrzuc', [\App\Http\Controllers\Biuro\OrderController::class, 'odrzucPickupRequest'])
+    ->name('pickup-requests.odrzuc');
     });
 
 // ── KIEROWCA ──────────────────────────────────────────────────────────────────
@@ -278,12 +282,16 @@ Route::prefix('plac')
         Route::get('stock', [\App\Http\Controllers\Plac\DashboardController::class, 'stock'])->name('stock');
     });
 
+
 // ── HANDLOWIEC ────────────────────────────────────────────────────────────────
-
-Route::prefix('handlowiec')
-    ->middleware(['auth', 'module:handlowiec'])
-    ->name('handlowiec.')
-    ->group(function () {
-        Route::get('/dashboard', fn() => view('handlowiec.dashboard'))->name('dashboard');
-    });
-
+ 
+Route::prefix('handlowiec')->name('handlowiec.')->middleware(['auth', 'module:handlowiec'])->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\Handlowiec\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/nowe-zlecenie',             [\App\Http\Controllers\Handlowiec\DashboardController::class, 'noweZlecenie'])->name('nowe-zlecenie');
+    Route::post('/zlecenia',                 [\App\Http\Controllers\Handlowiec\DashboardController::class, 'store'])->name('zlecenia.store');
+    Route::get('/zlecenia',                  [\App\Http\Controllers\Handlowiec\DashboardController::class, 'zlecenia'])->name('zlecenia');
+    Route::get('/klienci',                   [\App\Http\Controllers\Handlowiec\DashboardController::class, 'klienci'])->name('klienci');
+    Route::get('/klienci/{client}/edit',     [\App\Http\Controllers\Handlowiec\DashboardController::class, 'klientEdit'])->name('klient-edit');
+    Route::put('/klienci/{client}',          [\App\Http\Controllers\Handlowiec\DashboardController::class, 'klientUpdate'])->name('klient-update');
+    Route::get('/historia-klienta/{client}', [\App\Http\Controllers\Handlowiec\DashboardController::class, 'historiaKlienta'])->name('historia-klienta');
+});

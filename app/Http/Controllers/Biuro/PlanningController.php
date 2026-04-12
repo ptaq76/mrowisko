@@ -7,8 +7,8 @@ use App\Models\Client;
 use App\Models\Driver;
 use App\Models\Lieferschein;
 use App\Models\Order;
+use App\Models\PickupRequest;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -77,9 +77,16 @@ class PlanningController extends Controller
             ->with(['client', 'importer'])
             ->get();
 
+        // Zlecenia handlowców – nowe i przyjęte
+        $pickupRequests = PickupRequest::whereIn('status', ['nowe'])
+            ->with(['client:id,short_name', 'salesman:id,name', 'items'])
+            ->orderBy('requested_date')
+            ->get();
+
         return view('biuro.planning.index', compact(
             'date', 'drivers', 'driver', 'orders',
-            'weekDays', 'topPickup', 'topSale', 'freeLs'
+            'weekDays', 'topPickup', 'topSale', 'freeLs',
+            'pickupRequests'
         ));
     }
 

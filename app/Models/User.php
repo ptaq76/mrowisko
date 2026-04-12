@@ -56,4 +56,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(Client::class, 'salesman_id');
     }
+
 }

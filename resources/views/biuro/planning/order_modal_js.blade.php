@@ -10,7 +10,7 @@ let _modalType    = null;  // 'pickup' | 'sale'
 let _driverData   = null;  // aktualny kierowca z driverów
 
 // ── Otwieranie modala ─────────────────────────────────────────
-async function openOrderModal(orderId = null, type = null, clientId = null) {
+async function openOrderModal(orderId = null, type = null, clientId = null, pickupRequestId = null, prefillGoods = null) {
     // Załaduj dane jeśli jeszcze nie ma
     if (!_modalData) {
         const res  = await fetch(`/biuro/orders/modal-data?date={{ $date->format('Y-m-d') }}`);
@@ -33,7 +33,7 @@ async function openOrderModal(orderId = null, type = null, clientId = null) {
 
     // Wyczyść pola tekstowe
     ['order_date','order_time','order_goods','order_notes',
-     'order_ls_id','order_ls_display'].forEach(id => {
+     'order_ls_id','order_ls_display','order_pickup_request_id'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
@@ -49,6 +49,10 @@ async function openOrderModal(orderId = null, type = null, clientId = null) {
 
     document.getElementById('order_id').value    = orderId ?? '';
     document.getElementById('order_type').value  = _modalType;
+
+    // Zapisz pickup_request_id jeśli przekazany
+    const prInput = document.getElementById('order_pickup_request_id');
+    if (prInput) prInput.value = pickupRequestId ?? '';
 
     const delBtn = document.getElementById('order_delete_btn');
     if (delBtn) delBtn.style.display = orderId ? 'block' : 'none';
@@ -71,18 +75,28 @@ async function openOrderModal(orderId = null, type = null, clientId = null) {
         checkIfDE(clientId);
     }
 
+    // Prefill towarów ze zlecenia handlowca
+    if (prefillGoods) {
+        document.getElementById('order_goods').value = prefillGoods;
+    }
+
     // Tytuł modala
     const header = document.getElementById('orderModalHeader');
     const driverColor = getDrColor(currentDriver);
-    header.style.background = orderId
-        ? `linear-gradient(135deg, #3498db, #2980b9)`
-        : `linear-gradient(135deg, ${driverColor}, ${shadeColor(driverColor, -15)})`;
+
+    if (pickupRequestId) {
+        header.style.background = `linear-gradient(135deg, #f39c12, #d68910)`;
+    } else {
+        header.style.background = orderId
+            ? `linear-gradient(135deg, #3498db, #2980b9)`
+            : `linear-gradient(135deg, ${driverColor}, ${shadeColor(driverColor, -15)})`;
+    }
 
     document.getElementById('orderModalTitle').textContent  = orderId ? 'EDYCJA ZLECENIA' : 'NOWE ZLECENIE';
     document.getElementById('order_submit_label').textContent = orderId ? 'Zapisz zmiany' : 'Zapisz';
 
     const badge = document.getElementById('orderTypeBadge');
-    if (badge) badge.textContent = _modalType === 'sale' ? 'WYSYŁKA' : 'ODBIÓR';
+    if (badge) badge.textContent = _modalType === 'sale' ? 'WYSYŁKA' : (pickupRequestId ? 'ZL. HANDLOWCA' : 'ODBIÓR');
 
     // Jeśli edycja – załaduj dane zlecenia
     if (orderId) await loadOrderData(orderId);
@@ -156,11 +170,8 @@ function buildSelects(orderType = 'pickup') {
 // ── Filtrowanie klientów według typu zlecenia ─────────────────
 function filterClientsByType(clients, orderType) {
     return clients.filter(c => {
-        // Jeśli klient ma type = 'both', pokazuj wszędzie
         if (c.type === 'both') return true;
-        // Jeśli brak typu, pokazuj wszędzie (backward compatibility)
         if (!c.type) return true;
-        // Dopasuj typ klienta do typu zlecenia
         return c.type === orderType;
     });
 }
@@ -357,7 +368,6 @@ async function submitOrder() {
             await Swal.fire({ icon: 'success', title: 'Dodano!', text: data.message, timer: 1200, showConfirmButton: false });
             await askPlacDate(data.id, data.planned_date);
         } else {
-            // Edycja
             let msg = data.message;
             await Swal.fire({ icon: 'success', title: 'Zaktualizowano!', text: msg, timer: 2000, showConfirmButton: false });
         }
@@ -371,7 +381,6 @@ async function submitOrder() {
 async function askPlacDate(orderId, plannedDate) {
     const pd = new Date(plannedDate);
 
-    // Poprzedni dzień roboczy
     const prevWorkday = new Date(pd);
     prevWorkday.setDate(prevWorkday.getDate() - 1);
     while (prevWorkday.getDay() === 0 || prevWorkday.getDay() === 6) {
@@ -397,19 +406,12 @@ async function askPlacDate(orderId, plannedDate) {
     let placDate = null;
 
     if (choice === true) {
-        // Tego dnia
         placDate = fmt(pd);
     } else if (choice === false) {
-        // Pytanie o inną datę po deny (swal quirk: deny = false)
-        // Sprawdź czy to deny czy custom
         placDate = fmt(prevWorkday);
     } else {
-        // Cancel – nie wysyłaj
         return;
     }
-
-    // Opcja "wpisz własną datę" - osobny SweetAlert
-    // (można rozszerzyć w przyszłości)
 
     await fetch(`/biuro/orders/${orderId}/plac-date`, {
         method: 'POST',
@@ -453,24 +455,20 @@ let _editModalData = null;
 let _editOrderType = 'pickup';
 
 async function openEditOrderModal(orderId) {
-    // Załaduj dane słownikowe (możemy reużyć _modalData)
     if (!_editModalData) {
         const res   = await fetch(`/biuro/orders/modal-data?date={{ $date->format('Y-m-d') }}`);
         _editModalData = await res.json();
         buildEditQuickButtons();
     }
 
-    // Załaduj dane zlecenia
     const res   = await fetch(`/biuro/orders/${orderId}`);
     const order = await res.json();
     if (!order) return;
 
     _editOrderType = order.type;
 
-    // Buduj selecty z uwzględnieniem typu zlecenia
     buildEditSelects(_editOrderType);
 
-    // Wypełnij pola
     document.getElementById('edit_order_id').value     = orderId;
     document.getElementById('edit_order_type').value   = order.type;
     document.getElementById('edit_order_date').value   = order.planned_date;
@@ -485,7 +483,6 @@ async function openEditOrderModal(orderId) {
     document.getElementById('edit_order_notes').value  = order.notes ?? '';
     document.getElementById('edit_order_plac_date').value = order.plac_date ?? '';
 
-    // LS
     if (order.lieferschein_id) {
         document.getElementById('edit_order_ls_id').value      = order.lieferschein_id;
         document.getElementById('edit_order_ls_display').value = order.lieferschein?.number ?? '';
@@ -494,10 +491,8 @@ async function openEditOrderModal(orderId) {
         document.getElementById('edit_order_ls_display').value = '';
     }
 
-    // Pokaż/ukryj sekcję LS
     checkIfEditDE(order.client_id);
 
-    // Kolor nagłówka
     const dr    = _editModalData.drivers.find(d => d.id == order.driver_id);
     const color = dr?.color ?? '#3498db';
     document.getElementById('editOrderModalHeader').style.background =
@@ -507,7 +502,6 @@ async function openEditOrderModal(orderId) {
     const editBadge = document.getElementById('editOrderTypeBadge');
     if (editBadge) editBadge.textContent = order.type === 'sale' ? 'WYSYŁKA' : 'ODBIÓR';
 
-    // Usuń walidację
     document.getElementById('editOrderForm').querySelectorAll('.is-invalid')
         .forEach(el => el.classList.remove('is-invalid'));
 
@@ -521,11 +515,9 @@ function buildEditSelects(orderType = 'pickup') {
     
     fillEditSelect('edit_order_driver',  d.drivers,  r => ({ v: r.id, t: r.name }));
     
-    // Klienci - filtruj według typu zlecenia
     const filteredClients = filterEditClientsByType(d.clients, orderType);
     fillEditSelect('edit_order_client',  filteredClients,  r => ({ v: r.id, t: r.short_name }));
     
-    // Start - wszystkie miejsca (bez filtrowania)
     fillEditSelect('edit_order_start',   d.clients,  r => ({ v: r.id, t: r.short_name }));
     
     fillEditSelect('edit_order_tractor', d.tractors, r => ({ v: r.id, t: r.plate + (r.subtype ? ` (${r.subtype})` : '') }));
@@ -542,14 +534,10 @@ function buildEditSelects(orderType = 'pickup') {
     }
 }
 
-// ── Filtrowanie klientów według typu zlecenia (modal edycji) ──
 function filterEditClientsByType(clients, orderType) {
     return clients.filter(c => {
-        // Jeśli klient ma type = 'both', pokazuj wszędzie
         if (c.type === 'both') return true;
-        // Jeśli brak typu, pokazuj wszędzie (backward compatibility)
         if (!c.type) return true;
-        // Dopasuj typ klienta do typu zlecenia
         return c.type === orderType;
     });
 }
@@ -597,7 +585,6 @@ function buildEditQuickButtons() {
         });
     }
 
-    // Tabela LS
     const tbody = document.getElementById('edit_ls_table_body');
     if (tbody) {
         tbody.innerHTML = '';

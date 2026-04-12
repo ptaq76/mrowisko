@@ -295,6 +295,7 @@
     }
 
     .quick-btn-client:hover { background: var(--green-light); border-color: var(--green); }
+
     /* ── DATEPICKER – nowoczesny styl ── */
     #datepicker { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.10); }
 
@@ -309,7 +310,6 @@
         padding: 0 !important;
     }
 
-    /* Górna belka – jasna zieleń */
     .ui-datepicker-header {
         background: linear-gradient(135deg, #6EBF58, #4da83e) !important;
         color: #fff !important;
@@ -344,7 +344,6 @@
         border-radius: 4px !important;
     }
 
-    /* Nagłówki dni tygodnia */
     .ui-datepicker th {
         font-family: 'Barlow Condensed', sans-serif !important;
         font-size: 12px !important;
@@ -355,7 +354,6 @@
         text-transform: uppercase !important;
     }
 
-    /* Komórki dni */
     .ui-datepicker td { padding: 2px 3px !important; }
 
     .ui-datepicker td a, .ui-datepicker td span {
@@ -374,7 +372,6 @@
         color: #2d7a1a !important;
     }
 
-    /* Dziś */
     .ui-datepicker .ui-datepicker-today a {
         background: #e8f7e4 !important;
         color: #2d7a1a !important;
@@ -382,7 +379,6 @@
         border: 2px solid #6EBF58 !important;
     }
 
-    /* Wybrany dzień */
     .ui-datepicker .selected-day a {
         background: #ff9900 !important;
         color: #fff !important;
@@ -390,15 +386,110 @@
         box-shadow: 0 2px 6px rgba(255,153,0,.4) !important;
     }
 
-    /* Święta */
     .ui-datepicker .highlight-red a {
         color: #e74c3c !important;
         font-weight: 700 !important;
     }
 
-    /* Dni z innych miesięcy */
     .ui-datepicker .ui-datepicker-other-month a {
         color: #bdc3c7 !important;
+    }
+
+    /* ── ZLECENIA HANDLOWCÓW – karty ── */
+    .pr-card {
+        background: #fff;
+        border-radius: 6px;
+        border-left: 4px solid #f39c12;
+        margin-bottom: 6px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+
+    .pr-card-top {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px 4px;
+        cursor: pointer;
+    }
+
+    .pr-card-top:hover { background: #fffbf4; }
+
+    .pr-client {
+        font-family: var(--font-display);
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--black);
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .pr-days-badge {
+        font-family: var(--font-display);
+        font-size: 13px;
+        font-weight: 900;
+        min-width: 32px;
+        height: 24px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        padding: 0 4px;
+    }
+
+    .pr-salesman {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #2980b9;
+        color: #fff;
+        font-size: 8px;
+        font-weight: 700;
+        font-family: var(--font-display);
+        flex-shrink: 0;
+        cursor: default;
+    }
+
+    .pr-card-body {
+        padding: 0 8px 6px 12px;
+        border-top: 1px solid #f5f5f5;
+    }
+
+    .pr-date-row {
+        font-size: 10px;
+        color: #999;
+        margin-bottom: 3px;
+        padding-top: 4px;
+    }
+
+    .pr-items {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        margin-bottom: 3px;
+    }
+
+    .pr-item {
+        font-size: 11px;
+        color: #444;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .pr-item-nazwa { font-weight: 600; }
+    .pr-item-meta  { color: #aaa; font-size: 10px; }
+
+    .pr-notes {
+        font-size: 10px;
+        color: #aaa;
+        font-style: italic;
+        margin-top: 2px;
     }
 </style>
 @endsection
@@ -408,14 +499,12 @@
 
     {{-- ══ LEWA KOLUMNA: tydzień ══ --}}
     <div class="col-left">
-        {{-- jQuery UI Datepicker --}}
         <div id="datepicker" style="border:none;background:transparent;margin-top:0"></div>
         <input type="hidden" id="selectedDate" value="{{ $date->format('Y-m-d') }}">
 
         @foreach($weekDays as $dateStr => $dayData)
         @php
             $isToday   = $dateStr === now()->format('Y-m-d');
-            $isSelected = $dateStr === $date->format('Y-m-d');
             $dayName = mb_convert_case($dayData['date']->locale('pl')->translatedFormat('l'), MB_CASE_TITLE);
         @endphp
         <div class="mb-2">
@@ -439,16 +528,13 @@
     {{-- ══ ŚRODKOWA KOLUMNA: zlecenia kierowcy ══ --}}
     <div class="col-middle">
 
-        {{-- Nagłówek kierowcy --}}
         @if($driver)
         @php
-            $dayShort = mb_convert_case($date->locale('pl')->translatedFormat('D'), MB_CASE_TITLE);
             $dayFull  = mb_convert_case($date->locale('pl')->translatedFormat('l'), MB_CASE_TITLE);
         @endphp
         <div style="border: 3px solid {{ $driver?->color ?? '#ccc' }}; border-radius: 12px; overflow: hidden; flex: 1; display: flex; flex-direction: column">
         <div class="driver-header" style="background:{{ $driver->color }};border-bottom:3px solid rgba(0,0,0,.2)">
 
-            {{-- Kartka kalendarza --}}
             @php
                 $monthsPL = ['','STYCZEŃ','LUTY','MARZEC','KWIECIEŃ','MAJ','CZERWIEC','LIPIEC','SIERPIEŃ','WRZESIEŃ','PAŹDZIERNIK','LISTOPAD','GRUDZIEŃ'];
                 $monthName = $monthsPL[(int)$date->format('n')];
@@ -458,20 +544,17 @@
                 <div style="font-size:10px;font-weight:700;color:#000;letter-spacing:.06em;margin-top:2px">{{ $monthName }}</div>
             </div>
 
-            {{-- Dzień + data --}}
             <div style="margin-left:10px">
                 <div style="font-size:20px;font-family:var(--font-display);font-weight:800;color:#000;letter-spacing:.02em">{{ $dayFull }}</div>
                 <div style="font-size:13px;color:#000;margin-top:1px">{{ $date->format('d.m.Y') }}</div>
             </div>
 
-            {{-- Imię kierowcy na środku --}}
             <div style="flex:1;text-align:center">
                 <div style="font-size:34px;font-family:var(--font-display);font-weight:900;color:#000;letter-spacing:.04em">
                     {{ $driver->name }}
                 </div>
             </div>
 
-            {{-- Przycisk + Avatar bez ramki --}}
             <div class="d-flex align-items-center gap-2">
                 <button class="btn btn-sm" style="background:rgba(0,0,0,.15);border:none"
                         onclick="openOrderModal(null)" title="Nowe zlecenie">
@@ -493,13 +576,11 @@
         </div>
         @endif
 
-        {{-- Lista zleceń --}}
         <div class="orders-list" style="border: 3px solid {{ $driver?->color ?? '#eee' }}; border-top: none; background: #fff; border-radius: 0 0 12px 12px; overflow: hidden">
             @forelse($orders as $order)
             <div class="order-card">
                 <div class="order-card-body">
 
-                    {{-- Lewa: klient, godzina, pojazd, start --}}
                     <div class="order-col-main">
                         <div class="d-flex align-items-center gap-2 mb-1">
                             @if($order->planned_time)
@@ -523,7 +604,6 @@
                         @endif
                     </div>
 
-                    {{-- Środek: LS lub towar --}}
                     <div class="order-col-ls">
                         @if($order->lieferschein)
                         @php $ls = $order->lieferschein; @endphp
@@ -544,7 +624,6 @@
                         @endif
                     </div>
 
-                    {{-- Prawa: status + edycja --}}
                     <div class="order-col-actions">
                         <div class="status-btns">
                             @php
@@ -556,13 +635,12 @@
                                         'weighed' => ['fas fa-weight',        'Zważone'],
                                         'closed'  => ['fas fa-check-double',  'Zamknięte'],
                                     ];
-                                    // Każda ikona niezależna od kolejności
                                     $activeStatuses     = [];
                                     $inProgressStatuses = [];
-                                    if ($loadingWasClosed)                                          $activeStatuses[] = 'loaded';
-                                    elseif ($order->loadingItems->isNotEmpty())                     $inProgressStatuses[] = 'loaded';
-                                    if ($order->weight_netto)                                       $activeStatuses[] = 'weighed';
-                                    if ($order->status === 'closed')                                $activeStatuses[] = 'closed';
+                                    if ($loadingWasClosed)                              $activeStatuses[] = 'loaded';
+                                    elseif ($order->loadingItems->isNotEmpty())         $inProgressStatuses[] = 'loaded';
+                                    if ($order->weight_netto)                           $activeStatuses[] = 'weighed';
+                                    if ($order->status === 'closed')                    $activeStatuses[] = 'closed';
                                 } else {
                                     $statuses = [
                                         'weighed'   => ['fas fa-weight',       'Zważone'],
@@ -572,10 +650,10 @@
                                     $activeStatuses     = [];
                                     $inProgressStatuses = [];
                                     $deliveryWasClosed  = $order->warehouseDeliveryItems->isNotEmpty();
-                                    if ($order->weight_netto)                                           $activeStatuses[] = 'weighed';
-                                    if ($deliveryWasClosed)                                             $activeStatuses[] = 'delivered';
-                                    elseif ($order->loadingItems->isNotEmpty())                         $inProgressStatuses[] = 'delivered';
-                                    if ($order->status === 'closed')                                    $activeStatuses[] = 'closed';
+                                    if ($order->weight_netto)                           $activeStatuses[] = 'weighed';
+                                    if ($deliveryWasClosed)                             $activeStatuses[] = 'delivered';
+                                    elseif ($order->loadingItems->isNotEmpty())         $inProgressStatuses[] = 'delivered';
+                                    if ($order->status === 'closed')                    $activeStatuses[] = 'closed';
                                 }
                             @endphp
                             @foreach($statuses as $statusKey => $statusInfo)
@@ -592,7 +670,6 @@
                             @endforeach
                         </div>
                         @php $isLocked = !empty($activeStatuses) || !empty($inProgressStatuses); @endphp
-                        {{-- Badge plac_date --}}
                         @php
                             $placDiff = null;
                             if ($order->plac_date && $order->planned_date) {
@@ -638,10 +715,10 @@
             </div>
             @endforelse
         </div>
-        </div>{{-- end wrapper --}}
+        </div>
     </div>
 
-    {{-- ══ PRAWA KOLUMNA: avatary + szybkie przyciski ══ --}}
+    {{-- ══ PRAWA KOLUMNA ══ --}}
     <div class="col-right">
 
         {{-- Avatary kierowców --}}
@@ -668,7 +745,7 @@
             @endforeach
         </div>
 
-        {{-- Wolne LS na ten dzień --}}
+        {{-- Wolne LS --}}
         @if($freeLs->isNotEmpty())
         <div class="quick-section">
             <div class="quick-section-title">LS na dziś</div>
@@ -676,6 +753,83 @@
             <div style="font-size:11px;padding:2px 0;border-bottom:1px solid var(--gray-2)">
                 <span class="fw-bold">{{ $ls->number }}</span>
                 <span class="text-muted ms-1">{{ $ls->client?->short_name }}</span>
+            </div>
+            @endforeach
+        </div>
+        @endif
+
+        {{-- ══ ZLECENIA HANDLOWCÓW ══ --}}
+        @if($pickupRequests->isNotEmpty())
+        <div class="quick-section" style="border-bottom: 1px solid var(--gray-2); padding-bottom: 10px;">
+            <div class="quick-section-title d-flex align-items-center justify-content-between">
+                <span>Zlecenia handlowców</span>
+                <span style="background:#f39c12;color:#fff;font-size:9px;font-weight:700;padding:1px 6px;border-radius:10px;">
+                    {{ $pickupRequests->count() }}
+                </span>
+            </div>
+
+            @foreach($pickupRequests as $pr)
+            @php
+                $goodsForModal = $pr->items->pluck('nazwa')->implode(', ');
+                $diffDays = (int) now()->startOfDay()->diffInDays($pr->requested_date->startOfDay(), false);
+                if ($diffDays > 0)      { $dayColor = '#27ae60'; $dayPrefix = '-'; }
+                elseif ($diffDays < 0)  { $dayColor = '#e74c3c'; $dayPrefix = '+'; }
+                else                    { $dayColor = '#f39c12'; $dayPrefix = ''; }
+                $dayLabel = $dayPrefix . abs($diffDays);
+                $salesmanInitials = $pr->salesman
+                    ? collect(explode(' ', $pr->salesman->name))->map(fn($w) => mb_substr($w,0,1))->take(2)->implode('')
+                    : '?';
+            @endphp
+            <div class="pr-card">
+                {{-- Górny wiersz: klient + licznik + handlowiec --}}
+                <div class="pr-card-top"
+                     onclick="openOrderModal(null, 'pickup', {{ $pr->client_id }}, {{ $pr->id }}, {{ json_encode($goodsForModal) }})">
+                    <div class="pr-client">{{ $pr->client?->short_name ?? '?' }}</div>
+
+                    {{-- Licznik dni --}}
+                    <div class="pr-days-badge" style="background:{{ $dayColor }}18;color:{{ $dayColor }};border:1px solid {{ $dayColor }}44"
+                         title="{{ $diffDays > 0 ? 'Za ' . abs($diffDays) . ' dni' : ($diffDays < 0 ? abs($diffDays) . ' dni po terminie' : 'Dziś') }}">
+                        {{ $dayLabel === '0' ? 'dziś' : $dayLabel . 'd' }}
+                    </div>
+
+                    {{-- Inicjały handlowca --}}
+                    @if($pr->salesman)
+                    <span class="pr-salesman" title="{{ $pr->salesman->name }}">{{ $salesmanInitials }}</span>
+                    @endif
+                </div>
+
+                {{-- Dolna część: data + towary + uwagi + przycisk odrzuć --}}
+                <div class="pr-card-body">
+                    <div class="pr-date-row">
+                        <i class="fas fa-calendar-alt" style="font-size:9px"></i>
+                        Termin: {{ $pr->requested_date?->format('d.m.Y') }}
+                    </div>
+                    <div class="pr-items">
+                        @foreach($pr->items as $item)
+                        <div class="pr-item">
+                            <span class="pr-item-nazwa">{{ $item->nazwa }}</span>
+                            <span class="pr-item-meta">
+                                @if($item->ilosc){{ $item->ilosc }} @endif
+                                @if($item->cena)· {{ number_format($item->cena, 2, ',', ' ') }} €/t @endif
+                            </span>
+                        </div>
+                        @endforeach
+                    </div>
+                    @if($pr->notes)
+                    <div class="pr-notes">{{ $pr->notes }}</div>
+                    @endif
+
+                    {{-- Przycisk odrzuć --}}
+                    <div style="margin-top:6px;text-align:right">
+                        <button type="button"
+                                onclick="event.stopPropagation(); odrzucZlecenie({{ $pr->id }}, '{{ addslashes($pr->client?->short_name ?? '?') }}')"
+                                style="font-size:10px;padding:2px 8px;border-radius:3px;border:1px solid #e74c3c;background:#fff;color:#e74c3c;cursor:pointer;font-weight:600;transition:background .1s"
+                                onmouseover="this.style.background='#fdf2f2'"
+                                onmouseout="this.style.background='#fff'">
+                            <i class="fas fa-ban" style="font-size:9px"></i> Odrzuć
+                        </button>
+                    </div>
+                </div>
             </div>
             @endforeach
         </div>
@@ -723,7 +877,6 @@
 @endsection
 
 @section('scripts')
-{{-- jQuery UI --}}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
 
@@ -764,7 +917,6 @@ async function setStatus(orderId, statusKey, statusLabel, btn) {
     });
     if (!result.isConfirmed) return;
 
-    // Jeśli kliknięto aktywny – cofamy do poprzedniego statusu
     const order = btn.closest('.order-card');
     const allBtns = [...order.querySelectorAll('.btn-status-sm')];
     const idx = allBtns.indexOf(btn);
@@ -781,24 +933,18 @@ async function setStatus(orderId, statusKey, statusLabel, btn) {
     const data = await res.json();
 
     if (data.success) {
-        // Odśwież aktywne ikony – zapal wszystkie do i włącznie z aktywnym
         const statusOrder = allBtns.map(b => b.dataset.status);
         const newIdx = statusOrder.indexOf(newStatus);
         allBtns.forEach((b, i) => {
-            if (i <= newIdx) {
-                b.classList.add('active');
-            } else {
-                b.classList.remove('active');
-            }
+            if (i <= newIdx) b.classList.add('active');
+            else b.classList.remove('active');
         });
-        // Jeśli cofnięto do planned - zgaś wszystkie
         if (newStatus === 'planned') {
             allBtns.forEach(b => b.classList.remove('active'));
         }
     }
 }
 
-// ── Datepicker ze świętami ────────────────────────────────────────────────────
 $.getJSON('/swieta.php', function(holidays) {
     const holidaysMap = {};
     holidays.forEach(h => { holidaysMap[h.date] = h.name; });
@@ -824,7 +970,6 @@ $.getJSON('/swieta.php', function(holidays) {
     });
     $('#datepicker').datepicker('setDate', currentDate);
 }).fail(function() {
-    // Fallback: zwykły input jeśli swieta.php niedostępne
     $('#datepicker').html('<input type="date" class="form-control form-control-sm" value="' + currentDate + '" onchange="goToDate(this.value)">');
 });
 
@@ -853,8 +998,8 @@ async function quickSetPlacDate(orderId, plannedDate) {
     });
 
     let placDate = null;
-    if (result.isConfirmed)       placDate = fmt(pd);
-    else if (result.isDenied)     placDate = fmt(prevWorkday);
+    if (result.isConfirmed)   placDate = fmt(pd);
+    else if (result.isDenied) placDate = fmt(prevWorkday);
     else return;
 
     await fetch(`/biuro/orders/${orderId}/plac-date`, {
@@ -865,6 +1010,34 @@ async function quickSetPlacDate(orderId, plannedDate) {
 
     Swal.fire({ icon: 'success', title: 'Zapisano!', timer: 1000, showConfirmButton: false });
     setTimeout(() => location.reload(), 1100);
+}
+</script>
+<script>
+async function odrzucZlecenie(id, klient) {
+    const result = await Swal.fire({
+        title: 'Odrzucić zlecenie?',
+        html: `Zlecenie od <b>${klient}</b> zostanie oznaczone jako odrzucone przez biuro.<br>Handlowiec zobaczy tę informację.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#e74c3c',
+        confirmButtonText: 'Tak, odrzuć',
+        cancelButtonText: 'Anuluj',
+    });
+    if (!result.isConfirmed) return;
+
+    const res = await fetch(`/biuro/pickup-requests/${id}/odrzuc`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+    });
+    const data = await res.json();
+    if (data.success) {
+        await Swal.fire({ icon: 'success', title: 'Odrzucono', timer: 1200, showConfirmButton: false });
+        location.reload();
+    }
 }
 </script>
 @include('biuro.planning.order_modal_js')

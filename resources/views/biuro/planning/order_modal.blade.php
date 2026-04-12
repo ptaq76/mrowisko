@@ -23,6 +23,7 @@
                     @csrf
                     <input type="hidden" id="order_id" name="order_id">
                     <input type="hidden" id="order_type" name="type" value="pickup">
+                    <input type="hidden" id="order_pickup_request_id" name="pickup_request_id">
 
                     {{-- Data + Kierowca --}}
                     <div class="d-flex gap-3 px-4 pt-2 pb-2 border-bottom">

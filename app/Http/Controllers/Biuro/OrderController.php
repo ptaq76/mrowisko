@@ -8,6 +8,7 @@ use App\Models\Driver;
 use App\Models\Lieferschein;
 use App\Models\Order;
 use App\Models\OrderQuickButton;
+use App\Models\PickupRequest;
 use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -66,6 +67,12 @@ class OrderController extends Controller
         // Oznacz LS jako użyty
         if ($order->lieferschein_id) {
             Lieferschein::where('id', $order->lieferschein_id)->update(['is_used' => true]);
+        }
+
+        // Jeśli zlecenie pochodzi z PickupRequest – oznacz jako przyjęte
+        if ($request->pickup_request_id) {
+            PickupRequest::where('id', $request->pickup_request_id)
+                ->update(['status' => 'przyjete', 'order_id' => $order->id]);
         }
 
         return response()->json(['success' => true, 'message' => 'Zlecenie zostało dodane.', 'id' => $order->id, 'planned_date' => $order->planned_date]);
@@ -201,10 +208,23 @@ class OrderController extends Controller
         $quickGoods = OrderQuickButton::goods()->get(['id', 'label']);
         $quickNotes = OrderQuickButton::notes()->get(['id', 'label']);
 
+        // Zlecenia handlowców – nowe i przyjęte, bez przypisanego order
+        $pickupRequests = PickupRequest::whereIn('status', ['nowe', 'przyjete'])
+            ->with(['client:id,short_name', 'salesman:id,name', 'items'])
+            ->orderBy('requested_date')
+            ->get();
+
         return response()->json(compact(
             'drivers', 'clients', 'tractors', 'trailers',
-            'freeLs', 'leipa', 'ewrant', 'quickGoods', 'quickNotes'
+            'freeLs', 'leipa', 'ewrant', 'quickGoods', 'quickNotes',
+            'pickupRequests'
         ));
+    }
+
+    public function odrzucPickupRequest(PickupRequest $pickupRequest)
+    {
+        $pickupRequest->update(['status' => 'odrzucone_biuro', 'order_id' => null]);
+        return response()->json(['success' => true]);
     }
 
     // Konfiguracja przycisków
