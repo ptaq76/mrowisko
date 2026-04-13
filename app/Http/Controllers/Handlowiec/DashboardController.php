@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Handlowiec;
 
 use App\Http\Controllers\Controller;
 use App\Models\Client;
+use App\Models\ClientAddress;
+use App\Models\ClientContact;
 use App\Models\PickupRequest;
 use App\Models\PickupRequestItem;
 use Illuminate\Http\Request;
@@ -16,6 +18,8 @@ class DashboardController extends Controller
         return view('handlowiec.dashboard');
     }
 
+    // ── Klienci ──────────────────────────────────────────────────────────────
+
     public function klienci()
     {
         $klienci = Client::where('salesman_id', auth()->user()->id)
@@ -26,9 +30,81 @@ class DashboardController extends Controller
         return view('handlowiec.klienci', compact('klienci'));
     }
 
+    public function nowyKlient()
+    {
+        return view('handlowiec.nowy_klient');
+    }
+
+    public function storeKlient(Request $request)
+    {
+        $request->validate([
+            'name'             => ['required', 'string', 'max:255'],
+            'short_name'       => ['required', 'string', 'max:255', 'unique:clients,short_name'],
+            'nip'              => ['nullable', 'string', 'max:50', 'unique:clients,nip'],
+            'type'             => ['required', 'in:pickup,sale,both'],
+            'street'           => ['required', 'string', 'max:255'],
+            'postal_code'      => ['required', 'string', 'max:20'],
+            'city'             => ['nullable', 'string', 'max:255'],
+            'addr_street'      => ['required', 'string', 'max:255'],
+            'addr_postal_code' => ['required', 'string', 'max:20'],
+            'addr_city'        => ['required', 'string', 'max:255'],
+            'addr_hours'       => ['nullable', 'string', 'max:100'],
+            'addr_notes'       => ['nullable', 'string'],
+            'contact_category' => ['required', 'in:awizacje,faktury,handlowe'],
+            'contact_name'     => ['required', 'string', 'max:255'],
+            'contact_phone'    => ['nullable', 'string', 'max:50'],
+            'contact_email'    => ['nullable', 'email', 'max:255'],
+        ], [
+            'name.required'             => 'Pełna nazwa jest wymagana.',
+            'short_name.required'       => 'Nazwa skrócona jest wymagana.',
+            'short_name.unique'         => 'Ta nazwa skrócona jest już zajęta.',
+            'nip.unique'                => 'Ten NIP jest już zarejestrowany w systemie.',
+            'type.required'             => 'Wybierz typ kontrahenta.',
+            'street.required'           => 'Ulica firmy jest wymagana.',
+            'postal_code.required'      => 'Kod pocztowy firmy jest wymagany.',
+            'addr_street.required'      => 'Ulica punktu odbioru jest wymagana.',
+            'addr_postal_code.required' => 'Kod pocztowy punktu odbioru jest wymagany.',
+            'addr_city.required'        => 'Miasto punktu odbioru jest wymagane.',
+            'contact_name.required'     => 'Imię i nazwisko kontaktu jest wymagane.',
+        ]);
+
+        DB::transaction(function () use ($request) {
+            $client = Client::create([
+                'name'        => $request->name,
+                'short_name'  => $request->short_name,
+                'nip'         => $request->nip ?: null,
+                'type'        => $request->type,
+                'street'      => $request->street,
+                'postal_code' => $request->postal_code,
+                'city'        => $request->city,
+                'salesman_id' => auth()->user()->id,
+                'is_active'   => true,
+                'country'     => 'PL',
+            ]);
+
+            $client->addresses()->create([
+                'street'      => $request->addr_street,
+                'postal_code' => $request->addr_postal_code,
+                'city'        => $request->addr_city,
+                'hours'       => $request->addr_hours ?: null,
+                'notes'       => $request->addr_notes ?: null,
+            ]);
+
+            $client->contacts()->create([
+                'category' => $request->contact_category,
+                'name'     => $request->contact_name,
+                'phone'    => $request->contact_phone ?: null,
+                'email'    => $request->contact_email ?: null,
+            ]);
+        });
+
+        return response()->json(['success' => true]);
+    }
+
     public function klientEdit(Client $client)
     {
         $this->authorizujKlienta($client);
+        $client->load(['addresses', 'contacts']);
         return view('handlowiec.klient_edit', compact('client'));
     }
 
@@ -37,25 +113,80 @@ class DashboardController extends Controller
         $this->authorizujKlienta($client);
 
         $request->validate([
-            'name'        => ['required', 'string', 'max:200'],
-            'short_name'  => ['nullable', 'string', 'max:50'],
-            'nip'         => ['nullable', 'string', 'max:20'],
-            'bdo'         => ['nullable', 'string', 'max:50'],
-            'phone'       => ['nullable', 'string', 'max:30'],
-            'email'       => ['nullable', 'email', 'max:100'],
-            'street'      => ['nullable', 'string', 'max:200'],
-            'postal_code' => ['nullable', 'string', 'max:10'],
-            'city'        => ['nullable', 'string', 'max:100'],
-            'notes'       => ['nullable', 'string'],
+            'name'        => ['required', 'string', 'max:255'],
+            'short_name'  => ['required', 'string', 'max:255'],
+            'nip'         => ['nullable', 'string', 'max:50'],
+            'type'        => ['required', 'in:pickup,sale,both'],
+            'street'      => ['required', 'string', 'max:255'],
+            'postal_code' => ['required', 'string', 'max:20'],
+            'city'        => ['nullable', 'string', 'max:255'],
         ]);
 
-        $client->update($request->only(
-            'name', 'short_name', 'nip', 'bdo',
-            'phone', 'email', 'street', 'postal_code', 'city', 'notes'
-        ));
+        $client->update($request->only('name','short_name','nip','type','street','postal_code','city'));
 
         return response()->json(['success' => true]);
     }
+
+    // ── Adresy ────────────────────────────────────────────────────────────────
+
+    public function storeAddress(Request $request, Client $client)
+    {
+        $this->authorizujKlienta($client);
+        $request->validate([
+            'street'      => ['required', 'string', 'max:255'],
+            'postal_code' => ['required', 'string', 'max:20'],
+            'city'        => ['required', 'string', 'max:255'],
+            'hours'       => ['nullable', 'string', 'max:100'],
+            'notes'       => ['nullable', 'string'],
+        ]);
+        $client->addresses()->create($request->only('street','postal_code','city','hours','notes'));
+        return response()->json(['success' => true]);
+    }
+
+    public function updateAddress(Request $request, Client $client, ClientAddress $address)
+    {
+        $this->authorizujKlienta($client);
+        $request->validate([
+            'street'      => ['required', 'string', 'max:255'],
+            'postal_code' => ['required', 'string', 'max:20'],
+            'city'        => ['required', 'string', 'max:255'],
+            'hours'       => ['nullable', 'string', 'max:100'],
+            'notes'       => ['nullable', 'string'],
+        ]);
+        $address->update($request->only('street','postal_code','city','hours','notes'));
+        return response()->json(['success' => true]);
+    }
+
+    public function destroyAddress(Client $client, ClientAddress $address)
+    {
+        $this->authorizujKlienta($client);
+        $address->delete();
+        return response()->json(['success' => true]);
+    }
+
+    // ── Kontakty ──────────────────────────────────────────────────────────────
+
+    public function storeContact(Request $request, Client $client)
+    {
+        $this->authorizujKlienta($client);
+        $request->validate([
+            'category' => ['required', 'in:awizacje,faktury,handlowe'],
+            'name'     => ['required', 'string', 'max:255'],
+            'phone'    => ['nullable', 'string', 'max:50'],
+            'email'    => ['nullable', 'email', 'max:255'],
+        ]);
+        $client->contacts()->create($request->only('category','name','phone','email'));
+        return response()->json(['success' => true]);
+    }
+
+    public function destroyContact(Client $client, ClientContact $contact)
+    {
+        $this->authorizujKlienta($client);
+        $contact->delete();
+        return response()->json(['success' => true]);
+    }
+
+    // ── Moje zlecenia ─────────────────────────────────────────────────────────
 
     public function zlecenia(Request $request)
     {
@@ -67,6 +198,10 @@ class DashboardController extends Controller
 
         if ($request->filled('client_id')) {
             $query->where('client_id', $request->client_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
         }
 
         $zlecenia = $query->get();
@@ -92,6 +227,8 @@ class DashboardController extends Controller
 
         return response()->json($historia);
     }
+
+    // ── Nowe zlecenie ─────────────────────────────────────────────────────────
 
     public function noweZlecenie()
     {
@@ -147,6 +284,17 @@ class DashboardController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    // ── Sprawdź NIP ───────────────────────────────────────────────────────────
+
+    public function checkNip(Request $request)
+    {
+        $nip    = $request->input('nip', '');
+        $exists = Client::where('nip', $nip)->exists();
+        return response()->json(['exists' => $exists]);
+    }
+
+    // ── Helper ────────────────────────────────────────────────────────────────
 
     private function authorizujKlienta(Client $client): void
     {

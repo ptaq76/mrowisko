@@ -781,10 +781,15 @@
                     : '?';
             @endphp
             <div class="pr-card">
-                {{-- Górny wiersz: klient + licznik + handlowiec --}}
+                {{-- Górny wiersz: klient + termin + licznik dni + handlowiec --}}
                 <div class="pr-card-top"
                      onclick="openOrderModal(null, 'pickup', {{ $pr->client_id }}, {{ $pr->id }}, {{ json_encode($goodsForModal) }})">
                     <div class="pr-client">{{ $pr->client?->short_name ?? '?' }}</div>
+
+                    {{-- Termin --}}
+                    <div style="font-size:10px;color:#999;white-space:nowrap;margin-right:2px">
+                        Termin: {{ $pr->requested_date?->format('d.m') }}
+                    </div>
 
                     {{-- Licznik dni --}}
                     <div class="pr-days-badge" style="background:{{ $dayColor }}18;color:{{ $dayColor }};border:1px solid {{ $dayColor }}44"
@@ -798,23 +803,17 @@
                     @endif
                 </div>
 
-                {{-- Dolna część: data + towary + uwagi + przycisk odrzuć --}}
+                {{-- Dolna część: towary w tabelce + uwagi + przycisk odrzuć --}}
                 <div class="pr-card-body">
-                    <div class="pr-date-row">
-                        <i class="fas fa-calendar-alt" style="font-size:9px"></i>
-                        Termin: {{ $pr->requested_date?->format('d.m.Y') }}
-                    </div>
-                    <div class="pr-items">
+                    <table style="width:100%;border-collapse:collapse;margin-top:4px;margin-bottom:3px;margin-left:auto">
                         @foreach($pr->items as $item)
-                        <div class="pr-item">
-                            <span class="pr-item-nazwa">{{ $item->nazwa }}</span>
-                            <span class="pr-item-meta">
-                                @if($item->ilosc){{ $item->ilosc }} @endif
-                                @if($item->cena)· {{ number_format($item->cena, 2, ',', ' ') }} €/t @endif
-                            </span>
-                        </div>
+                        <tr>
+                            <td style="font-size:11px;font-weight:600;color:#333;padding:2px 6px 2px 0;width:100%">{{ $item->nazwa }}</td>
+                            <td style="font-size:11px;color:#666;text-align:right;white-space:nowrap;padding:2px 6px;border-left:1px solid #eee">@if($item->ilosc) {{ $item->ilosc }} @endif</td>
+                            <td style="font-size:11px;color:#444;font-weight:600;text-align:right;white-space:nowrap;padding:2px 0 2px 6px;border-left:1px solid #eee">@if($item->cena) {{ number_format($item->cena, 2, ',', ' ') }} zł/t @endif</td>
+                        </tr>
                         @endforeach
-                    </div>
+                    </table>
                     @if($pr->notes)
                     <div class="pr-notes">{{ $pr->notes }}</div>
                     @endif

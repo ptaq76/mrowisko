@@ -57,6 +57,10 @@
                href="{{ route('biuro.reports.weighings') }}">
             <i class="fa-solid fa-weight"></i> Ważenia kierowców
         </a></li>
+        <li><a class="dropdown-item {{ request()->routeIs('biuro.reports.pickup-requests') ? 'active' : '' }}"
+               href="{{ route('biuro.reports.pickup-requests') }}">
+            <i class="fa-solid fa-handshake"></i> Zlecenia handlowców
+        </a></li>
     </ul>
 </div>
 <a href="{{ route('biuro.ustawienia') }}"

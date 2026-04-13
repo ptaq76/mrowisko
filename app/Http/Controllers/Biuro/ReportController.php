@@ -7,8 +7,10 @@ use App\Models\Client;
 use App\Models\Driver;
 use App\Models\Order;
 use App\Models\WasteFraction;
+use App\Models\PickupRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+
 
 class ReportController extends Controller
 {
@@ -317,4 +319,44 @@ class ReportController extends Controller
 
         return response()->json(['success' => true]);
     }
+
+    public function pickupRequests(Request $request)
+{
+    $query = PickupRequest::with(['client', 'salesman', 'items', 'order'])
+        ->orderByDesc('requested_date');
+
+    if ($request->filled('client_id')) {
+        $query->where('client_id', $request->client_id);
+    }
+
+    if ($request->filled('salesman_id')) {
+        $query->where('salesman_id', $request->salesman_id);
+    }
+
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
+    }
+
+    $zlecenia = $query->get();
+
+    $clients = Client::whereHas('pickupRequests')
+        ->orderBy('short_name')
+        ->get(['id', 'short_name']);
+
+    $handlowcy = \App\Models\User::where('module', 'handlowiec')
+        ->orderBy('name')
+        ->get(['id', 'name']);
+
+    $statuses = [
+        'nowe'            => 'Nowe',
+        'przyjete'        => 'Przyjęte',
+        'zrealizowane'    => 'Zrealizowane',
+        'anulowane'       => 'Anulowane',
+        'odrzucone_biuro' => 'Odrzucone przez biuro',
+    ];
+
+    return view('biuro.reports.pickup_requests', compact(
+        'zlecenia', 'clients', 'handlowcy', 'statuses'
+    ));
+}
 }

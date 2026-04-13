@@ -25,18 +25,19 @@ Route::prefix('admin')
         Route::post('/agent/save', [\App\Http\Controllers\Admin\AdminController::class, 'agentChatSave'])->name('agent.save');
         Route::delete('/agent/{chat}', [\App\Http\Controllers\Admin\AdminController::class, 'agentChatDelete'])->name('agent.delete');
 
-        // Annex 7 - słowniki
         Route::resource('annex7-contractors',         \App\Http\Controllers\Admin\Annex7ContractorController::class)->names('annex7-contractors');
         Route::resource('annex7-recovery-operations', \App\Http\Controllers\Admin\Annex7RecoveryOperationController::class)->names('annex7-recovery-operations');
         Route::resource('annex7-waste-descriptions',  \App\Http\Controllers\Admin\Annex7WasteDescriptionController::class)->names('annex7-waste-descriptions');
 
-        // CRUD użytkowników
         Route::resource('users', \App\Http\Controllers\Admin\UserController::class);
-
-        // Reset hasła – osobna trasa PATCH
         Route::patch('users/{user}/password', [\App\Http\Controllers\Admin\UserController::class, 'resetPassword'])
              ->name('users.password');
     });
+
+    // ── GUS – dostępne dla wszystkich zalogowanych ────────────────────────────────
+Route::middleware(['auth'])->group(function () {
+    Route::get('/gus', [\App\Http\Controllers\Biuro\ClientController::class, 'gusLookup'])->name('gus.lookup');
+});
 
 // ── BIURO ─────────────────────────────────────────────────────────────────────
 
@@ -77,6 +78,11 @@ Route::prefix('biuro')
 
         // Frakcje odpadów
         Route::get('fractions/check-name', [\App\Http\Controllers\Biuro\WasteFractionController::class, 'checkName'])->name('fractions.checkName');
+        Route::post('fractions/{fraction}/toggle', [\App\Http\Controllers\Biuro\WasteFractionController::class, 'toggle'])->name('fractions.toggle');
+        Route::get('fractions', [\App\Http\Controllers\Biuro\WasteFractionController::class, 'index'])->name('fractions.index');
+        Route::post('fractions', [\App\Http\Controllers\Biuro\WasteFractionController::class, 'store'])->name('fractions.store');
+        Route::resource('fractions', \App\Http\Controllers\Biuro\WasteFractionController::class)->only(['update']);
+
         // Pojazdy paliwowe
         Route::get('fuel-vehicles', [\App\Http\Controllers\Biuro\FuelVehicleController::class, 'index'])->name('fuel-vehicles.index');
         Route::post('fuel-vehicles', [\App\Http\Controllers\Biuro\FuelVehicleController::class, 'store'])->name('fuel-vehicles.store');
@@ -94,11 +100,6 @@ Route::prefix('biuro')
         Route::get('haulers', [\App\Http\Controllers\Biuro\HaulerController::class, 'index'])->name('haulers.index');
         Route::post('haulers/{client}/toggle', [\App\Http\Controllers\Biuro\HaulerController::class, 'toggle'])->name('haulers.toggle');
 
-        Route::post('fractions/{fraction}/toggle', [\App\Http\Controllers\Biuro\WasteFractionController::class, 'toggle'])->name('fractions.toggle');
-        Route::get('fractions', [\App\Http\Controllers\Biuro\WasteFractionController::class, 'index'])->name('fractions.index');
-        Route::post('fractions', [\App\Http\Controllers\Biuro\WasteFractionController::class, 'store'])->name('fractions.store');
-        Route::resource('fractions', \App\Http\Controllers\Biuro\WasteFractionController::class)->only(['update']);
-
         // Ważenia
         Route::get('weighings', [\App\Http\Controllers\Biuro\WeighingController::class, 'index'])->name('weighings.index');
         Route::get('weighings/archived', [\App\Http\Controllers\Biuro\WeighingController::class, 'archived'])->name('weighings.archived');
@@ -114,35 +115,18 @@ Route::prefix('biuro')
         Route::get('reports/loadings/archived', [\App\Http\Controllers\Biuro\ReportController::class, 'loadingsArchived'])->name('reports.loadings.archived');
         Route::post('reports/loadings/{order}/revert', [\App\Http\Controllers\Biuro\ReportController::class, 'revert'])->name('reports.loadings.revert');
         Route::post('reports/loadings/{order}/archive', [\App\Http\Controllers\Biuro\ReportController::class, 'archive'])->name('reports.loadings.archive');
+        Route::post('reports/loadings/{order}/unarchive', [\App\Http\Controllers\Biuro\ReportController::class, 'unarchive'])->name('reports.loadings.unarchive');
         Route::get('reports/deliveries', [\App\Http\Controllers\Biuro\ReportController::class, 'deliveries'])->name('reports.deliveries');
         Route::post('reports/deliveries/{order}/revert', [\App\Http\Controllers\Biuro\ReportController::class, 'revertDelivery'])->name('reports.deliveries.revert');
         Route::post('reports/deliveries/{order}/archive', [\App\Http\Controllers\Biuro\ReportController::class, 'archiveDelivery'])->name('reports.deliveries.archive');
         Route::get('reports/deliveries/archived', [\App\Http\Controllers\Biuro\ReportController::class, 'deliveriesArchived'])->name('reports.deliveries.archived');
         Route::post('reports/deliveries/{order}/unarchive', [\App\Http\Controllers\Biuro\ReportController::class, 'unarchiveDelivery'])->name('reports.deliveries.unarchive');
-        // Raporty
-        Route::get('reports/loadings', [\App\Http\Controllers\Biuro\ReportController::class, 'loadings'])->name('reports.loadings');
-        Route::get('reports/loadings/archived', [\App\Http\Controllers\Biuro\ReportController::class, 'loadingsArchived'])->name('reports.loadings.archived');
-        Route::post('reports/loadings/{order}/revert', [\App\Http\Controllers\Biuro\ReportController::class, 'revert'])->name('reports.loadings.revert');
-        Route::post('reports/loadings/{order}/archive', [\App\Http\Controllers\Biuro\ReportController::class, 'archive'])->name('reports.loadings.archive');
-        Route::get('reports/deliveries', [\App\Http\Controllers\Biuro\ReportController::class, 'deliveries'])->name('reports.deliveries');
-        Route::post('reports/deliveries/{order}/revert', [\App\Http\Controllers\Biuro\ReportController::class, 'revertDelivery'])->name('reports.deliveries.revert');
-        Route::post('reports/deliveries/{order}/archive', [\App\Http\Controllers\Biuro\ReportController::class, 'archiveDelivery'])->name('reports.deliveries.archive');
-        Route::get('reports/deliveries/archived', [\App\Http\Controllers\Biuro\ReportController::class, 'deliveriesArchived'])->name('reports.deliveries.archived');
-        Route::post('reports/deliveries/{order}/unarchive', [\App\Http\Controllers\Biuro\ReportController::class, 'unarchiveDelivery'])->name('reports.deliveries.unarchive');
-        Route::get('/reports/warehouse', [\App\Http\Controllers\Biuro\WarehouseController::class, 'index'])->name('reports.warehouse');
-        Route::get('/reports/warehouse/{fractionId}/history', [\App\Http\Controllers\Biuro\WarehouseController::class, 'history'])->name('reports.warehouse.history');
-
+        Route::get('reports/warehouse', [\App\Http\Controllers\Biuro\WarehouseController::class, 'index'])->name('reports.warehouse');
+        Route::get('reports/warehouse/{fractionId}/history', [\App\Http\Controllers\Biuro\WarehouseController::class, 'history'])->name('reports.warehouse.history');
         Route::get('reports/weighings', [\App\Http\Controllers\Biuro\ReportController::class, 'weighings'])->name('reports.weighings');
         Route::post('reports/weighings/{order}/revert', [\App\Http\Controllers\Biuro\ReportController::class, 'revertWeighing'])->name('reports.weighings.revert');
         Route::post('reports/weighings/{order}/delete', [\App\Http\Controllers\Biuro\ReportController::class, 'deleteWeighing'])->name('reports.weighings.delete');
-
-        Route::post('reports/loadings/{order}/unarchive', [\App\Http\Controllers\Biuro\ReportController::class, 'unarchive'])->name('reports.loadings.unarchive');
-
-        Route::get('reports/weighings', [\App\Http\Controllers\Biuro\ReportController::class, 'weighings'])->name('reports.weighings');
-        Route::post('reports/weighings/{order}/revert', [\App\Http\Controllers\Biuro\ReportController::class, 'revertWeighing'])->name('reports.weighings.revert');
-        Route::post('reports/weighings/{order}/delete', [\App\Http\Controllers\Biuro\ReportController::class, 'deleteWeighing'])->name('reports.weighings.delete');
-
-        Route::post('reports/loadings/{order}/unarchive', [\App\Http\Controllers\Biuro\ReportController::class, 'unarchive'])->name('reports.loadings.unarchive');
+        Route::get('reports/pickup-requests', [\App\Http\Controllers\Biuro\ReportController::class, 'pickupRequests'])->name('reports.pickup-requests');
 
         // Pojazdy
         Route::resource('vehicles', \App\Http\Controllers\Biuro\VehicleController::class)->only(['index', 'store', 'update', 'destroy']);
@@ -151,28 +135,23 @@ Route::prefix('biuro')
         Route::get('clients/gus', [\App\Http\Controllers\Biuro\ClientController::class, 'gusLookup'])->name('clients.gus');
         Route::get('clients/data', [\App\Http\Controllers\Biuro\ClientController::class, 'data'])->name('clients.data');
         Route::resource('clients', \App\Http\Controllers\Biuro\ClientController::class);
-        Route::post('clients/{client}/contacts', [\App\Http\Controllers\Biuro\ClientController::class, 'storeContact'])
-             ->name('clients.contacts.store');
-        Route::delete('clients/{client}/contacts/{contact}', [\App\Http\Controllers\Biuro\ClientController::class, 'destroyContact'])
-             ->name('clients.contacts.destroy');
-        Route::post('clients/{client}/addresses', [\App\Http\Controllers\Biuro\ClientController::class, 'storeAddress'])
-             ->name('clients.addresses.store');
-        Route::put('clients/{client}/addresses/{address}', [\App\Http\Controllers\Biuro\ClientController::class, 'updateAddress'])
-             ->name('clients.addresses.update');
-        Route::delete('clients/{client}/addresses/{address}', [\App\Http\Controllers\Biuro\ClientController::class, 'destroyAddress'])
-             ->name('clients.addresses.destroy');
+        Route::post('clients/{client}/contacts', [\App\Http\Controllers\Biuro\ClientController::class, 'storeContact'])->name('clients.contacts.store');
+        Route::delete('clients/{client}/contacts/{contact}', [\App\Http\Controllers\Biuro\ClientController::class, 'destroyContact'])->name('clients.contacts.destroy');
+        Route::post('clients/{client}/addresses', [\App\Http\Controllers\Biuro\ClientController::class, 'storeAddress'])->name('clients.addresses.store');
+        Route::put('clients/{client}/addresses/{address}', [\App\Http\Controllers\Biuro\ClientController::class, 'updateAddress'])->name('clients.addresses.update');
+        Route::delete('clients/{client}/addresses/{address}', [\App\Http\Controllers\Biuro\ClientController::class, 'destroyAddress'])->name('clients.addresses.destroy');
 
-        // Raport wysyłek
         // Plan na plac
         Route::get('plan-na-plac', [\App\Http\Controllers\Biuro\PlanningController::class, 'planNaPlac'])->name('plan-na-plac');
         Route::post('orders/{order}/plac-date', [\App\Http\Controllers\Biuro\OrderController::class, 'setPlacDate'])->name('orders.plac-date');
 
+        // Raport wysyłek
         Route::get('raporty/wysylki', [\App\Http\Controllers\Biuro\RaportWysylekController::class, 'index'])->name('raporty.wysylki');
         Route::post('raporty/wysylki/cena/{order}', [\App\Http\Controllers\Biuro\RaportWysylekController::class, 'saveCena'])->name('raporty.wysylki.cena');
         Route::post('raporty/wysylki/cena-bulk', [\App\Http\Controllers\Biuro\RaportWysylekController::class, 'saveCenaBulk'])->name('raporty.wysylki.cena-bulk');
         Route::post('raporty/wysylki/transport/{order}', [\App\Http\Controllers\Biuro\RaportWysylekController::class, 'saveTransport'])->name('raporty.wysylki.transport');
 
-        // Koszty transportu - ustawienia
+        // Koszty transportu
         Route::get('koszty-transportu', [\App\Http\Controllers\Biuro\KosztTransportuController::class, 'index'])->name('koszty-transportu.index');
         Route::post('koszty-transportu', [\App\Http\Controllers\Biuro\KosztTransportuController::class, 'store'])->name('koszty-transportu.store');
         Route::put('koszty-transportu/{kosztTransportu}', [\App\Http\Controllers\Biuro\KosztTransportuController::class, 'update'])->name('koszty-transportu.update');
@@ -184,13 +163,13 @@ Route::prefix('biuro')
         Route::delete('przewoznicy/{przewoznik}', [\App\Http\Controllers\Biuro\KosztTransportuController::class, 'destroyPrzewoznik'])->name('przewoznicy.destroy');
 
         // Reklamacje
-        Route::get('reklamacje',            [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'index'])->name('reklamacje.index');
-        Route::get('reklamacje/bledy',      [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'bledy'])->name('reklamacje.bledy');
+        Route::get('reklamacje', [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'index'])->name('reklamacje.index');
+        Route::get('reklamacje/bledy', [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'bledy'])->name('reklamacje.bledy');
         Route::patch('reklamacje/bledy/{reklamacjaBled}', [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'bladUpdate'])->name('reklamacje.bledy.update');
-        Route::post('reklamacje/fetch-mail',[\App\Http\Controllers\Biuro\ReklamacjeController::class, 'fetchMail'])->name('reklamacje.fetch-mail');
+        Route::post('reklamacje/fetch-mail', [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'fetchMail'])->name('reklamacje.fetch-mail');
         Route::get('reklamacje/plik/{path}', [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'showFile'])->name('reklamacje.plik')->where('path', '.*');
 
-        // Annex 7 - dokumenty
+        // Annex 7
         Route::prefix('annex7')->name('annex7.')->group(function () {
             Route::get('/contractor/{contractor}', [\App\Http\Controllers\Biuro\Annex7Controller::class, 'contractorData'])->name('contractor-data');
             Route::get('/',             [\App\Http\Controllers\Biuro\Annex7Controller::class, 'index'])->name('index');
@@ -200,9 +179,8 @@ Route::prefix('biuro')
             Route::get('/{annex7}/pdf', [\App\Http\Controllers\Biuro\Annex7Controller::class, 'generatePdf'])->name('pdf');
         });
 
-        // Zlecenia handlowców
-Route::post('pickup-requests/{pickupRequest}/odrzuc', [\App\Http\Controllers\Biuro\OrderController::class, 'odrzucPickupRequest'])
-    ->name('pickup-requests.odrzuc');
+        // Zlecenia handlowców – odrzucenie
+        Route::post('pickup-requests/{pickupRequest}/odrzuc', [\App\Http\Controllers\Biuro\OrderController::class, 'odrzucPickupRequest'])->name('pickup-requests.odrzuc');
     });
 
 // ── KIEROWCA ──────────────────────────────────────────────────────────────────
@@ -239,7 +217,6 @@ Route::prefix('plac')
         Route::get('/', [\App\Http\Controllers\Plac\DashboardController::class, 'index'])->name('index');
         Route::get('/dashboard', [\App\Http\Controllers\Plac\DashboardController::class, 'index'])->name('dashboard');
 
-        // Plan dnia
         Route::get('orders', [\App\Http\Controllers\Plac\DashboardController::class, 'orders'])->name('orders');
         Route::get('orders/{order}/loading', [\App\Http\Controllers\Plac\DashboardController::class, 'loadingForm'])->name('orders.loading');
         Route::get('orders/{order}/loading/add', [\App\Http\Controllers\Plac\DashboardController::class, 'loadingAdd'])->name('orders.loading.add');
@@ -248,16 +225,13 @@ Route::prefix('plac')
         Route::delete('orders/{order}/loading/{item}', [\App\Http\Controllers\Plac\DashboardController::class, 'loadingDestroy'])->name('orders.loading.destroy');
         Route::post('orders/{order}/close', [\App\Http\Controllers\Plac\DashboardController::class, 'closeLoading'])->name('orders.close');
 
-        // Załadunki
         Route::get('loading', [\App\Http\Controllers\Plac\LoadingController::class, 'index'])->name('loading.index');
 
-        // Produkcja
         Route::get('production', [\App\Http\Controllers\Plac\ProductionController::class, 'index'])->name('production.index');
         Route::get('production/create', [\App\Http\Controllers\Plac\ProductionController::class, 'create'])->name('production.create');
         Route::post('production', [\App\Http\Controllers\Plac\ProductionController::class, 'store'])->name('production.store');
         Route::delete('production/{item}', [\App\Http\Controllers\Plac\ProductionController::class, 'destroy'])->name('production.destroy');
 
-        // Przyjęcie towaru (dostawy)
         Route::get('delivery', [\App\Http\Controllers\Plac\DeliveryController::class, 'index'])->name('delivery.index');
         Route::get('delivery/{order}/form', [\App\Http\Controllers\Plac\DeliveryController::class, 'deliveryForm'])->name('delivery.form');
         Route::get('delivery/{order}/add', [\App\Http\Controllers\Plac\DeliveryController::class, 'deliveryAdd'])->name('delivery.add');
@@ -266,12 +240,9 @@ Route::prefix('plac')
         Route::delete('delivery/{order}/items/{item}', [\App\Http\Controllers\Plac\DeliveryController::class, 'destroy'])->name('delivery.destroy');
         Route::post('delivery/{order}/close', [\App\Http\Controllers\Plac\DeliveryController::class, 'close'])->name('delivery.close');
 
-        // Magazyn
         Route::get('warehouse', [\App\Http\Controllers\Plac\WarehouseController::class, 'index'])->name('warehouse.index');
         Route::get('warehouse/{fraction}/history', [\App\Http\Controllers\Plac\WarehouseController::class, 'history'])->name('warehouse.history');
 
-        // Inwentaryzacja
-        // Paliwo
         Route::get('fuel', [\App\Http\Controllers\Plac\FuelController::class, 'index'])->name('fuel.index');
         Route::post('fuel', [\App\Http\Controllers\Plac\FuelController::class, 'store'])->name('fuel.store');
         Route::delete('fuel/{transaction}', [\App\Http\Controllers\Plac\FuelController::class, 'destroy'])->name('fuel.destroy');
@@ -282,16 +253,32 @@ Route::prefix('plac')
         Route::get('stock', [\App\Http\Controllers\Plac\DashboardController::class, 'stock'])->name('stock');
     });
 
-
 // ── HANDLOWIEC ────────────────────────────────────────────────────────────────
- 
-Route::prefix('handlowiec')->name('handlowiec.')->middleware(['auth', 'module:handlowiec'])->group(function () {
-    Route::get('/dashboard', [\App\Http\Controllers\Handlowiec\DashboardController::class, 'index'])->name('dashboard');
-    Route::get('/nowe-zlecenie',             [\App\Http\Controllers\Handlowiec\DashboardController::class, 'noweZlecenie'])->name('nowe-zlecenie');
-    Route::post('/zlecenia',                 [\App\Http\Controllers\Handlowiec\DashboardController::class, 'store'])->name('zlecenia.store');
-    Route::get('/zlecenia',                  [\App\Http\Controllers\Handlowiec\DashboardController::class, 'zlecenia'])->name('zlecenia');
-    Route::get('/klienci',                   [\App\Http\Controllers\Handlowiec\DashboardController::class, 'klienci'])->name('klienci');
-    Route::get('/klienci/{client}/edit',     [\App\Http\Controllers\Handlowiec\DashboardController::class, 'klientEdit'])->name('klient-edit');
-    Route::put('/klienci/{client}',          [\App\Http\Controllers\Handlowiec\DashboardController::class, 'klientUpdate'])->name('klient-update');
-    Route::get('/historia-klienta/{client}', [\App\Http\Controllers\Handlowiec\DashboardController::class, 'historiaKlienta'])->name('historia-klienta');
-});
+
+Route::prefix('handlowiec')
+    ->name('handlowiec.')
+    ->middleware(['auth', 'module:handlowiec'])
+    ->group(function () {
+        Route::get('/dashboard',                         [\App\Http\Controllers\Handlowiec\DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/nowe-zlecenie',                     [\App\Http\Controllers\Handlowiec\DashboardController::class, 'noweZlecenie'])->name('nowe-zlecenie');
+        Route::post('/zlecenia',                         [\App\Http\Controllers\Handlowiec\DashboardController::class, 'store'])->name('zlecenia.store');
+        Route::get('/zlecenia',                          [\App\Http\Controllers\Handlowiec\DashboardController::class, 'zlecenia'])->name('zlecenia');
+        Route::get('/historia-klienta/{client}',         [\App\Http\Controllers\Handlowiec\DashboardController::class, 'historiaKlienta'])->name('historia-klienta');
+
+        // Klienci
+        Route::get('/klienci',                           [\App\Http\Controllers\Handlowiec\DashboardController::class, 'klienci'])->name('klienci');
+        Route::get('/nowy-klient',                       [\App\Http\Controllers\Handlowiec\DashboardController::class, 'nowyKlient'])->name('nowy-klient');
+        Route::post('/nowy-klient',                      [\App\Http\Controllers\Handlowiec\DashboardController::class, 'storeKlient'])->name('klient-store');
+        Route::get('/check-nip',                         [\App\Http\Controllers\Handlowiec\DashboardController::class, 'checkNip'])->name('check-nip');
+        Route::get('/klienci/{client}/edit',             [\App\Http\Controllers\Handlowiec\DashboardController::class, 'klientEdit'])->name('klient-edit');
+        Route::post('/klienci/{client}/update',          [\App\Http\Controllers\Handlowiec\DashboardController::class, 'klientUpdate'])->name('klient-update');
+
+        // Adresy
+        Route::post('/klienci/{client}/addresses',                          [\App\Http\Controllers\Handlowiec\DashboardController::class, 'storeAddress'])->name('klient-address-store');
+        Route::post('/klienci/{client}/addresses/{address}/update',         [\App\Http\Controllers\Handlowiec\DashboardController::class, 'updateAddress'])->name('klient-address-update');
+        Route::post('/klienci/{client}/addresses/{address}/delete',         [\App\Http\Controllers\Handlowiec\DashboardController::class, 'destroyAddress'])->name('klient-address-destroy');
+
+        // Kontakty
+        Route::post('/klienci/{client}/contacts',                           [\App\Http\Controllers\Handlowiec\DashboardController::class, 'storeContact'])->name('klient-contact-store');
+        Route::post('/klienci/{client}/contacts/{contact}/delete',          [\App\Http\Controllers\Handlowiec\DashboardController::class, 'destroyContact'])->name('klient-contact-destroy');
+    });
