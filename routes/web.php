@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Biuro\BdoController;
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 
@@ -168,6 +169,24 @@ Route::prefix('biuro')
         Route::patch('reklamacje/bledy/{reklamacjaBled}', [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'bladUpdate'])->name('reklamacje.bledy.update');
         Route::post('reklamacje/fetch-mail', [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'fetchMail'])->name('reklamacje.fetch-mail');
         Route::get('reklamacje/plik/{path}', [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'showFile'])->name('reklamacje.plik')->where('path', '.*');
+
+
+// BDO - Karty odpadów
+// ══════════════════════════════════════════════════════════════════════════════
+
+// Widoki
+Route::get('bdo/karty', [BdoController::class, 'index'])->name('bdo.karty');
+Route::get('bdo/karty-przekazujacy', [BdoController::class, 'indexPrzekazujacy'])->name('bdo.kartyPrzekazujacy');
+
+// Akcje na kartach
+Route::post('bdo/potwierdz-karte', [BdoController::class, 'potwierdzKarte'])->name('bdo.potwierdzKarte');
+Route::post('bdo/odrzuc-karte', [BdoController::class, 'odrzucKarte'])->name('bdo.odrzucKarte');
+Route::post('bdo/aktualizuj-karte', [BdoController::class, 'aktualizujJednaKarte'])->name('bdo.aktualizujKarte');
+Route::post('bdo/potwierdz-rozpoczecie', [BdoController::class, 'potwierdzRozpoczecie'])->name('bdo.potwierdzRozpoczecie');
+
+// Synchronizacja
+Route::post('bdo/sync', [BdoController::class, 'sync'])->name('bdo.sync');
+Route::post('bdo/sync-przekazujacy', [BdoController::class, 'syncPrzekazujacy'])->name('bdo.syncPrzekazujacy');
 
         // Annex 7
         Route::prefix('annex7')->name('annex7.')->group(function () {

@@ -35,4 +35,9 @@ return [
         'key' => env('ANTHROPIC_API_KEY'),
     ],
 
+    'bdo' => [
+       'client_id' => env('BDO_CLIENT_ID'),
+       'client_secret' => env('BDO_CLIENT_SECRET'),
+   ],
+
 ];

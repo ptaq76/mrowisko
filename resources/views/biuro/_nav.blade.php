@@ -24,6 +24,32 @@
 <a href="{{ route('biuro.ls.index') }}"  class="btn {{ request()->routeIs('biuro.ls.*') ? 'active' : '' }}">
     <i class="fa-solid fa-file-alt"></i> Lieferscheiny
 </a>
+
+<div class="dropdown">
+    <button class="btn dropdown-toggle {{ request()->routeIs('biuro.bdo.*') ? 'active' : '' }}"
+            type="button" data-bs-toggle="dropdown">
+        <i class="fa-solid fa-recycle"></i> BDO
+    </button>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item {{ request()->routeIs('biuro.bdo.karty') ? 'active' : '' }}"
+               href="{{ route('biuro.bdo.karty') }}">
+            <i class="fa-solid fa-arrow-left"></i> Przejmujący
+        </a></li>
+        <li><a class="dropdown-item {{ request()->routeIs('biuro.bdo.kartyPrzekazujacy') ? 'active' : '' }}"
+               href="{{ route('biuro.bdo.kartyPrzekazujacy') }}">
+            <i class="fa-solid fa-arrow-right"></i> Przekazujący
+        </a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><h6 class="dropdown-header">Synchronizacja</h6></li>
+        <li><a class="dropdown-item" href="#" onclick="bdoSync('przejmujacy'); return false;">
+            <i class="fa-solid fa-sync"></i> Pobierz Przejmujący
+        </a></li>
+        <li><a class="dropdown-item" href="#" onclick="bdoSync('przekazujacy'); return false;">
+            <i class="fa-solid fa-sync"></i> Pobierz Przekazujący
+        </a></li>
+    </ul>
+</div>
+
 <a href="{{ route('biuro.weighings.index') }}"  class="btn {{ request()->routeIs('biuro.weighings.*') ? 'active' : '' }}">
     <i class="fa-solid fa-weight"></i> Ważenia
 </a>

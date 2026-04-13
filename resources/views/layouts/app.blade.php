@@ -434,6 +434,7 @@
         return false;
     }
 </script>
+ <script src="{{ asset('js/bdo/akcje.js') }}"></script>
 
 @yield('scripts')
 
