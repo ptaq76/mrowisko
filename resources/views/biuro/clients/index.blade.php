@@ -1,4 +1,4 @@
-@extends('layouts.ustawienia')
+@extends('layouts.app')
 
 @section('title', 'Kontrahenci')
 @section('module_name', 'BIURO')
@@ -13,7 +13,7 @@
 </style>
 @endsection
 
-@section('settings_content')
+@section('content')
 
 <div class="page-header">
     <div class="page-title"><i class="fa-solid fa-building"></i> Kontrahenci</div>

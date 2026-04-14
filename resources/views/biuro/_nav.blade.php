@@ -1,6 +1,12 @@
 <a href="{{ route('biuro.planning.index') }}" class="btn {{ request()->routeIs('biuro.planning.*') ? 'active' : '' }}">
     <i class="fa-solid fa-calendar-alt"></i> Planowanie
 </a>
+<a href="{{ route('biuro.weighings.index') }}"  class="btn {{ request()->routeIs('biuro.weighings.*') ? 'active' : '' }}">
+    <i class="fa-solid fa-weight"></i> Ważenia
+</a>
+<a href="{{ route('biuro.ls.index') }}"  class="btn {{ request()->routeIs('biuro.ls.*') ? 'active' : '' }}">
+    <i class="fa-solid fa-file-alt"></i> Lieferscheiny
+</a>
 <div class="dropdown">
     <button class="btn dropdown-toggle {{ request()->routeIs('biuro.annex7.*') || request()->routeIs('biuro.reklamacje.*') ? 'active' : '' }}"
             type="button" data-bs-toggle="dropdown">
@@ -21,9 +27,7 @@
         </a></li>
     </ul>
 </div>
-<a href="{{ route('biuro.ls.index') }}"  class="btn {{ request()->routeIs('biuro.ls.*') ? 'active' : '' }}">
-    <i class="fa-solid fa-file-alt"></i> Lieferscheiny
-</a>
+
 
 <div class="dropdown">
     <button class="btn dropdown-toggle {{ request()->routeIs('biuro.bdo.*') ? 'active' : '' }}"
@@ -50,9 +54,12 @@
     </ul>
 </div>
 
-<a href="{{ route('biuro.weighings.index') }}"  class="btn {{ request()->routeIs('biuro.weighings.*') ? 'active' : '' }}">
-    <i class="fa-solid fa-weight"></i> Ważenia
+
+
+<a href="{{ route('biuro.clients.index') }}" class="btn {{ request()->routeIs('biuro.clients.*') ? 'active' : '' }}">
+    <i class="fa-solid fa-building"></i> Kontrahenci
 </a>
+
 <div class="dropdown">
     <button class="btn dropdown-toggle {{ request()->routeIs('biuro.reports.*') || request()->routeIs('biuro.raporty.*') || request()->routeIs('biuro.plan-na-plac') ? 'active' : '' }}" type="button" data-bs-toggle="dropdown">
         <i class="fa-solid fa-chart-bar"></i> Raporty
@@ -90,6 +97,6 @@
     </ul>
 </div>
 <a href="{{ route('biuro.ustawienia') }}"
-   class="btn {{ request()->routeIs('biuro.fractions.*', 'biuro.haulers.*', 'biuro.clients.*', 'biuro.vehicles.*', 'biuro.importers.*', 'biuro.waste-codes.*', 'biuro.fuel-vehicles.*', 'biuro.koszty-transportu.*') ? 'active' : '' }}">
+   class="btn {{ request()->routeIs('biuro.fractions.*', 'biuro.haulers.*', 'biuro.vehicles.*', 'biuro.importers.*', 'biuro.waste-codes.*', 'biuro.fuel-vehicles.*', 'biuro.koszty-transportu.*') ? 'active' : '' }}">
     <i class="fa-solid fa-cog"></i> Ustawienia
 </a>

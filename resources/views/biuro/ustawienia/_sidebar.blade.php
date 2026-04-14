@@ -82,10 +82,6 @@
        class="sidebar-link {{ request()->routeIs('biuro.waste-codes.*') ? 'active' : '' }}">
         <i class="fa-solid fa-recycle"></i> Kody odpadów
     </a>
-    <a href="{{ route('biuro.clients.index') }}"
-       class="sidebar-link {{ request()->routeIs('biuro.clients.*') ? 'active' : '' }}">
-        <i class="fa-solid fa-building"></i> Kontrahenci
-    </a>
     <a href="{{ route('biuro.koszty-transportu.index') }}"
        class="sidebar-link {{ request()->routeIs('biuro.koszty-transportu.*') ? 'active' : '' }}">
         <i class="fa-solid fa-route"></i> Koszty transportu
