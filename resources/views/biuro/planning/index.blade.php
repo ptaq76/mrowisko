@@ -280,7 +280,7 @@
     .quick-btns { display: flex; flex-wrap: wrap; gap: 3px; }
 
     .quick-btn-client {
-        font-size: 10px;
+        font-size: 14px;
         padding: 3px 6px;
         border-radius: 3px;
         border: 1px solid var(--gray-2);
@@ -290,6 +290,7 @@
         max-width: 100%;
         overflow: hidden;
         text-overflow: ellipsis;
+        text-transform: uppercase;
         white-space: nowrap;
         color: var(--black);
     }
@@ -399,7 +400,7 @@
     .pr-card {
         background: #fff;
         border-radius: 6px;
-        border-left: 4px solid #f39c12;
+        border-left: 4px solid #27ae60;
         margin-bottom: 6px;
         overflow: hidden;
         box-shadow: 0 1px 3px rgba(0,0,0,.06);
@@ -447,7 +448,7 @@
         width: 22px;
         height: 22px;
         border-radius: 50%;
-        background: #2980b9;
+        background: #27ae60;
         color: #fff;
         font-size: 8px;
         font-weight: 700;
