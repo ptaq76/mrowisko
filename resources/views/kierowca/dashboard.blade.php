@@ -5,15 +5,15 @@
 @section('styles')
 <style>
 .order-card {
-    border-radius: 12px;
-    margin-bottom: 14px;
+    border-radius: 16px;
+    margin-bottom: 20px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    box-shadow: 0 3px 12px rgba(0,0,0,.10);
 }
 
 /* Kolor karty zależny od typu */
-.order-card.type-sale   { background: #fff; border-top: 4px solid #f39c12; }
-.order-card.type-pickup { background: #fff; border-top: 4px solid #27ae60; }
+.order-card.type-sale   { background: #fff; border-top: 5px solid #f39c12; }
+.order-card.type-pickup { background: #fff; border-top: 5px solid #27ae60; }
 .order-card.is-closed   { border-top-color: #b2bec3; opacity: .6; }
 
 /* Nagłówek */
@@ -114,10 +114,10 @@
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 16px; background: #eaf4fb; border-top: 1px solid #cce0f5;
 }
-.rw-label { font-size: 11px; font-weight: 700; color: #2471a3; text-transform: uppercase; letter-spacing: .06em; }
-.rw-val   { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: #2471a3; }
+.rw-label { font-size: 11px; font-weight: 700; color: #922b21; text-transform: uppercase; letter-spacing: .06em; }
+.rw-val   { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: #922b21; }
 .btn-rw   {
-    background: #2980b9; border: none; border-radius: 8px;
+    background: #922b21; border: none; border-radius: 8px;
     padding: 8px 14px; color: #fff; cursor: pointer;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 15px; font-weight: 800; letter-spacing: .06em;
@@ -137,13 +137,13 @@
 .btn-weigh {
     display: flex; align-items: center; justify-content: center; gap: 10px;
     width: 75%; margin: 12px auto; padding: 15px 16px;
-    background: #c0392b; color: #fff;
+    background: #922b21; color: #fff;
     text-decoration: none;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 20px; font-weight: 900;
     letter-spacing: .08em; text-transform: uppercase;
     border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(192,57,43,.4);
+    box-shadow: 0 4px 12px rgba(146,43,33,.35);
 }
 .btn-weigh:active { filter: brightness(.88); }
 
@@ -163,6 +163,9 @@
     </div>
 @else
     @foreach($orders as $order)
+    @if(!$loop->first)
+    <hr style="border:none;border-top:2px solid #e2e5e9;margin:0 0 20px">
+    @endif
     @php
         $statusLabels = [
             'planned'   => 'Zaplanowane',
@@ -283,7 +286,7 @@
                 {{-- Waga samochodowa jeszcze nie podana --}}
                 <div style="padding:12px 16px;text-align:center">
                     <a href="{{ route('kierowca.orders.weigh', $order) }}" class="btn-weigh"
-                       style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:15px 16px;background:#c0392b;color:#fff;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 12px rgba(192,57,43,.4)">
+                       style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:15px 16px;background:#922b21;color:#fff;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 12px rgba(146,43,33,.35)">
                         <i class="fas fa-weight fa-lg"></i> PODAJ WAGĘ
                     </a>
                 </div>
@@ -292,7 +295,7 @@
                 @if(!$order->weight_receiver)
                 <div style="padding:12px 16px;text-align:center">
                     <button onclick="openReceiverWeight({{ $order->id }}, null)"
-                            style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:15px 16px;background:#922b21;color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(146,43,33,.4)">
+                            style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:15px 16px;background:#922b21;color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(146,43,33,.35)">
                         <i class="fas fa-weight fa-lg"></i> WAGA ODBIORCY
                     </button>
                 </div>
@@ -303,7 +306,7 @@
             @if(in_array($order->status, ['planned', 'in_progress']))
                 <div style="padding:12px 16px;text-align:center">
                     <a href="{{ route('kierowca.orders.weigh', $order) }}" class="btn-weigh"
-                       style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:15px 16px;background:#27ae60;color:#fff;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 12px rgba(39,174,96,.4)">
+                       style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:15px 16px;background:#922b21;color:#fff;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 12px rgba(146,43,33,.35)">
                         <i class="fas fa-weight fa-lg"></i> PODAJ WAGĘ
                     </a>
                 </div>
@@ -325,7 +328,7 @@
                style="width:100%;padding:16px;border:3px solid #e2e5e9;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:42px;font-weight:900;text-align:center;outline:none;-moz-appearance:textfield;margin-bottom:14px"
                placeholder="0.000">
         <div style="text-align:center;font-size:11px;color:#aaa;margin-bottom:14px;text-transform:uppercase;letter-spacing:.08em">tony netto [t]</div>
-        <button onclick="saveRW()" style="width:100%;padding:16px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">
+        <button onclick="saveRW()" style="width:100%;padding:16px;background:#922b21;color:#fff;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">
             <i class="fas fa-check"></i> ZAPISZ
         </button>
     </div>

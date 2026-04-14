@@ -150,10 +150,7 @@ function buildSelects(orderType = 'pickup') {
     fillSelect('order_start', d.clients, r => ({ v: r.id, t: r.short_name }));
 
     // Ciągniki
-    fillSelect('order_tractor', d.tractors, r => ({
-        v: r.id,
-        t: r.plate + (r.subtype ? ` (${r.subtype})` : '')
-    }));
+    fillSelect('order_tractor', d.tractors, r => ({ v: r.id, t: r.plate }));
 
     // Naczepy
     const trailSel = document.getElementById('order_trailer');
@@ -162,7 +159,7 @@ function buildSelects(orderType = 'pickup') {
     d.trailers.forEach(r => {
         const o = document.createElement('option');
         o.value = r.id;
-        o.textContent = r.plate + (r.subtype ? ` (${r.subtype})` : '');
+        o.textContent = r.plate;
         trailSel.appendChild(o);
     });
 }
@@ -222,12 +219,24 @@ function buildQuickButtons() {
         nb.appendChild(btn);
     });
 
-    // Tabela LS
+    // Tabela LS – wiersze budowane przy wyborze klienta (filterLsTable)
     const tbody = document.getElementById('ls_table_body');
-    if (!tbody) return;
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-2">Wybierz kontrahenta, aby zobaczyć pasujące LS</td></tr>';
+}
+
+function filterLsTable(clientId) {
+    const d     = _modalData;
+    const tbody = document.getElementById('ls_table_body');
+    if (!tbody || !d) return;
+
+    const allLs = d.freeLs || d.free_ls || [];
+    const filtered = clientId
+        ? allLs.filter(ls => ls.client_id == clientId)
+        : allLs;
+
     tbody.innerHTML = '';
-    if ((d.freeLs || d.free_ls || []).length) {
-        (d.freeLs || d.free_ls).forEach(ls => {
+    if (filtered.length) {
+        filtered.forEach(ls => {
             const tr = document.createElement('tr');
             tr.style.cursor = 'pointer';
             const dateMatch = ls.date && ls.date.substring(0,10) === currentDate;
@@ -246,7 +255,7 @@ function buildQuickButtons() {
             tbody.appendChild(tr);
         });
     } else {
-        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-2">Brak wolnych LS na ten dzień</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-2">Brak wolnych LS dla tego kontrahenta</td></tr>';
     }
 }
 
@@ -270,7 +279,9 @@ function checkIfDE(clientId) {
     if (!section) return;
     if (!_modalData || !clientId) { section.style.display = 'none'; return; }
     const client = _modalData.clients.find(c => c.id == clientId);
-    section.style.display = (client?.country === 'DE') ? 'block' : 'none';
+    const show = client?.country === 'DE';
+    section.style.display = show ? 'block' : 'none';
+    if (show) filterLsTable(clientId);
 }
 
 function setStart(which) {
@@ -520,7 +531,7 @@ function buildEditSelects(orderType = 'pickup') {
     
     fillEditSelect('edit_order_start',   d.clients,  r => ({ v: r.id, t: r.short_name }));
     
-    fillEditSelect('edit_order_tractor', d.tractors, r => ({ v: r.id, t: r.plate + (r.subtype ? ` (${r.subtype})` : '') }));
+    fillEditSelect('edit_order_tractor', d.tractors, r => ({ v: r.id, t: r.plate }));
 
     const trailSel = document.getElementById('edit_order_trailer');
     if (trailSel) {
@@ -528,7 +539,7 @@ function buildEditSelects(orderType = 'pickup') {
         (d.trailers || []).forEach(r => {
             const o = document.createElement('option');
             o.value = r.id;
-            o.textContent = r.plate + (r.subtype ? ` (${r.subtype})` : '');
+            o.textContent = r.plate;
             trailSel.appendChild(o);
         });
     }

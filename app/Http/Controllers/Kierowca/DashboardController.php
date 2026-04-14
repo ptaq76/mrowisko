@@ -257,6 +257,24 @@ public function weighForm(Order $order)
         return response()->json(['success' => true, 'weight_receiver' => $order->weight_receiver]);
     }
 
+    // Moje kursy
+    public function kursy()
+    {
+        $driver = $this->getDriver();
+        if (!$driver) abort(403);
+
+        $orders = \App\Models\Order::with(['client'])
+            ->where('driver_id', $driver->id)
+            ->whereNotNull('planned_date')
+            ->orderByDesc('planned_date')
+            ->limit(300)
+            ->get();
+
+        $clients = $orders->pluck('client')->filter()->unique('id')->sortBy('short_name')->values();
+
+        return view('kierowca.kursy', compact('orders', 'clients', 'driver'));
+    }
+
     // Zmiana statusu
     public function setStatus(Request $request, Order $order)
     {

@@ -132,7 +132,7 @@ class ClientController extends Controller
         $data = $request->validate([
             'name'        => ['required', 'string', 'max:255'],
             'short_name'  => ['required', 'string', 'max:255', Rule::unique('clients', 'short_name')->ignore($client->id)],
-            'nip'         => ['nullable', 'string', 'max:50', 'unique:clients,nip'],
+            'nip' => ['nullable', 'string', 'max:50', Rule::unique('clients', 'nip')->ignore($client->id)],
             'bdo'         => ['nullable', 'string', 'max:50'],
             'country'     => ['required', Rule::in(['PL', 'DE'])],
             'type'        => ['required', Rule::in(['pickup', 'sale', 'both'])],

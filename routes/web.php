@@ -216,7 +216,8 @@ Route::prefix('kierowca')
         Route::post('orders/{order}/weigh-confirm', [\App\Http\Controllers\Kierowca\DashboardController::class, 'weighConfirm'])->name('orders.weighConfirm');
         Route::post('orders/{order}/weigh-confirm-hakowiec', [\App\Http\Controllers\Kierowca\DashboardController::class, 'weighConfirmHakowiec'])->name('orders.weighConfirmHakowiec');
         Route::post('orders/{order}/receiver-weight', [\App\Http\Controllers\Kierowca\DashboardController::class, 'saveReceiverWeight'])->name('orders.receiverWeight');
-    });
+        Route::get('/kursy', [\App\Http\Controllers\Kierowca\DashboardController::class, 'kursy'])->name('kursy');
+        });
 
 // ── HAKOWIEC ──────────────────────────────────────────────────────────────────
 
