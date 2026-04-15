@@ -8,6 +8,7 @@ use App\Models\Hauler;
 use App\Models\Order;
 use App\Models\Weighing;
 use App\Models\WasteFraction;
+use App\Models\VehicleSet;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -190,6 +191,32 @@ class WeighingController extends Controller
             'weight2'          => $weighing->weight2,
             'goods'            => $weighing->goods,
             'notes'            => $weighing->notes,
+        ]);
+    }
+
+    public function allTares()
+    {
+        $sets = VehicleSet::where('is_active', true)
+            ->orderBy('label')
+            ->get(['id', 'label', 'tare_kg']);
+
+        return response()->json(['sets' => $sets]);
+    }
+
+    public function tareForVehicles(Request $request)
+    {
+        $plate1 = $request->input('plate1');
+        $plate2 = $request->input('plate2');
+
+        $set = VehicleSet::findForVehicles(
+            optional(\App\Models\Vehicle::where('plate', $plate1)->first())->id,
+            optional(\App\Models\Vehicle::where('plate', $plate2)->first())->id
+        );
+
+        return response()->json([
+            'found' => (bool) $set,
+            'tare'  => $set?->tare_kg,
+            'label' => $set?->label,
         ]);
     }
 

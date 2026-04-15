@@ -64,6 +64,8 @@
 .mr-label { font-size:11px;font-weight:700;color:#2d7a1a;text-transform:uppercase;letter-spacing:.06em; }
 .mr-val   { font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#2d7a1a; }
 .mr-val.neg { color:#e74c3c; }
+#wW1.needs-fill { border-color:#e74c3c; box-shadow:0 0 0 2px rgba(231,76,60,.2); }
+#wW2.needs-fill { border-color:#e74c3c; box-shadow:0 0 0 2px rgba(231,76,60,.2); }
 
 /* Aktywne zlecenia */
 .active-orders-label { font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:6px; }
@@ -237,6 +239,7 @@
                                 data-type="{{ $ao->type }}"
                                 data-client-name="{{ $ao->client?->short_name }}"
                                 data-date="{{ $ao->planned_date->format('d.m') }}"
+                                data-goods="{{ $ao->fractions_note }}"
                                 onclick="selectActiveOrder(this)">
                             <span style="color:{{ $ao->type==='sale'?'#f39c12':'#27ae60' }}">{{ $ao->type==='sale'?'↑':'↓' }}</span>
                             {{ $ao->client?->short_name ?? '?' }}
@@ -284,14 +287,32 @@
                     </div>
                 </div>
 
-                <div class="m-row-2" style="margin-bottom:8px">
-                    <div>
-                        <label class="m-label">Waga 1 [t]</label>
-                        <input type="number" id="wW1" class="m-input" step="0.001" min="0" oninput="calcResult()">
+                <div style="background:#dde3ea;border-radius:10px;padding:14px 16px;margin-bottom:8px;border:2px solid #bcc4ce">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+                        <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#555">Wskazania wagi</span>
+                        <button type="button" onclick="toggleTareList()" id="tareBtnToggle"
+                                style="background:#2c3e50;border:none;border-radius:6px;padding:4px 12px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">
+                            <i class="fas fa-weight-hanging"></i> TARY
+                        </button>
                     </div>
-                    <div>
-                        <label class="m-label">Waga 2 [t]</label>
-                        <input type="number" id="wW2" class="m-input" step="0.001" min="0" oninput="calcResult()">
+                    {{-- Lista tar --}}
+                    <div id="tareList" style="display:none;margin-bottom:10px;background:#fff;border-radius:8px;padding:8px;max-height:180px;overflow-y:auto">
+                        <div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Wybierz zestaw → wstawi do Wagi 2</div>
+                        <div id="tareListItems" style="display:flex;flex-direction:column;gap:4px">
+                            {{-- wypełniane JS --}}
+                        </div>
+                    </div>
+                    <div class="m-row-2">
+                        <div>
+                            <label class="m-label" style="color:#3498db;font-size:12px">Waga 1 [t]</label>
+                            <input type="number" id="wW1" class="m-input" step="0.001" min="0" oninput="calcResult()"
+                                   style="font-size:22px;font-weight:900;font-family:'Barlow Condensed',sans-serif;padding:12px 14px;border-width:2px">
+                        </div>
+                        <div>
+                            <label class="m-label" style="color:#3498db;font-size:12px">Waga 2 [t]</label>
+                            <input type="number" id="wW2" class="m-input" step="0.001" min="0" oninput="calcResult()"
+                                   style="font-size:22px;font-weight:900;font-family:'Barlow Condensed',sans-serif;padding:12px 14px;border-width:2px">
+                        </div>
                     </div>
                 </div>
 
@@ -404,32 +425,106 @@ function closeModal() {
     document.getElementById('weighModal').classList.remove('open');
 }
 
-function selectActiveOrder(btn) {
+async function selectActiveOrder(btn) {
     document.querySelectorAll('.ao-btn').forEach(b => b.classList.remove('selected'));
     btn.classList.add('selected');
+
     document.getElementById('wClient').value  = btn.dataset.client;
     document.getElementById('wOrderId').value = btn.dataset.order;
-    if (btn.dataset.plate1) document.getElementById('wPlate1').value = btn.dataset.plate1.toUpperCase();
-    if (btn.dataset.plate2) document.getElementById('wPlate2').value = btn.dataset.plate2.toUpperCase();
-    // Pokaż etykietę POWIĄZANE
+
+    const plate1 = btn.dataset.plate1 ? btn.dataset.plate1.toUpperCase() : '';
+    const plate2 = btn.dataset.plate2 ? btn.dataset.plate2.toUpperCase() : '';
+    if (plate1) document.getElementById('wPlate1').value = plate1;
+    if (plate2) document.getElementById('wPlate2').value = plate2;
+
+    // Towar ze zlecenia
+    if (btn.dataset.goods) document.getElementById('wGoods').value = btn.dataset.goods;
+
+    // Badge POWIĄZANE
     const badge = document.getElementById('linkedBadge');
     const text  = document.getElementById('linkedText');
     const arrow = btn.dataset.type === 'sale' ? '↑' : '↓';
     text.textContent = 'POWIĄZANE: ' + arrow + ' ' + btn.dataset.clientName + ' · ' + btn.dataset.date;
     badge.style.display = 'inline-flex';
+
+    // Pobierz tarę zestawu i wstaw do odpowiedniego pola wagi
+    if (plate1) {
+        try {
+            const params = new URLSearchParams({ plate1, plate2 });
+            const res  = await fetch('/biuro/weighings/tare-for-vehicles?' + params, {
+                headers: { 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.found && data.tare) {
+                const tareVal = parseFloat(data.tare).toFixed(3);
+                if (btn.dataset.type === 'sale') {
+                    // Wysyłka: pusty pojazd → Waga 1
+                    document.getElementById('wW1').value = tareVal;
+                } else {
+                    // Dostawa/odbiór: pusty pojazd → Waga 2
+                    document.getElementById('wW2').value = tareVal;
+                }
+                calcResult();
+                // tara wstawiona cicho – bez modyfikacji badge
+            }
+        } catch(e) { /* brak tary */ }
+    }
+}
+
+const _tareCache = [];
+
+async function toggleTareList() {
+    const list = document.getElementById('tareList');
+    if (list.style.display !== 'none') {
+        list.style.display = 'none';
+        return;
+    }
+    // Załaduj tary jeśli jeszcze nie ma
+    if (_tareCache.length === 0) {
+        try {
+            const res  = await fetch('/biuro/weighings/all-tares', { headers: { 'Accept': 'application/json' } });
+            const data = await res.json();
+            data.sets.forEach(s => _tareCache.push(s));
+        } catch(e) { return; }
+    }
+    const container = document.getElementById('tareListItems');
+    container.innerHTML = '';
+    _tareCache.forEach(s => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.style.cssText = 'display:flex;justify-content:space-between;align-items:center;width:100%;padding:6px 10px;border:1px solid #e2e5e9;border-radius:6px;background:#f8f9fa;cursor:pointer;font-size:13px;text-align:left';
+        btn.onmouseover = () => btn.style.background = '#eaf4fb';
+        btn.onmouseout  = () => btn.style.background = '#f8f9fa';
+        btn.innerHTML = `<span style="font-weight:700;color:#1a1a1a">${s.label}</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:#2c3e50">${parseFloat(s.tare_kg).toFixed(3).replace('.',',')} t</span>`;
+        btn.onclick = () => selectTare(s.tare_kg);
+        container.appendChild(btn);
+    });
+    list.style.display = 'block';
+}
+
+function selectTare(tare) {
+    document.getElementById('wW2').value = parseFloat(tare).toFixed(3);
+    document.getElementById('tareList').style.display = 'none';
+    calcResult();
 }
 
 function calcResult() {
-    const w1  = parseFloat(document.getElementById('wW1').value);
-    const w2  = parseFloat(document.getElementById('wW2').value);
-    const val = document.getElementById('resultVal');
-    if (!isNaN(w1) && !isNaN(w2)) {
+    const w1El = document.getElementById('wW1');
+    const w2El = document.getElementById('wW2');
+    const w1   = parseFloat(w1El.value);
+    const w2   = parseFloat(w2El.value);
+    const val  = document.getElementById('resultVal');
+
+    // Czerwony border na polu które czeka na uzupełnienie
+    const w1filled = !isNaN(w1) && w1El.value.trim() !== '';
+    const w2filled = !isNaN(w2) && w2El.value.trim() !== '';
+    w1El.classList.toggle('needs-fill', !w1filled && w2filled);
+    w2El.classList.toggle('needs-fill', w1filled && !w2filled);
+
+    if (w1filled && w2filled) {
         const r = Math.round((w1 - w2) * 1000) / 1000;
         val.textContent = r.toFixed(3).replace('.', ',') + ' t';
         val.className   = 'mr-val' + (r < 0 ? ' neg' : '');
-    } else if (!isNaN(w1)) {
-        val.textContent = '–';
-        val.className   = 'mr-val';
     } else {
         val.textContent = '–';
         val.className   = 'mr-val';

@@ -102,6 +102,9 @@ Route::prefix('biuro')
         Route::post('haulers/{client}/toggle', [\App\Http\Controllers\Biuro\HaulerController::class, 'toggle'])->name('haulers.toggle');
 
         // Ważenia
+        Route::get('weighings/tare-for-vehicles', [\App\Http\Controllers\Biuro\WeighingController::class, 'tareForVehicles'])->name('weighings.tare-for-vehicles');
+        Route::get('weighings/all-tares',         [\App\Http\Controllers\Biuro\WeighingController::class, 'allTares'])->name('weighings.all-tares');
+        Route::get('weighings/tare-for-vehicles', [\App\Http\Controllers\Biuro\WeighingController::class, 'tareForVehicles'])->name('weighings.tare-for-vehicles');
         Route::get('weighings', [\App\Http\Controllers\Biuro\WeighingController::class, 'index'])->name('weighings.index');
         Route::get('weighings/archived', [\App\Http\Controllers\Biuro\WeighingController::class, 'archived'])->name('weighings.archived');
         Route::post('weighings', [\App\Http\Controllers\Biuro\WeighingController::class, 'store'])->name('weighings.store');

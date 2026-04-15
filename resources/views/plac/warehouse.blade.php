@@ -93,7 +93,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0,0,0,.5);
-    z-index: 200;
+    z-index: 400;
     align-items: flex-end;
 }
 .hist-modal-overlay.open { display: flex; }

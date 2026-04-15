@@ -144,10 +144,10 @@
                 <td style="padding:8px 10px;text-align:right;color:#555;font-size:14px">{{ number_format($li->weight_kg, 0, ',', ' ') }}</td>
             </tr>
             @endforeach
-            <tr style="background:#1a1a1a">
-                <td style="padding:10px 10px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#fff">RAZEM</td>
-                <td style="padding:10px 10px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff">{{ $order->loadingItems->sum('bales') }}</td>
-                <td style="padding:10px 10px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff">{{ number_format($order->loadingItems->sum('weight_kg'), 0, ',', ' ') }}</td>
+            <tr style="background:#f0f2f5">
+                <td style="padding:8px 10px;font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.06em">RAZEM</td>
+                <td style="padding:8px 10px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#555">{{ $order->loadingItems->sum('bales') }}</td>
+                <td style="padding:8px 10px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#555">{{ number_format($order->loadingItems->sum('weight_kg'), 0, ',', ' ') }}</td>
             </tr>
         </tbody>
     </table>

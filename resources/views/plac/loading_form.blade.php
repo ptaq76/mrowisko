@@ -27,19 +27,20 @@
 .back-btn:hover,.back-btn:active { background:#333 !important;color:#fff !important; }
 
 .load-header {
-    background: #f9d38c; border-radius: 12px;
-    padding: 14px 16px; margin-bottom: 12px;
+    background: #f39c12; border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 12px;
 }
 .load-client {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 32px; font-weight: 900; color: #1a1a1a; line-height: 1;
+    font-size: 32px; font-weight: 900; color: #fff; line-height: 1;
 }
 .load-sub { font-size: 13px; color: #888; margin-top: 3px; }
 .load-weight {
     margin-top: 10px; background: #fff; border-radius: 8px;
     padding: 8px 14px; display: flex; align-items: center; gap: 10px;
 }
-.lw-label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .06em; }
+.lw-label { font-size: 11px; font-weight: 700; color: rgba(0,0,0,.5); text-transform: uppercase; letter-spacing: .06em; }
+.nr-rej-y { display:inline-block;background:#fff;border:2px solid rgba(0,0,0,.3);padding:1px 7px;border-radius:4px;font-weight:900;font-size:13px;color:#1a1a1a;letter-spacing:.04em; }
 .lw-val   { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; color: #2d7a1a; }
 
 .order-notes {
@@ -54,19 +55,19 @@
     overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,.07); margin-bottom: 12px;
 }
 .items-table { width: 100%; border-collapse: collapse; }
-.items-table thead tr { background: #1a1a1a; }
+.items-table thead tr { background: #fdebd0; }
 .items-table th {
     padding: 10px 10px;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 11px; font-weight: 700; letter-spacing: .1em;
-    text-transform: uppercase; color: #fff; text-align: left;
+    text-transform: uppercase; color: #935810; text-align: left;
 }
 .items-table td { padding: 12px 10px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
 .items-table tr:last-child td { border-bottom: none; }
 
 .it-name  { font-weight: 700; font-size: 14px; color: #1a1a1a; }
-.it-bales { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: #f39c12; }
-.it-weight{ font-size: 12px; color: #888; }
+.it-bales { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: #1a1a1a; }
+.it-weight{ font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: #1a1a1a; display:block; text-align:right; }
 
 .act-btns { display: flex; gap: 6px; }
 .edit-btn {
@@ -81,26 +82,22 @@
 .edit-btn:active { background: #2980b9; color: #fff; }
 .del-btn:active  { background: #e74c3c; color: #fff; }
 
-.summary-row {
-    background: #f8f9fa; padding: 12px 14px;
-    display: flex; justify-content: space-between; align-items: center;
-    border-top: 2px solid #e2e5e9;
-}
-.sum-label { font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .06em; }
-.sum-val   { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: #1a1a1a; }
+.summary-row { background:#f0f2f5;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e2e5e9; }
+.sum-label { font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.06em; }
+.sum-val   { font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#555; }
 
 .empty-items { text-align: center; padding: 24px; color: #ccc; font-size: 14px; }
 
 /* Przyciski */
 .btn-add {
-    width: 100%; padding: 18px; background: #3498db; color: #fff;
+    width: 100%; padding: 18px; background: #f39c12; color: #fff;
     border: none; border-radius: 12px;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 22px; font-weight: 900;
     letter-spacing: .06em; text-transform: uppercase;
     cursor: pointer; margin-bottom: 10px;
     display: flex; align-items: center; justify-content: center; gap: 10px;
-    text-decoration: none; box-shadow: 0 3px 8px rgba(52,152,219,.3);
+    text-decoration: none; box-shadow: 0 3px 8px rgba(243,156,18,.3);
 }
 .btn-add:active { filter: brightness(.9); }
 
@@ -130,7 +127,7 @@
 @section('content')
 
 <button type="button"
-        onclick="window.location.href='{{ route('plac.orders') }}'"
+        onclick="window.location.href='{{ route('plac.loading.index') }}'"
         style="display:flex;align-items:center;justify-content:center;gap:10px;background:#1a1a1a;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;width:80%;margin:0 auto 14px;padding:16px;border-radius:12px;border:none;cursor:pointer">
     <i class="fas fa-home"></i> Powrót
 </button>
@@ -138,27 +135,19 @@
 {{-- Nagłówek --}}
 <div class="load-header">
     <div class="load-client">{{ $order->client?->short_name ?? '?' }}</div>
-    <div class="load-sub">
-        {{ $order->type === 'pickup' ? '↓ Odbiór' : '↑ Załadunek' }}
-        @if($order->planned_time) · {{ substr($order->planned_time, 0, 5) }} @endif
-        @if($order->driver) · {{ $order->driver->name }} @endif
+    <div class="load-sub" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+        @if($order->driver)<span style="color:rgba(0,0,0,.6);font-size:13px">{{ $order->driver->name }}</span>@endif
+        @if($order->tractor)<span class="nr-rej-y">{{ $order->tractor->plate }}</span>@endif
+        @if($order->trailer)<span class="nr-rej-y">{{ $order->trailer->plate }}</span>@endif
     </div>
     @if($order->weight_netto)
-    <div class="load-weight">
-        <div>
-            <div class="lw-label">Wynik ważenia kierowcy</div>
-            <div class="lw-val">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</div>
-        </div>
+    <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+        <span style="font-size:11px;font-weight:700;color:rgba(0,0,0,.5);text-transform:uppercase;letter-spacing:.06em">Waga:</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</span>
     </div>
     @endif
 </div>
 
-{{-- Uwagi --}}
-@if($order->notes)
-<div class="order-notes">
-    <i class="fas fa-comment-alt" style="margin-right:6px"></i>{{ $order->notes }}
-</div>
-@endif
 
 {{-- Tabela towarów --}}
 <div class="items-card">
@@ -167,7 +156,7 @@
             <tr>
                 <th>Towar</th>
                 <th>Bel.</th>
-                <th>Waga</th>
+                <th style="text-align:right">Waga</th>
                 <th style="width:76px">Akcje</th>
             </tr>
         </thead>
@@ -176,7 +165,7 @@
             <tr id="ir-{{ $item->id }}" class="item-row" data-edit="{{ route('plac.orders.loading.edit', [$order, $item]) }}" onpointerdown="startPress(this)" onpointerup="endPress()" onpointerleave="endPress()">
                 <td><span class="it-name">{{ $item->fraction?->name ?? '?' }}</span></td>
                 <td><span class="it-bales">{{ $item->bales }}</span></td>
-                <td><span class="it-weight">{{ number_format($item->weight_kg, 0, ',', ' ') }} kg</span></td>
+                <td><span class="it-weight">{{ number_format($item->weight_kg, 0, ',', ' ') }}</span></td>
                 <td>
                         <button class="del-btn" onclick="deleteItem({{ $item->id }})" title="Usuń">
                             <i class="fas fa-trash-alt"></i>
@@ -283,7 +272,7 @@ async function closeLoading() {
     const data = await res.json();
     if (data.success) {
         await Swal.fire({ icon: 'success', title: 'Załadunek zamknięty!', timer: 1800, showConfirmButton: false });
-        window.location.href = '{{ route('plac.orders') }}';
+        window.location.href = '{{ route('plac.loading.index') }}';
     }
 }
 </script>
