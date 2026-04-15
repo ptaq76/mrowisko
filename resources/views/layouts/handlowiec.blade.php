@@ -171,8 +171,9 @@
             padding: 0 14px;
         }
 
-        @yield('styles')
     </style>
+
+    @yield('styles')
 </head>
 <body>
 

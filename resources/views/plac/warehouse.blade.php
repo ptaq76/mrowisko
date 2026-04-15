@@ -1,4 +1,4 @@
-@extends('layouts.kierowca')
+@extends('layouts.plac')
 
 @section('title', 'Magazyn')
 
@@ -73,7 +73,7 @@
 .stock-table tr:hover td { background: #f8f9fa; }
 
 .fraction-name { font-weight: 700; color: #1a1a1a; font-size: 13px; }
-.bales-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #16a085; }
+.bales-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #1a1a1a; }
 .weight-val { font-size: 12px; color: #555; font-weight: 600; }
 
 .info-btn {
@@ -196,7 +196,6 @@
     <i class="fas fa-home"></i> Powrót
 </button>
 
-<div class="page-title">Magazyn</div>
 
 <div class="stock-table">
     <table>
@@ -213,7 +212,7 @@
             <tr>
                 <td><span class="fraction-name">{{ $row->fraction?->name ?? '?' }}</span></td>
                 <td><span class="bales-val">{{ $row->total_bales }}</span></td>
-                <td><span class="weight-val">{{ number_format($row->total_weight, 0, ',', ' ') }} kg</span></td>
+                <td><span class="weight-val">{{ number_format($row->total_weight / 1000, 3, ',', ' ') }} t</span></td>
                 <td>
                     <button class="info-btn"
                             onclick="showHistory({{ $row->fraction_id }}, '{{ addslashes($row->fraction?->name) }}')"
@@ -231,7 +230,7 @@
 <div style="background:#16a085;border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;color:#fff">
     <span style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Razem</span>
     <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900">
-        {{ $stock->sum('total_bales') }} bel. &nbsp;·&nbsp; {{ number_format($stock->sum('total_weight'), 0, ',', ' ') }} kg
+        {{ $stock->sum('total_bales') }} bel. &nbsp;·&nbsp; {{ number_format($stock->sum('total_weight') / 1000, 3, ',', ' ') }} t
     </span>
 </div>
 
@@ -296,7 +295,7 @@ async function showHistory(fractionId, name) {
     tbody.innerHTML = data.history.map(h => {
         const isPos    = h.bales >= 0;
         const balesStr = (isPos ? '+' : '') + h.bales;
-        const weightStr= (isPos ? '+' : '') + parseFloat(h.weight).toLocaleString('pl-PL', {maximumFractionDigits: 0});
+        const weightStr= (isPos ? '+' : '') + (parseFloat(h.weight)/1000).toLocaleString('pl-PL', {minimumFractionDigits:3, maximumFractionDigits:3}) + ' t';
         const cls      = isPos ? 'positive' : 'negative';
         const badge    = originClass[h.origin] ?? '';
         return `<tr>

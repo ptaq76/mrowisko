@@ -1,4 +1,4 @@
-@extends('layouts.kierowca')
+@extends('layouts.plac')
 
 @section('title', 'Dodaj towar')
 
@@ -91,6 +91,17 @@
     display: flex; align-items: center; justify-content: center; gap: 10px;
 }
 .btn-save:active { filter: brightness(.9); }
+.inv-input {
+    width: 100%; padding: 14px;
+    border: 3px solid #e2e5e9; border-radius: 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 42px; font-weight: 900; text-align: center;
+    color: #1a1a1a; outline: none;
+    -moz-appearance: textfield;
+}
+.inv-input::-webkit-outer-spin-button,
+.inv-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.inv-input:focus { border-color: #27ae60; }
 </style>
 @endsection
 
@@ -102,12 +113,46 @@
     <i class="fas fa-home"></i> Powrót
 </button>
 
-<div class="order-bar">
-    <div class="order-client">{{ $order->client?->short_name }}</div>
-    <div class="order-sub">{{ $order->type === 'pickup' ? '↓ Odbiór' : '↓ Odbiór' }}
-        @if($order->planned_time) · {{ substr($order->planned_time, 0, 5) }} @endif
-    </div>
+<div style="background:#27ae60;border-radius:14px;padding:16px 18px;margin-bottom:14px">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;line-height:1">{{ $order->client?->short_name }}</div>
 </div>
+
+{{-- Waga kierowcy --}}
+@if($order->weight_netto)
+<div style="background:#fff;border-radius:12px;padding:12px 16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;gap:8px">
+    <span style="font-size:12px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.06em">Waga kierowcy:</span>
+    <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</span>
+</div>
+@endif
+
+{{-- Tabela już dodanych towarów --}}
+@if($order->loadingItems->isNotEmpty())
+<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:14px">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+            <tr style="background:#d4efdf">
+                <th style="padding:8px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1a7a3c;text-align:left">Towar</th>
+                <th style="padding:8px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1a7a3c;text-align:right">Bel.</th>
+                <th style="padding:8px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1a7a3c;text-align:right">Waga</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($order->loadingItems as $li)
+            <tr style="border-bottom:1px solid #f0f2f5">
+                <td style="padding:8px 10px;color:#555">{{ $li->fraction?->name }}</td>
+                <td style="padding:8px 10px;text-align:right;color:#555;font-size:14px">{{ $li->bales }}</td>
+                <td style="padding:8px 10px;text-align:right;color:#555;font-size:14px">{{ number_format($li->weight_kg, 0, ',', ' ') }}</td>
+            </tr>
+            @endforeach
+            <tr style="background:#1a1a1a">
+                <td style="padding:10px 10px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#fff">RAZEM</td>
+                <td style="padding:10px 10px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff">{{ $order->loadingItems->sum('bales') }}</td>
+                <td style="padding:10px 10px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#fff">{{ number_format($order->loadingItems->sum('weight_kg'), 0, ',', ' ') }}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+@endif
 
 {{-- Wybór towaru --}}
 <div class="form-card">
@@ -125,28 +170,24 @@
 {{-- Belki --}}
 <div class="form-card">
     <label class="f-label">Ilość belek</label>
-    <input type="number" id="balesInput" class="big-input"
+    <input type="number" id="balesInput" class="inv-input"
            min="0" step="1" inputmode="numeric"
            value="{{ $editItem ? $editItem->bales : '' }}"
-           oninput="calcAvg()">
+           oninput="calcAvg()" placeholder="0">
     <div class="i-unit">szt.</div>
 </div>
 
 {{-- Waga --}}
 <div class="form-card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
         <label class="f-label" style="margin-bottom:0">Waga</label>
-        <button type="button" onclick="calcFromAvg()"
-                style="background:#f39c12;border:none;border-radius:6px;padding:6px 14px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">
-            <i class="fas fa-calculator"></i> PRZELICZ
-        </button>
+        <span style="font-size:11px;color:#aaa;font-weight:600">podaj w kg</span>
     </div>
-    <input type="number" id="weightInput" class="big-input"
+    <input type="number" id="weightInput" class="inv-input"
            min="0" step="1" inputmode="numeric"
            value="{{ $editItem ? round($editItem->weight_kg) : '' }}"
-           oninput="calcAvg()">
+           oninput="calcAvg()" placeholder="0">
     <div class="i-unit">kg</div>
-    <div class="i-avg" id="avgDisplay"></div>
 </div>
 
 <button class="btn-save" onclick="save()">
@@ -172,32 +213,11 @@ function onFracChange() {
     calcAvg();
 }
 
-function calcFromAvg() {
-    const sel = document.getElementById('fracSel');
-    if (!sel.value) {
-        Swal.fire({ icon: 'warning', title: 'Wybierz towar', timer: 1500, showConfirmButton: false });
-        return;
-    }
-    const opt = sel.options[sel.selectedIndex];
-    const avg = parseInt(opt.dataset.avg) || 0;
-    const b   = parseInt(document.getElementById('balesInput').value);
-    if (!b || b < 1) {
-        Swal.fire({ icon: 'warning', title: 'Podaj najpierw ilość belek', timer: 1500, showConfirmButton: false });
-        return;
-    }
-    if (avg === 0) {
-        Swal.fire({ icon: 'warning', title: 'Brak danych o średniej wadze', text: 'Magazyn nie ma historii dla tej frakcji.', timer: 2000, showConfirmButton: false });
-        return;
-    }
-    document.getElementById('weightInput').value = Math.round(avg * b);
-    calcAvg();
-}
-
 function calcAvg() {
     const b = parseInt(document.getElementById('balesInput').value);
     const w = parseInt(document.getElementById('weightInput').value);
     const el = document.getElementById('avgDisplay');
-    el.textContent = (b > 0 && w > 0) ? `Średnia: ${Math.round(w/b)} kg/bel.` : '';
+    // avg removed
 }
 
 async function save() {

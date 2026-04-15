@@ -1,4 +1,4 @@
-@extends('layouts.kierowca')
+@extends('layouts.plac')
 
 @section('title', 'Przyjęcie towaru')
 
@@ -40,7 +40,7 @@
 .item-row { display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f8f9fa;font-size:13px; }
 .item-row:last-child { border-bottom:none; }
 .item-name { font-weight:700; }
-.item-bales { font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:#27ae60; }
+.item-bales { font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;color:#1a1a1a; }
 .summary { padding:8px 16px;display:flex;justify-content:space-between;border-top:2px solid #e2e5e9;font-size:12px;font-weight:700;color:#555; }
 .summary-val { font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:#1a1a1a; }
 .weight-bar { padding:8px 16px;background:#e8f7e4;border-top:1px solid #d4edda;display:flex;justify-content:space-between;align-items:center; }
@@ -87,15 +87,14 @@
         </a>
     </div>
     <div class="order-meta">
-        @if($order->planned_time)<span style="font-weight:700">{{ substr($order->planned_time,0,5) }}</span>@endif
+        @if($order->driver)<span style="font-size:13px;color:#555">{{ $order->driver->name }}</span>@endif
         @if($order->tractor)<span class="nr-rej">{{ $order->tractor->plate }}</span>@endif
         @if($order->trailer)<span class="nr-rej">{{ $order->trailer->plate }}</span>@endif
-        @if($order->driver)<span style="color:#888;font-size:12px">{{ $order->driver->name }}</span>@endif
     </div>
     @if($order->weight_netto)
     <div class="weight-bar">
         <span class="wl">Waga kierowcy</span>
-        <span class="wv">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</span>
+        <span class="wv">{{ number_format($order->weight_netto * 1000, 0, ',', ' ') }} kg</span>
     </div>
     @endif
     @if($order->loadingItems->isNotEmpty())
@@ -103,13 +102,16 @@
         @foreach($order->loadingItems as $item)
         <div class="item-row">
             <span class="item-name">{{ $item->fraction?->name }}</span>
-            <span class="item-bales">{{ $item->bales }} bel.</span>
+            <div style="display:flex;gap:10px;align-items:center">
+                <span class="item-bales">{{ $item->bales }}</span>
+                <span style="font-size:14px;font-weight:700;color:#1a1a1a">{{ number_format($item->weight_kg/1000, 3, ',', ' ') }} t</span>
+            </div>
         </div>
         @endforeach
     </div>
     <div class="summary">
         <span>Razem</span>
-        <span class="summary-val">{{ $order->loadingItems->sum('bales') }} bel. · ≈ {{ number_format($order->loadingItems->sum('weight_kg'), 0, ',', ' ') }} kg</span>
+        <span class="summary-val">{{ $order->loadingItems->sum('bales') }} bel. · {{ number_format($order->loadingItems->sum('weight_kg')/1000, 3, ',', ' ') }} t</span>
     </div>
     @endif
 </div>
@@ -131,7 +133,7 @@
     @if($order->loadingItems->isNotEmpty())
     <div class="summary" style="padding:10px 16px">
         <span>Razem</span>
-        <span class="summary-val">{{ $order->loadingItems->sum('bales') }} bel. · ≈ {{ number_format($order->loadingItems->sum('weight_kg'), 0, ',', ' ') }} kg</span>
+        <span class="summary-val">{{ $order->loadingItems->sum('bales') }} bel. · {{ number_format($order->loadingItems->sum('weight_kg')/1000, 3, ',', ' ') }} t</span>
     </div>
     @endif
 </div>

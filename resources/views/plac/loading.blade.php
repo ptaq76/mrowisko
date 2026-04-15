@@ -1,4 +1,4 @@
-@extends('layouts.kierowca')
+@extends('layouts.plac')
 @section('title', 'LOADING')
 @section('content')
 <a href="{{ route('plac.dashboard') }}" style="display:flex;align-items:center;gap:8px;color:#888;font-size:14px;font-weight:600;text-decoration:none;margin-bottom:14px">

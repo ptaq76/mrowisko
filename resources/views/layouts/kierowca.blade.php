@@ -156,8 +156,9 @@
 
         .main-content { padding: 12px; }
 
-        @yield('styles')
     </style>
+
+    @yield('styles')
 </head>
 <body>
 

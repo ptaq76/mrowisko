@@ -1,4 +1,4 @@
-@extends('layouts.kierowca')
+@extends('layouts.plac')
 
 @section('title', 'Produkcja belek')
 
@@ -53,18 +53,18 @@
 .prod-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .prod-table thead tr { background: #2980b9; color: #fff; }
 .prod-table th {
-    padding: 10px 10px;
+    padding: 7px 8px;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 11px; font-weight: 700;
     letter-spacing: .1em; text-transform: uppercase; text-align: left;
 }
-.prod-table td { padding: 10px 10px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+.prod-table td { padding: 7px 8px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
 .prod-table tr:last-child td { border-bottom: none; }
 .prod-table tr:hover td { background: #f0f7fd; }
 
-.fraction-name { font-weight: 700; color: #1a1a1a; font-size: 13px; }
-.bales-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #2980b9; }
-.weight-val { font-size: 12px; color: #555; }
+.fraction-name { font-weight: 700; color: #1a1a1a; font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+.bales-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #1a1a1a; }
+.weight-val { font-size: 13px; color: #1a1a1a; font-weight: 600; white-space: nowrap; }
 .op-val { font-size: 11px; color: #aaa; }
 
 .del-btn {
@@ -86,10 +86,9 @@
     <i class="fas fa-home"></i> Powrót
 </button>
 
-<div class="page-title">Produkcja belek</div>
 
 <a href="{{ route('plac.production.create') }}" class="btn-add-big">
-    <i class="fas fa-plus-circle"></i> DODAJ PRODUKCJĘ
+    <i class="fas fa-plus-circle"></i> DODAJ
 </a>
 
 @if($todayItems->isEmpty())
@@ -114,10 +113,9 @@
             <tr id="pi-{{ $item->id }}">
                 <td>
                     <div class="fraction-name">{{ $item->fraction?->name ?? '?' }}</div>
-                    <div style="font-size:10px;color:#aaa">{{ $item->date->format('d.m.Y') }}</div>
                 </td>
                 <td><span class="bales-val">{{ $item->bales }}</span></td>
-                <td><span class="weight-val">{{ number_format($item->weight_kg, 0, ',', ' ') }} kg</span></td>
+                <td><span class="weight-val">{{ number_format($item->weight_kg, 0, ',', ' ') }}</span></td>
                 <td><span class="op-val">{{ $item->operator?->name ?? $item->operator?->login ?? '–' }}</span></td>
                 <td>
                     <button class="del-btn" onclick="deleteItem({{ $item->id }})" title="Usuń">
@@ -128,6 +126,88 @@
             @endforeach
         </tbody>
     </table>
+</div>
+@endif
+
+@php
+// Podsumowanie dnia
+$dayTotals = $todayItems->groupBy(fn($i) => $i->fraction_id)->map(fn($g) => [
+    'name'   => $g->first()->fraction?->name ?? '?',
+    'kg'     => $g->sum('weight_kg'),
+    'bales'  => $g->sum('bales'),
+]);
+
+// Podsumowanie miesiąca
+$monthTotals = $monthItems->groupBy(fn($i) => $i->fraction_id)->map(fn($g) => [
+    'name'  => $g->first()->fraction?->name ?? '?',
+    'kg'    => $g->sum('weight_kg'),
+    'bales' => $g->sum('bales'),
+]);
+@endphp
+
+@if($dayTotals->isNotEmpty())
+<div style="margin-top:16px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:6px">
+        Podsumowanie dnia
+    </div>
+    <div class="prod-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Towar</th>
+                    <th style="text-align:right">Kg</th>
+                    <th style="text-align:right">Bel.</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($dayTotals as $row)
+                <tr>
+                    <td class="fraction-name">{{ $row['name'] }}</td>
+                    <td style="text-align:right;font-weight:600;white-space:nowrap">{{ number_format($row['kg'], 0, ',', ' ') }}</td>
+                    <td style="text-align:right;font-weight:700;font-size:16px">{{ $row['bales'] }}</td>
+                </tr>
+                @endforeach
+                <tr style="background:#f4f5f7;font-weight:800">
+                    <td style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase">RAZEM</td>
+                    <td style="text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:16px;white-space:nowrap">{{ number_format($dayTotals->sum('kg'), 0, ',', ' ') }}</td>
+                    <td style="text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:16px">{{ $dayTotals->sum('bales') }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
+@if($monthTotals->isNotEmpty())
+<div style="margin-top:16px">
+    <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:6px">
+        Miesiąc {{ \Carbon\Carbon::parse(request('data', now()))->translatedFormat('F Y') }}
+    </div>
+    <div class="prod-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Towar</th>
+                    <th style="text-align:right">Kg</th>
+                    <th style="text-align:right">Bel.</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($monthTotals as $row)
+                <tr>
+                    <td class="fraction-name">{{ $row['name'] }}</td>
+                    <td style="text-align:right;font-weight:600;white-space:nowrap">{{ number_format($row['kg'], 0, ',', ' ') }}</td>
+                    <td style="text-align:right;font-weight:700;font-size:16px">{{ $row['bales'] }}</td>
+                </tr>
+                @endforeach
+                <tr style="background:#f4f5f7;font-weight:800">
+                    <td style="font-family:'Barlow Condensed',sans-serif;font-size:13px;letter-spacing:.06em;text-transform:uppercase">RAZEM</td>
+                    <td style="text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:16px;white-space:nowrap">{{ number_format($monthTotals->sum('kg'), 0, ',', ' ') }}</td>
+                    <td style="text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:16px">{{ $monthTotals->sum('bales') }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
 @endif
 

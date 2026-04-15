@@ -1,4 +1,4 @@
-@extends('layouts.kierowca')
+@extends('layouts.plac')
 
 @section('title', 'Inwentaryzacja')
 
@@ -50,7 +50,7 @@
 .stock-table tr:hover td { background: #fdf8f8; }
 
 .fraction-name { font-weight: 700; color: #1a1a1a; font-size: 13px; }
-.bales-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #c0392b; }
+.bales-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #1a1a1a; }
 .weight-val { font-size: 12px; color: #555; font-weight: 600; }
 
 .arrow-btn {
@@ -96,7 +96,7 @@
 .cs-label { color: #888; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
 .cs-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #555; }
 
-.inv-inputs { display: flex; gap: 12px; margin-bottom: 14px; }
+.inv-inputs { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
 .inv-input-wrap { flex: 1; }
 .inv-input-wrap label {
     display: block; font-size: 10px; font-weight: 700;
@@ -149,7 +149,7 @@
             <tr>
                 <th>Towar</th>
                 <th>Belki</th>
-                <th>Waga</th>
+                <th>Waga (t)</th>
                 <th style="width:40px"></th>
             </tr>
         </thead>
@@ -158,7 +158,7 @@
             <tr>
                 <td><span class="fraction-name">{{ $row->fraction?->name ?? '?' }}</span></td>
                 <td><span class="bales-val">{{ $row->total_bales }}</span></td>
-                <td><span class="weight-val">{{ number_format($row->total_weight, 0, ',', ' ') }} kg</span></td>
+                <td><span class="weight-val">{{ number_format($row->total_weight / 1000, 3, ',', ' ') }} t</span></td>
                 <td>
                     <button class="arrow-btn"
                             onclick="openAdjust({{ $row->fraction_id }}, '{{ addslashes($row->fraction?->name) }}', {{ $row->total_bales }}, {{ $row->total_weight }})"
@@ -197,7 +197,7 @@
             <div class="inv-input-wrap">
                 <label>Waga (kg)</label>
                 <input type="number" id="invWeight" class="inv-input"
-                       min="0" step="1" inputmode="numeric">
+                       min="0" step="1" inputmode="numeric" placeholder="0">
             </div>
         </div>
 
@@ -224,9 +224,9 @@ function openAdjust(fracId, name, curBales, curWeight) {
     _curWeight = curWeight;
 
     document.getElementById('invTitle').textContent      = name;
-    document.getElementById('currentState').textContent  = `${curBales} bel. / ${Math.round(curWeight).toLocaleString('pl-PL')} kg`;
+    document.getElementById('currentState').textContent  = `${curBales} bel. / ${(curWeight/1000).toLocaleString('pl-PL', {minimumFractionDigits:3, maximumFractionDigits:3})} t`;
     document.getElementById('invBales').value            = curBales;
-    document.getElementById('invWeight').value           = Math.round(curWeight);
+    document.getElementById('invWeight').value           = Math.round(curWeight); // kg
 
     document.getElementById('invOverlay').classList.add('open');
     setTimeout(() => document.getElementById('invBales').focus(), 300);
@@ -265,10 +265,10 @@ async function saveAdjust() {
         html: `
             <div style="text-align:left;font-size:14px">
                 <b>${_fracName}</b><br><br>
-                Było: ${_curBales} bel. / ${Math.round(_curWeight).toLocaleString('pl-PL')} kg<br>
-                Będzie: ${bales} bel. / ${Math.round(weight).toLocaleString('pl-PL')} kg<br><br>
+                Było: ${_curBales} bel. / ${(_curWeight/1000).toFixed(3).replace('.',',')} t<br>
+                Będzie: ${bales} bel. / ${(weight/1000).toFixed(3).replace('.',',')} t<br><br>
                 <span style="color:${diffBales >= 0 ? '#27ae60' : '#e74c3c'}">
-                    Korekta: ${diffBalesStr} bel. / ${diffWeightStr} kg
+                    Korekta: ${diffBalesStr} bel. / ${(diffWeight/1000).toFixed(3).replace('.',',')} t
                 </span>
             </div>`,
         icon: 'question',

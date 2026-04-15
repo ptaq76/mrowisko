@@ -15,7 +15,7 @@
 }
 .tank-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #6EBF58; margin-bottom: 4px; }
 .tank-level { font-family: 'Barlow Condensed', sans-serif; font-size: 52px; font-weight: 900; color: #fff; line-height: 1; }
-.tank-unit  { font-size: 14px; color: #888; margin-top: 4px; }
+.tank-unit  { font-size: 14px; color: #aaa; margin-top: 4px; }
 .tank-bar-wrap { width: 80px; height: 80px; position: relative; flex-shrink: 0; }
 .tank-bar-wrap svg { transform: rotate(-90deg); }
 .tank-bar-bg   { fill: none; stroke: #333; stroke-width: 8; }
@@ -45,29 +45,14 @@
 .btn-dostawa    { background: #2980b9; color: #fff; }
 .btn-inventar   { background: #7f8c8d; color: #fff; width: 100%; margin-bottom: 14px; padding: 14px; }
 
-/* Wybór pojazdów – przyciski zamiast select */
-.vehicle-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 14px;
+/* Select pojazdu */
+.s-select {
+    width: 100%; padding: 14px; border: 2px solid #e2e5e9; border-radius: 12px;
+    font-size: 16px; outline: none; margin-bottom: 14px;
+    background: #fff; color: #1a1a1a;
+    -webkit-appearance: none; appearance: none;
 }
-.vehicle-btn {
-    padding: 12px 8px;
-    border: 2px solid #e2e5e9;
-    border-radius: 10px;
-    background: #fff;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 15px; font-weight: 700;
-    text-align: center; cursor: pointer;
-    color: #1a1a1a;
-    transition: border-color .12s, background .12s;
-}
-.vehicle-btn:hover   { border-color: #f39c12; background: #fef9e7; }
-.vehicle-btn.active  { border-color: #f39c12; background: #f39c12; color: #fff; }
-.vehicle-btn .vb-plate { font-size: 18px; display: block; }
-.vehicle-btn .vb-name  { font-size: 11px; color: inherit; opacity: .7; display: block; margin-top: 2px; }
-.vehicle-btn.active .vb-name { opacity: .85; }
+.s-select:focus { border-color: #f39c12; }
 
 /* Lista transakcji */
 .trans-section-title {
@@ -135,6 +120,12 @@
 
 @section('content')
 
+<button type="button"
+        onclick="window.location.href='{{ route('plac.dashboard') }}'"
+        style="display:flex;align-items:center;justify-content:center;gap:10px;background:#1a1a1a;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;width:80%;margin:0 auto 14px;padding:16px;border-radius:12px;border:none;cursor:pointer">
+    <i class="fas fa-home"></i> Powrót
+</button>
+
 @php
     $capacity = 5000;
     $pct      = $capacity > 0 ? min(100, round($level / $capacity * 100)) : 0;
@@ -187,7 +178,9 @@
     <div class="trans-item" id="tr-{{ $t->id }}">
         <div class="ti-left">
             <span class="ti-type {{ $t->type }}">
-                @if($t->type==='tankowanie') <i class="fas fa-gas-pump fa-xs"></i> Tankowanie
+                @if($t->type==='tankowanie')
+                    <i class="fas fa-gas-pump fa-xs"></i>
+                    <span style="color:#1a1a1a">{{ $t->vehicle?->nazwa ?? $t->vehicle?->plate ?? 'Tankowanie' }}</span>
                 @elseif($t->type==='dostawa') <i class="fas fa-truck-moving fa-xs"></i> Dostawa
                 @else <i class="fas fa-balance-scale fa-xs"></i> Korekta
                 @endif
@@ -195,7 +188,7 @@
             <span class="ti-meta">
                 {{ $t->created_at->format('d.m H:i') }}
                 @if($t->operator) · {{ $t->operator }} @endif
-                @if($t->vehicle) · {{ $t->vehicle->plate }} @endif
+                @if($t->vehicle && $t->type !== 'tankowanie') · {{ $t->vehicle->plate }} @endif
             </span>
         </div>
         <div class="ti-right">
@@ -225,19 +218,21 @@
             <button class="sheet-close" onclick="closeSheet()">×</button>
         </div>
 
-        {{-- Wybór pojazdu – przyciski --}}
+        {{-- Wybór pojazdu --}}
         <div id="vehicleRow">
             <label class="s-label">Pojazd</label>
-            <div class="vehicle-grid" id="vehicleGrid">
-                @foreach($allVehicles as $v)
-                <button type="button" class="vehicle-btn"
-                        data-id="{{ $v->id }}"
-                        onclick="selectVehicle(this, {{ $v->id }})">
-                    <span class="vb-plate">{{ $v->nazwa }}</span>
-                </button>
+            <select id="vehicleSelect" class="s-select" onchange="selectedVehicleId = this.value">
+                <option value="">– wybierz pojazd –</option>
+                @foreach($groups as $group)
+                @if($group->vehicles->isNotEmpty())
+                <optgroup label="{{ $group->nazwa }}">
+                    @foreach($group->vehicles as $v)
+                    <option value="{{ $v->id }}">{{ $v->nazwa }}</option>
+                    @endforeach
+                </optgroup>
+                @endif
                 @endforeach
-            </div>
-            <input type="hidden" id="selectedVehicleId">
+            </select>
         </div>
 
         <label class="s-label" id="litersLabel">Liczba litrów</label>
@@ -263,16 +258,10 @@ const CAPACITY = {{ $capacity }};
 let currentType      = null;
 let selectedVehicleId = null;
 
-function selectVehicle(btn, id) {
-    document.querySelectorAll('.vehicle-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedVehicleId = id;
-}
-
 function openSheet(type) {
     currentType = type;
     selectedVehicleId = null;
-    document.querySelectorAll('.vehicle-btn').forEach(b => b.classList.remove('active'));
+    const vs = document.getElementById('vehicleSelect'); if(vs) vs.value = '';
 
     const titles = { tankowanie:'⛽ Tankowanie', dostawa:'🚛 Dostawa', inwentaryzacja:'⚖ Korekta stanu' };
     const colors = { tankowanie:'#f39c12', dostawa:'#2980b9', inwentaryzacja:'#7f8c8d' };

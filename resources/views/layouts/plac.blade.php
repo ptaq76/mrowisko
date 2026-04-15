@@ -96,9 +96,9 @@
         }
 
         .main-content { padding: 12px; }
-
-        @yield('styles')
     </style>
+
+    @yield('styles')
 </head>
 <body>
 
@@ -156,6 +156,7 @@
     </div>
 </nav>
 
+@if(trim($__env->yieldContent('hide_datebar')) !== '1')
 <div class="date-bar">
     @php
         $dayNames = ['Niedziela','Poniedziałek','Wtorek','Środa','Czwartek','Piątek','Sobota'];
@@ -166,6 +167,7 @@
     <input type="date" id="datePicker" value="{{ $currentDate->format('Y-m-d') }}"
            onchange="window.location.href='{{ url()->current() }}?data='+this.value">
 </div>
+@endif
 
 <div class="main-content">
     @yield('content')

@@ -1,4 +1,4 @@
-@extends('layouts.kierowca')
+@extends('layouts.plac')
 
 @section('title', 'Przyjęcie – ' . $order->client?->short_name)
 
@@ -30,17 +30,18 @@
 .load-sub { font-size:13px;color:rgba(255,255,255,.75);margin-top:3px; }
 .driver-weight { margin-top:10px;background:rgba(255,255,255,.2);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center; }
 .dw-label { font-size:11px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.06em; }
+.nr-rej-w { display:inline-block;background:#fff;border:2px solid rgba(255,255,255,.6);padding:1px 7px;border-radius:4px;font-weight:900;font-size:13px;color:#1a1a1a;letter-spacing:.04em; }
 .dw-val   { font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:#fff; }
 
 .items-card { background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.07);margin-bottom:12px; }
 .items-table { width:100%;border-collapse:collapse; }
-.items-table thead tr { background:#27ae60; }
-.items-table th { padding:10px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-align:left; }
+.items-table thead tr { background:#d4efdf; }
+.items-table th { padding:10px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1a7a3c;text-align:left; }
 .items-table td { padding:12px 10px;border-bottom:1px solid #f0f2f5;vertical-align:middle; }
 .items-table tr:last-child td { border-bottom:none; }
 .it-name  { font-weight:700;font-size:14px;color:#1a1a1a; }
-.it-bales { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#27ae60; }
-.it-weight { font-size:12px;color:#888; }
+.it-bales { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a; }
+.it-weight { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a;display:block;text-align:right; }
 .del-btn  { background:#fdecea;border:none;border-radius:6px;padding:8px 10px;color:#e74c3c;cursor:pointer;font-size:14px; }
 .del-btn:active { background:#e74c3c;color:#fff; }
 .summary-row { background:#f8f9fa;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-top:2px solid #e2e5e9; }
@@ -66,10 +67,10 @@
 
 <div class="load-header">
     <div class="load-client">{{ $order->client?->short_name }}</div>
-    <div class="load-sub">
-        ↓ Odbiór
-        @if($order->planned_time) · {{ substr($order->planned_time,0,5) }} @endif
-        @if($order->driver) · {{ $order->driver->name }} @endif
+    <div class="load-sub" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
+        @if($order->driver)<span>{{ $order->driver->name }}</span>@endif
+        @if($order->tractor)<span class="nr-rej-w">{{ $order->tractor->plate }}</span>@endif
+        @if($order->trailer)<span class="nr-rej-w">{{ $order->trailer->plate }}</span>@endif
     </div>
     @if($order->weight_netto)
     <div class="driver-weight">
@@ -81,11 +82,6 @@
     @endif
 </div>
 
-@if($order->notes)
-<div style="background:#e8f5e9;border-left:4px solid #27ae60;border-radius:8px;padding:10px 14px;font-size:13px;color:#1b5e20;margin-bottom:12px;font-weight:600">
-    <i class="fas fa-comment-alt" style="margin-right:6px"></i>{{ $order->notes }}
-</div>
-@endif
 
 <div class="items-card">
     <table class="items-table">
@@ -104,7 +100,7 @@
                 onpointerdown="startPress(this)" onpointerup="endPress()" onpointerleave="endPress()">
                 <td><span class="it-name">{{ $item->fraction?->name }}</span></td>
                 <td><span class="it-bales">{{ $item->bales }}</span></td>
-                <td><span class="it-weight">{{ number_format($item->weight_kg, 0, ',', ' ') }} kg</span></td>
+                <td><span class="it-weight">{{ number_format($item->weight_kg, 0, ',', ' ') }}</span></td>
                 <td>
                     <button class="del-btn" onclick="deleteItem({{ $item->id }})">
                         <i class="fas fa-trash-alt"></i>
