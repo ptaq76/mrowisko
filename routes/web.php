@@ -173,7 +173,19 @@ Route::prefix('biuro')
         Route::post('reklamacje/fetch-mail', [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'fetchMail'])->name('reklamacje.fetch-mail');
         Route::get('reklamacje/plik/{path}', [\App\Http\Controllers\Biuro\ReklamacjeController::class, 'showFile'])->name('reklamacje.plik')->where('path', '.*');
 
+        //Tary pojazdów
+        Route::get('vehicle-sets',              [\App\Http\Controllers\Biuro\VehicleSetController::class, 'index'])->name('vehicle-sets.index');
+        Route::post('vehicle-sets',             [\App\Http\Controllers\Biuro\VehicleSetController::class, 'store'])->name('vehicle-sets.store');
+        Route::put('vehicle-sets/{vehicleSet}', [\App\Http\Controllers\Biuro\VehicleSetController::class, 'update'])->name('vehicle-sets.update');
+        Route::delete('vehicle-sets/{vehicleSet}', [\App\Http\Controllers\Biuro\VehicleSetController::class, 'destroy'])->name('vehicle-sets.destroy');
 
+        // Pojazdy terminy
+        Route::get('pojazdy-terminy',                    [\App\Http\Controllers\Biuro\PojazdyTerminyController::class, 'index'])->name('pojazdy-terminy.index');
+        Route::post('pojazdy-terminy',                   [\App\Http\Controllers\Biuro\PojazdyTerminyController::class, 'store'])->name('pojazdy-terminy.store');
+        Route::put('pojazdy-terminy/{akcja}',            [\App\Http\Controllers\Biuro\PojazdyTerminyController::class, 'update'])->name('pojazdy-terminy.update');
+        Route::delete('pojazdy-terminy/{akcja}',         [\App\Http\Controllers\Biuro\PojazdyTerminyController::class, 'destroy'])->name('pojazdy-terminy.destroy');
+        Route::post('pojazdy-terminy/pojazdy',               [\App\Http\Controllers\Biuro\PojazdyTerminyController::class, 'storePojazd'])->name('pojazdy-terminy.pojazdy.store');
+        Route::put('pojazdy-terminy/pojazdy/{pojazd}',        [\App\Http\Controllers\Biuro\PojazdyTerminyController::class, 'updatePojazd'])->name('pojazdy-terminy.pojazdy.update');
 // BDO - Karty odpadów
 // ══════════════════════════════════════════════════════════════════════════════
 

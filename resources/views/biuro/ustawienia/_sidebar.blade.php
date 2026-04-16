@@ -90,6 +90,14 @@
        class="sidebar-link {{ request()->routeIs('biuro.vehicles.*') ? 'active' : '' }}">
         <i class="fa-solid fa-truck-moving"></i> Pojazdy
     </a>
+    <a href="{{ route('biuro.vehicle-sets.index') }}"
+       class="sidebar-link {{ request()->routeIs('biuro.vehicle-sets.*') ? 'active' : '' }}">
+        <i class="fa-solid fa-weight-hanging"></i> Tary zestawów
+    </a>
+    <a href="{{ route('biuro.pojazdy-terminy.index') }}"
+   class="sidebar-link {{ request()->routeIs('biuro.pojazdy-terminy.*') ? 'active' : '' }}">
+    <i class="fa-solid fa-calendar-check"></i> Pojazdy – Terminy
+    </a>
     <a href="{{ route('biuro.fuel-vehicles.index') }}"
        class="sidebar-link {{ request()->routeIs('biuro.fuel-vehicles.*') ? 'active' : '' }}">
         <i class="fa-solid fa-gas-pump"></i> Pojazdy – Paliwo

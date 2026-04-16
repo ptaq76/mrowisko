@@ -64,6 +64,18 @@
 .mr-label { font-size:11px;font-weight:700;color:#2d7a1a;text-transform:uppercase;letter-spacing:.06em; }
 .mr-val   { font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#2d7a1a; }
 .mr-val.neg { color:#e74c3c; }
+.tare-filter-btn {
+    padding:3px 8px;border:1px solid #bcc4ce;border-radius:4px;
+    background:#f4f5f7;color:#555;cursor:pointer;
+    font-size:10px;font-weight:700;letter-spacing:.03em;
+    font-family:'Barlow Condensed',sans-serif;
+    transition:all .12s;white-space:nowrap;
+}
+.tare-filter-btn:hover { background:#2c3e50;color:#fff;border-color:#2c3e50; }
+.tare-filter-btn.active { background:#2c3e50;color:#fff;border-color:#2c3e50; }
+.tare-filter-btn-b { border-color:#7f8c8d;color:#7f8c8d; }
+.tare-filter-btn-b:hover { background:#7f8c8d;color:#fff;border-color:#7f8c8d; }
+.tare-filter-btn-b.active { background:#7f8c8d;color:#fff;border-color:#7f8c8d; }
 #wW1.needs-fill { border-color:#e74c3c; box-shadow:0 0 0 2px rgba(231,76,60,.2); }
 #wW2.needs-fill { border-color:#e74c3c; box-shadow:0 0 0 2px rgba(231,76,60,.2); }
 
@@ -296,9 +308,21 @@
                         </button>
                     </div>
                     {{-- Lista tar --}}
-                    <div id="tareList" style="display:none;margin-bottom:10px;background:#fff;border-radius:8px;padding:8px;max-height:180px;overflow-y:auto">
-                        <div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Wybierz zestaw → wstawi do Wagi 2</div>
-                        <div id="tareListItems" style="display:flex;flex-direction:column;gap:4px">
+                    <div id="tareList" style="display:none;margin-bottom:10px;background:#fff;border-radius:8px;padding:8px">
+                        {{-- Filtry numerów rej --}}
+                        <div id="tareFilters" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #e2e5e9">
+                            <button type="button" class="tare-filter-btn active" data-plate="" onclick="filterTares(this, '')">Wszystkie</button>
+                            <button type="button" class="tare-filter-btn" data-plate="PNT81294" onclick="filterTares(this, 'PNT81294')">PNT81294</button>
+                            <button type="button" class="tare-filter-btn" data-plate="WGM0958F" onclick="filterTares(this, 'WGM0958F')">WGM0958F</button>
+                            <button type="button" class="tare-filter-btn" data-plate="WGM2624C" onclick="filterTares(this, 'WGM2624C')">WGM2624C</button>
+                            <button type="button" class="tare-filter-btn" data-plate="WGM3595C" onclick="filterTares(this, 'WGM3595C')">WGM3595C</button>
+                            <button type="button" class="tare-filter-btn tare-filter-btn-b" data-plate="WGM8340P" onclick="filterTares(this, 'WGM8340P')">WGM8340P</button>
+                            <button type="button" class="tare-filter-btn tare-filter-btn-b" data-plate="WGM5564P" onclick="filterTares(this, 'WGM5564P')">WGM5564P</button>
+                            <button type="button" class="tare-filter-btn tare-filter-btn-b" data-plate="WGM4617P" onclick="filterTares(this, 'WGM4617P')">WGM4617P</button>
+                            <button type="button" class="tare-filter-btn tare-filter-btn-b" data-plate="WGM2126P" onclick="filterTares(this, 'WGM2126P')">WGM2126P</button>
+                            <button type="button" class="tare-filter-btn tare-filter-btn-b" data-plate="PNTKY66" onclick="filterTares(this, 'PNTKY66')">PNTKY66</button>
+                        </div>
+                        <div id="tareListItems" style="display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto">
                             {{-- wypełniane JS --}}
                         </div>
                     </div>
@@ -489,7 +513,30 @@ async function toggleTareList() {
     }
     const container = document.getElementById('tareListItems');
     container.innerHTML = '';
-    _tareCache.forEach(s => {
+    renderTareItems();
+    list.style.display = 'block';
+}
+
+let _currentFilter = '';
+
+function filterTares(btn, plate) {
+    _currentFilter = plate;
+    document.querySelectorAll('.tare-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTareItems();
+}
+
+function renderTareItems() {
+    const container = document.getElementById('tareListItems');
+    container.innerHTML = '';
+    const filtered = _currentFilter
+        ? _tareCache.filter(s => s.label.toUpperCase().includes(_currentFilter.toUpperCase()))
+        : _tareCache;
+    if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center;color:#ccc;padding:10px;font-size:12px">Brak wyników</div>';
+        return;
+    }
+    filtered.forEach(s => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.style.cssText = 'display:flex;justify-content:space-between;align-items:center;width:100%;padding:6px 10px;border:1px solid #e2e5e9;border-radius:6px;background:#f8f9fa;cursor:pointer;font-size:13px;text-align:left';
@@ -499,7 +546,6 @@ async function toggleTareList() {
         btn.onclick = () => selectTare(s.tare_kg);
         container.appendChild(btn);
     });
-    list.style.display = 'block';
 }
 
 function selectTare(tare) {
