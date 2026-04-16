@@ -12,12 +12,12 @@ return new class extends Migration
         Schema::create('container_events', function (Blueprint $table) {
             $table->id();
             $table->foreignId('container_id')
-                  ->constrained('containers')
-                  ->cascadeOnDelete();
+                ->constrained('containers')
+                ->cascadeOnDelete();
             $table->foreignId('order_id')
-                  ->nullable()
-                  ->constrained('orders')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('orders')
+                ->nullOnDelete();
             $table->enum('event_type', [
                 'wyjazd_z_placu',
                 'zostawiony_u_klienta',
@@ -25,13 +25,13 @@ return new class extends Migration
                 'powrot_na_plac',
             ]);
             $table->foreignId('client_id')
-                  ->nullable()
-                  ->constrained('clients')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('clients')
+                ->nullOnDelete();
             $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
 
@@ -39,15 +39,15 @@ return new class extends Migration
         Schema::create('productions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('waste_fraction_id')
-                  ->constrained('waste_fractions')
-                  ->restrictOnDelete();
+                ->constrained('waste_fractions')
+                ->restrictOnDelete();
             $table->unsignedInteger('quantity');     // sztuki bel
             $table->decimal('weight_kg', 10, 2);
             $table->timestamp('produced_at')->nullable();
             $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
 
@@ -55,8 +55,8 @@ return new class extends Migration
         Schema::create('inventory_adjustments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('waste_fraction_id')
-                  ->constrained('waste_fractions')
-                  ->restrictOnDelete();
+                ->constrained('waste_fractions')
+                ->restrictOnDelete();
             $table->enum('form', ['luz', 'belka']);
             $table->unsignedInteger('quantity_before')->default(0);
             $table->unsignedInteger('quantity_after')->default(0);
@@ -64,9 +64,9 @@ return new class extends Migration
             $table->decimal('weight_after', 10, 2)->default(0);
             $table->text('note')->nullable();
             $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
 
@@ -74,19 +74,19 @@ return new class extends Migration
         Schema::create('pickup_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')
-                  ->constrained('clients')
-                  ->restrictOnDelete();
+                ->constrained('clients')
+                ->restrictOnDelete();
             $table->foreignId('salesman_id')
-                  ->constrained('users')
-                  ->restrictOnDelete();
+                ->constrained('users')
+                ->restrictOnDelete();
             $table->date('requested_date')->nullable();
             $table->text('fractions_note')->nullable();
             $table->text('notes')->nullable();
             $table->enum('status', ['nowy', 'zrealizowany'])->default('nowy');
             $table->foreignId('order_id')
-                  ->nullable()
-                  ->constrained('orders')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('orders')
+                ->nullOnDelete();
             $table->timestamps();
         });
 
@@ -94,11 +94,11 @@ return new class extends Migration
         Schema::create('visits', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')
-                  ->constrained('clients')
-                  ->restrictOnDelete();
+                ->constrained('clients')
+                ->restrictOnDelete();
             $table->foreignId('waste_fraction_id')
-                  ->constrained('waste_fractions')
-                  ->restrictOnDelete();
+                ->constrained('waste_fractions')
+                ->restrictOnDelete();
             $table->decimal('weight_in', 10, 2)->nullable();   // wjazd
             $table->decimal('weight_out', 10, 2)->nullable();  // wyjazd
             // netto = weight_in - weight_out (obliczane dynamicznie)
@@ -106,13 +106,13 @@ return new class extends Migration
             $table->boolean('is_archived')->default(false);
             $table->timestamp('archived_at')->nullable();
             $table->foreignId('archived_by')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
 

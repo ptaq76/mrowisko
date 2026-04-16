@@ -11,15 +11,15 @@ return new class extends Migration
         Schema::create('pickup_requests', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')
-                  ->constrained('clients')
-                  ->restrictOnDelete();
+                ->constrained('clients')
+                ->restrictOnDelete();
             $table->foreignId('salesman_id')
-                  ->constrained('users')
-                  ->restrictOnDelete();
+                ->constrained('users')
+                ->restrictOnDelete();
             $table->foreignId('order_id')
-                  ->nullable()
-                  ->constrained('orders')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('orders')
+                ->nullOnDelete();
             $table->date('requested_date');
             $table->text('notes')->nullable();
             $table->enum('status', ['nowe', 'przyjete', 'zrealizowane', 'anulowane', 'odrzucone_biuro'])->default('nowe');
@@ -29,8 +29,8 @@ return new class extends Migration
         Schema::create('pickup_request_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pickup_request_id')
-                  ->constrained('pickup_requests')
-                  ->cascadeOnDelete();
+                ->constrained('pickup_requests')
+                ->cascadeOnDelete();
             $table->string('nazwa');
             $table->decimal('cena', 10, 2)->nullable();
             $table->string('ilosc')->nullable(); // np. "3 tony", "2 belki"

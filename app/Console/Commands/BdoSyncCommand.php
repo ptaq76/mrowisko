@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Services\Bdo\BdoSyncService;
 use App\Services\Bdo\BdoLogger;
+use App\Services\Bdo\BdoSyncService;
+use Illuminate\Console\Command;
 
 class BdoSyncCommand extends Command
 {
@@ -28,21 +28,21 @@ class BdoSyncCommand extends Command
     public function handle(): int
     {
         $type = $this->option('type');
-        
-        $this->info('=== BDO Sync Start ===');
-        $this->info('Typ: ' . $type);
-        $this->info('Czas: ' . now()->format('Y-m-d H:i:s'));
 
-        $bdoSync = new BdoSyncService();
+        $this->info('=== BDO Sync Start ===');
+        $this->info('Typ: '.$type);
+        $this->info('Czas: '.now()->format('Y-m-d H:i:s'));
+
+        $bdoSync = new BdoSyncService;
 
         try {
             // Synchronizacja przejmujący
             if ($type === 'all' || $type === 'przejmujacy') {
                 $this->info('');
                 $this->info('--- Synchronizacja PRZEJMUJĄCY ---');
-                
+
                 $result = $bdoSync->fetchAndSync();
-                
+
                 $this->displayResult($result, 'Przejmujący');
             }
 
@@ -50,24 +50,24 @@ class BdoSyncCommand extends Command
             if ($type === 'all' || $type === 'przekazujacy') {
                 $this->info('');
                 $this->info('--- Synchronizacja PRZEKAZUJĄCY ---');
-                
+
                 $result = $bdoSync->fetchAndSyncPrzekazujacy();
-                
+
                 $this->displayResult($result, 'Przekazujący');
             }
 
             $this->info('');
             $this->info('=== BDO Sync End ===');
-            
+
             return Command::SUCCESS;
 
         } catch (\Throwable $e) {
-            $this->error('Błąd synchronizacji: ' . $e->getMessage());
+            $this->error('Błąd synchronizacji: '.$e->getMessage());
             BdoLogger::error('BDO Sync Command failed', [
                 'exception' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return Command::FAILURE;
         }
     }
@@ -78,7 +78,7 @@ class BdoSyncCommand extends Command
     private function displayResult(array $result, string $label): void
     {
         $status = $result['status'] ?? 'UNKNOWN';
-        
+
         if ($status === 'SUCCESS') {
             $this->info("Status: {$status}");
         } else {

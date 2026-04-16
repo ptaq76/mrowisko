@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class FuelVehicle extends Model
 {
-    protected $table    = 'fuel_vehicles';
+    protected $table = 'fuel_vehicles';
+
     protected $fillable = ['nazwa', 'grupa_id', 'active'];
-    protected $casts    = ['active' => 'boolean'];
+
+    protected $casts = ['active' => 'boolean'];
 
     public function group()
     {

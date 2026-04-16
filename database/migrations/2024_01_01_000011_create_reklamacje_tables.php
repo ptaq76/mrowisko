@@ -13,9 +13,9 @@ return new class extends Migration
             $table->enum('typ', ['reklamacja', 'gewichtsmeldung'])->default('reklamacja');
             $table->string('lieferschein');
             $table->foreignId('lieferschein_id')
-                  ->nullable()
-                  ->constrained('lieferscheins')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('lieferscheins')
+                ->nullOnDelete();
             $table->decimal('masa_netto', 10, 3);
             $table->string('mail_subject')->nullable();
             $table->dateTime('mail_date')->nullable();

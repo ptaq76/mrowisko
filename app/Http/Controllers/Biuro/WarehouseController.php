@@ -22,10 +22,11 @@ class WarehouseController extends Controller
 
         $stock = $fractions->map(function ($f) use ($stockMap) {
             $s = $stockMap->get($f->id);
+
             return (object) [
-                'fraction_id'  => $f->id,
-                'fraction'     => $f,
-                'total_bales'  => $s ? (int) $s->total_bales : 0,
+                'fraction_id' => $f->id,
+                'fraction' => $f,
+                'total_bales' => $s ? (int) $s->total_bales : 0,
                 'total_weight' => $s ? (float) $s->total_weight : 0,
             ];
         });
@@ -44,12 +45,12 @@ class WarehouseController extends Controller
 
         return response()->json([
             'fraction' => $fraction->name,
-            'history'  => $history->map(fn($i) => [
-                'id'       => $i->id,
-                'date'     => $i->date->format('d.m.Y'),
-                'weight'   => $i->weight_kg,
-                'bales'    => $i->bales,
-                'origin'   => WarehouseItem::ORIGINS[$i->origin] ?? $i->origin,
+            'history' => $history->map(fn ($i) => [
+                'id' => $i->id,
+                'date' => $i->date->format('d.m.Y'),
+                'weight' => $i->weight_kg,
+                'bales' => $i->bales,
+                'origin' => WarehouseItem::ORIGINS[$i->origin] ?? $i->origin,
                 'operator' => $i->operator?->name ?? $i->operator?->login ?? '–',
             ]),
         ]);

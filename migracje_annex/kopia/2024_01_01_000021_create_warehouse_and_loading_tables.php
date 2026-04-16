@@ -13,20 +13,20 @@ return new class extends Migration
             $table->id();
             $table->date('date');
             $table->foreignId('fraction_id')
-                  ->constrained('waste_fractions')
-                  ->restrictOnDelete();
+                ->constrained('waste_fractions')
+                ->restrictOnDelete();
             $table->decimal('weight_kg', 10, 2);   // waga w kg
             $table->unsignedSmallInteger('bales');  // ilość belek
             $table->enum('origin', ['production', 'loading', 'delivery', 'inventory'])
-                  ->default('production');
+                ->default('production');
             $table->foreignId('origin_order_id')
-                  ->nullable()
-                  ->constrained('orders')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('orders')
+                ->nullOnDelete();
             $table->foreignId('operator_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->text('notes')->nullable();
             $table->timestamps();
         });
@@ -35,18 +35,18 @@ return new class extends Migration
         Schema::create('loading_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')
-                  ->constrained('orders')
-                  ->cascadeOnDelete();
+                ->constrained('orders')
+                ->cascadeOnDelete();
             $table->foreignId('fraction_id')
-                  ->constrained('waste_fractions')
-                  ->restrictOnDelete();
+                ->constrained('waste_fractions')
+                ->restrictOnDelete();
             $table->unsignedSmallInteger('bales');   // ilość belek
             $table->decimal('weight_kg', 10, 2);     // szacunkowa waga (suma z magazynu)
             $table->text('notes')->nullable();
             $table->foreignId('operator_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
     }

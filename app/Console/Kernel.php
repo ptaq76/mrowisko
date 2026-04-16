@@ -14,10 +14,10 @@ class Kernel extends ConsoleKernel
 
         // Przetwarzanie reklamacji co 5 minut
         $schedule->command('reklamacje:przetwarzaj')
-                 ->everyFiveMinutes()
-                 ->withoutOverlapping()
-                 ->runInBackground()
-                 ->appendOutputTo(storage_path('logs/reklamacje-cron.log'));
+            ->everyFiveMinutes()
+            ->withoutOverlapping()
+            ->runInBackground()
+            ->appendOutputTo(storage_path('logs/reklamacje-cron.log'));
     }
 
     protected function commands(): void

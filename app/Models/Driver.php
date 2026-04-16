@@ -41,14 +41,16 @@ class Driver extends Model
     public function avatarUrl(): string
     {
         if ($this->avatar) {
-            return asset('drivers/' . $this->avatar);
+            return asset('drivers/'.$this->avatar);
         }
+
         return '';
     }
 
     public function initials(): string
     {
         $parts = explode(' ', $this->full_name);
-        return strtoupper(substr($parts[0], 0, 1) . (isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
+
+        return strtoupper(substr($parts[0], 0, 1).(isset($parts[1]) ? substr($parts[1], 0, 1) : ''));
     }
 }

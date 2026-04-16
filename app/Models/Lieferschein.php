@@ -24,10 +24,10 @@ class Lieferschein extends Model
     ];
 
     protected $casts = [
-        'date'       => 'date',
+        'date' => 'date',
         'transp_zew' => 'boolean',
-        'status'     => 'boolean',
-        'is_used'    => 'boolean',
+        'status' => 'boolean',
+        'is_used' => 'boolean',
     ];
 
     public function importer()

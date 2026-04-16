@@ -3,14 +3,15 @@
 namespace App\Http\Controllers\Biuro;
 
 use App\Http\Controllers\Controller;
-use App\Services\Bdo\BdoSyncService;
-use App\Services\Bdo\BdoLogger;
-use App\Models\KarchemKlienci;
 use App\Models\BdoKarty;
 use App\Models\BdoKartyPrzekazujacy;
+use App\Models\KarchemKlienci;
+use App\Services\Bdo\BdoLogger;
+use App\Services\Bdo\BdoSyncService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use Illuminate\Validation\ValidationException;
 
 class BdoController extends Controller
 {
@@ -57,7 +58,7 @@ class BdoController extends Controller
                 'wycofane' => 'Wycofana',
                 'odrzucone' => 'Odrzucona',
                 'zatwierdzone' => 'Zatwierdzona',
-                'planowane' => 'Planowana'
+                'planowane' => 'Planowana',
             ];
 
             if (isset($statusMap[$status])) {
@@ -81,7 +82,7 @@ class BdoController extends Controller
 
         // Filtr kod odpadu
         if ($kodOdpadu) {
-            $query->where('bdo_karty.waste_code_and_description', 'LIKE', $kodOdpadu . '%');
+            $query->where('bdo_karty.waste_code_and_description', 'LIKE', $kodOdpadu.'%');
         }
 
         $karty = $query->get();
@@ -113,7 +114,7 @@ class BdoController extends Controller
                 'wycofane' => 'Wycofana',
                 'odrzucone' => 'Odrzucona',
                 'zatwierdzone' => 'Zatwierdzona',
-                'planowane' => 'Planowana'
+                'planowane' => 'Planowana',
             ];
             if (isset($statusMap[$status])) {
                 $filtrQuery->where('card_status', $statusMap[$status]);
@@ -181,7 +182,7 @@ class BdoController extends Controller
                 'wycofane' => 'Wycofana',
                 'odrzucone' => 'Odrzucona',
                 'zatwierdzone' => 'Zatwierdzona',
-                'planowane' => 'Planowana'
+                'planowane' => 'Planowana',
             ];
 
             if (isset($statusMap[$status])) {
@@ -205,7 +206,7 @@ class BdoController extends Controller
 
         // Filtr kod odpadu
         if ($kodOdpadu) {
-            $query->where('bdo_karty_przekazujacy.waste_code_and_description', 'LIKE', $kodOdpadu . '%');
+            $query->where('bdo_karty_przekazujacy.waste_code_and_description', 'LIKE', $kodOdpadu.'%');
         }
 
         $karty = $query->get();
@@ -237,7 +238,7 @@ class BdoController extends Controller
                 'wycofane' => 'Wycofana',
                 'odrzucone' => 'Odrzucona',
                 'zatwierdzone' => 'Zatwierdzona',
-                'planowane' => 'Planowana'
+                'planowane' => 'Planowana',
             ];
             if (isset($statusMap[$status])) {
                 $filtrQuery->where('bdo_karty_przekazujacy.card_status', $statusMap[$status]);
@@ -281,17 +282,17 @@ class BdoController extends Controller
                 'updated' => $result['updated'] ?? 0,
                 'skipped' => $result['skipped'] ?? 0,
                 'errors' => $result['errors'] ?? 0,
-                'message' => $result['message'] ?? ''
+                'message' => $result['message'] ?? '',
             ]);
 
         } catch (\Throwable $e) {
-            BdoLogger::error("Błąd synchronizacji BDO", [
-                'exception' => $e->getMessage()
+            BdoLogger::error('Błąd synchronizacji BDO', [
+                'exception' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -311,17 +312,17 @@ class BdoController extends Controller
                 'updated' => $result['updated'] ?? 0,
                 'skipped' => $result['skipped'] ?? 0,
                 'errors' => $result['errors'] ?? 0,
-                'message' => $result['message'] ?? ''
+                'message' => $result['message'] ?? '',
             ]);
 
         } catch (\Throwable $e) {
-            BdoLogger::error("Błąd synchronizacji BDO Przekazujący", [
-                'exception' => $e->getMessage()
+            BdoLogger::error('Błąd synchronizacji BDO Przekazujący', [
+                'exception' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -343,46 +344,46 @@ class BdoController extends Controller
             $kpoId = $validated['kpo_id'];
 
             $karta = DB::table('bdo_karty')->where('id', $kartaId)->first();
-            if (!$karta) {
+            if (! $karta) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Nie znaleziono karty w bazie danych'
+                    'message' => 'Nie znaleziono karty w bazie danych',
                 ], 404);
             }
 
             $calendar_year = $karta->calendar_year;
 
-            $bdoSync = new BdoSyncService();
+            $bdoSync = new BdoSyncService;
             $result = $bdoSync->confirmWasteCard($kpoId, $wasteMass);
 
             if ($result) {
                 $updateResult = $bdoSync->fetchAndUpdateSingleCard($kpoId, $calendar_year);
 
-                if (!$updateResult) {
-                    BdoLogger::warning("Nie udało się zaktualizować karty z BDO", [
-                        'kpo_id' => $kpoId
+                if (! $updateResult) {
+                    BdoLogger::warning('Nie udało się zaktualizować karty z BDO', [
+                        'kpo_id' => $kpoId,
                     ]);
                 }
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Karta została potwierdzona'
+                    'message' => 'Karta została potwierdzona',
                 ]);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Błąd potwierdzania karty'
+                'message' => 'Błąd potwierdzania karty',
             ], 500);
 
         } catch (\Throwable $e) {
-            BdoLogger::error("Błąd potwierdzania karty", [
+            BdoLogger::error('Błąd potwierdzania karty', [
                 'exception' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -404,47 +405,47 @@ class BdoController extends Controller
             $kpoId = $validated['kpo_id'];
 
             $karta = DB::table('bdo_karty')->where('id', $kartaId)->first();
-            if (!$karta) {
+            if (! $karta) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Nie znaleziono karty w bazie danych'
+                    'message' => 'Nie znaleziono karty w bazie danych',
                 ], 404);
             }
 
             $calendar_year = $karta->calendar_year;
 
-            $bdoSync = new BdoSyncService();
+            $bdoSync = new BdoSyncService;
             $result = $bdoSync->rejectWasteCard($kpoId, $wasteMass);
 
             if ($result) {
                 $updateResult = $bdoSync->fetchAndUpdateSingleCard($kpoId, $calendar_year);
 
-                if (!$updateResult) {
-                    BdoLogger::warning("Nie udało się zaktualizować karty z BDO", [
-                        'kpo_id' => $kpoId
+                if (! $updateResult) {
+                    BdoLogger::warning('Nie udało się zaktualizować karty z BDO', [
+                        'kpo_id' => $kpoId,
                     ]);
                 }
 
                 return response()->json([
                     'success' => true,
                     'message' => 'Karta została odrzucona',
-                    'waste_mass' => number_format($wasteMass, 3, ',', ' ')
+                    'waste_mass' => number_format($wasteMass, 3, ',', ' '),
                 ]);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Błąd odrzucania karty'
+                'message' => 'Błąd odrzucania karty',
             ], 500);
 
         } catch (\Throwable $e) {
-            BdoLogger::error("Błąd odrzucania karty", [
+            BdoLogger::error('Błąd odrzucania karty', [
                 'exception' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
@@ -461,43 +462,43 @@ class BdoController extends Controller
                 'calendar_year' => 'required|integer',
             ]);
 
-            $bdoSync = new BdoSyncService();
+            $bdoSync = new BdoSyncService;
             $result = $bdoSync->fetchAndUpdateSingleCard(
                 $validated['kpo_id'],
                 $validated['calendar_year']
             );
 
-            if (!$result) {
-                BdoLogger::warning("Nie udało się zaktualizować karty z BDO", [
+            if (! $result) {
+                BdoLogger::warning('Nie udało się zaktualizować karty z BDO', [
                     'kpo_id' => $validated['kpo_id'],
-                    'calendar_year' => $validated['calendar_year']
+                    'calendar_year' => $validated['calendar_year'],
                 ]);
 
                 return response()->json([
                     'success' => false,
-                    'message' => 'Nie udało się zaktualizować karty z API BDO'
+                    'message' => 'Nie udało się zaktualizować karty z API BDO',
                 ], 500);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Karta została zaktualizowana'
+                'message' => 'Karta została zaktualizowana',
             ]);
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Błąd walidacji: ' . implode(', ', array_map(fn($errors) => implode(', ', $errors), $e->errors()))
+                'message' => 'Błąd walidacji: '.implode(', ', array_map(fn ($errors) => implode(', ', $errors), $e->errors())),
             ], 422);
 
         } catch (\Throwable $e) {
-            BdoLogger::error("Błąd aktualizacji karty", [
+            BdoLogger::error('Błąd aktualizacji karty', [
                 'exception' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Wystąpił nieoczekiwany błąd podczas aktualizacji'
+                'message' => 'Wystąpił nieoczekiwany błąd podczas aktualizacji',
             ], 500);
         }
     }
@@ -523,7 +524,7 @@ class BdoController extends Controller
             $realDateTime = new \DateTime("$dataStart $czasStart");
             $realDateTimeIso = $realDateTime->format(\DateTime::ATOM);
 
-            $bdoSync = new BdoSyncService();
+            $bdoSync = new BdoSyncService;
             $result = $bdoSync->confirmTransportStart(
                 $kpoId,
                 $vehicleRegNumber,
@@ -534,23 +535,23 @@ class BdoController extends Controller
             if ($result) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Transport został potwierdzony'
+                    'message' => 'Transport został potwierdzony',
                 ]);
             }
 
             return response()->json([
                 'success' => false,
-                'message' => 'Błąd podczas potwierdzania transportu w BDO'
+                'message' => 'Błąd podczas potwierdzania transportu w BDO',
             ], 500);
 
         } catch (\Throwable $e) {
-            BdoLogger::error("Błąd potwierdzania rozpoczęcia transportu", [
+            BdoLogger::error('Błąd potwierdzania rozpoczęcia transportu', [
                 'exception' => $e->getMessage(),
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }

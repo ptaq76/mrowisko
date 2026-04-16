@@ -33,9 +33,9 @@ class LsGoodsSeeder extends Seeder
 
         foreach ($goods as $g) {
             DB::table('ls_goods')->insert([
-                'id'         => $g['id'],
-                'name'       => $g['name'],
-                'is_active'  => true,
+                'id' => $g['id'],
+                'name' => $g['name'],
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

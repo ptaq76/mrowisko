@@ -4,38 +4,39 @@ namespace App\Http\Controllers\Biuro;
 
 use App\Http\Controllers\Controller;
 use App\Models\Importer;
+use App\Models\KosztTransportu;
 use App\Models\LsGoods;
 use App\Models\Order;
+use App\Models\Przewoznik;
+use App\Models\Reklamacja;
 use App\Models\WasteCode;
 use App\Models\WysylkaCena;
 use App\Models\WysylkaTransport;
-use App\Models\KosztTransportu;
-use App\Models\Przewoznik;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class RaportWysylekController extends Controller
 {
-    public function saveTransport(\Illuminate\Http\Request $request, \App\Models\Order $order)
+    public function saveTransport(Request $request, Order $order)
     {
         $request->validate([
-            'cena_eur'      => ['nullable', 'numeric', 'min:0'],
+            'cena_eur' => ['nullable', 'numeric', 'min:0'],
             'przewoznik_id' => ['nullable', 'exists:przewoznicy,id'],
         ]);
 
         WysylkaTransport::updateOrCreate(
             ['order_id' => $order->id],
             [
-                'cena_eur'      => $request->cena_eur,
+                'cena_eur' => $request->cena_eur,
                 'przewoznik_id' => $request->przewoznik_id,
-                'recznie'       => true,
+                'recznie' => true,
             ]
         );
 
         return response()->json(['success' => true]);
     }
 
-    public function saveCena(\Illuminate\Http\Request $request, \App\Models\Order $order)
+    public function saveCena(Request $request, Order $order)
     {
         $request->validate(['cena_eur' => ['nullable', 'numeric', 'min:0']]);
 
@@ -47,10 +48,10 @@ class RaportWysylekController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function saveCenaBulk(\Illuminate\Http\Request $request)
+    public function saveCenaBulk(Request $request)
     {
         $request->validate([
-            'cena_eur'  => ['nullable', 'numeric', 'min:0'],
+            'cena_eur' => ['nullable', 'numeric', 'min:0'],
             'order_ids' => ['required', 'array'],
             'order_ids.*' => ['integer', 'exists:orders,id'],
         ]);
@@ -71,7 +72,7 @@ class RaportWysylekController extends Controller
         $miesiac = $request->input('miesiac', Carbon::now()->format('Y-m'));
         $tydzien = $request->input('tydzien');
 
-        $miesiacCarbon = Carbon::parse($miesiac . '-01');
+        $miesiacCarbon = Carbon::parse($miesiac.'-01');
 
         // Tygodnie w wybranym miesiącu
         $tygodnieWMiesiacu = $this->tygodnieWMiesiacu($miesiacCarbon);
@@ -85,8 +86,8 @@ class RaportWysylekController extends Controller
         }
 
         // Filtry słownikowe
-        $filtImporter  = $request->input('importer_id');
-        $filtGoods     = $request->input('goods_id');
+        $filtImporter = $request->input('importer_id');
+        $filtGoods = $request->input('goods_id');
         $filtWasteCode = $request->input('waste_code_id');
 
         // Zapytanie – tylko wysyłki zagraniczne (mają LS z importerem)
@@ -95,17 +96,17 @@ class RaportWysylekController extends Controller
             'lieferschein.goods',
             'lieferschein.wasteCode',
             'client',
-            'driver', 
+            'driver',
             'warehouseLoadingItems',
             'wysylkaCena',
             'wysylkaTransport.przewoznik',
         ])
-        ->where('type', 'sale')
-        ->whereNotNull('lieferschein_id')
-        ->whereHas('lieferschein', fn($q) => $q->whereNotNull('importer_id'))
-        ->whereIn('status', ['loaded', 'weighed', 'closed', 'delivered'])
-        ->whereYear('planned_date', $miesiacCarbon->year)
-        ->whereMonth('planned_date', $miesiacCarbon->month);
+            ->where('type', 'sale')
+            ->whereNotNull('lieferschein_id')
+            ->whereHas('lieferschein', fn ($q) => $q->whereNotNull('importer_id'))
+            ->whereIn('status', ['loaded', 'weighed', 'closed', 'delivered'])
+            ->whereYear('planned_date', $miesiacCarbon->year)
+            ->whereMonth('planned_date', $miesiacCarbon->month);
 
         // Filtr tygodnia
         if ($tydzien) {
@@ -114,20 +115,20 @@ class RaportWysylekController extends Controller
 
         // Filtry słownikowe
         if ($filtImporter) {
-            $query->whereHas('lieferschein', fn($q) => $q->where('importer_id', $filtImporter));
+            $query->whereHas('lieferschein', fn ($q) => $q->where('importer_id', $filtImporter));
         }
         if ($filtGoods) {
-            $query->whereHas('lieferschein', fn($q) => $q->where('goods_id', $filtGoods));
+            $query->whereHas('lieferschein', fn ($q) => $q->where('goods_id', $filtGoods));
         }
         if ($filtWasteCode) {
-            $query->whereHas('lieferschein', fn($q) => $q->where('waste_code_id', $filtWasteCode));
+            $query->whereHas('lieferschein', fn ($q) => $q->where('waste_code_id', $filtWasteCode));
         }
 
         $wysylki = $query->orderBy('planned_date')->get();
 
         // Pobierz numery LS dla powiązania z reklamacjami/gewichtsmeldung
         $lsIds = $wysylki->pluck('lieferschein_id')->filter()->unique();
-        $dokumenty = \App\Models\Reklamacja::whereIn('lieferschein_id', $lsIds)
+        $dokumenty = Reklamacja::whereIn('lieferschein_id', $lsIds)
             ->orderBy('mail_date')
             ->get()
             ->groupBy('lieferschein_id');
@@ -135,11 +136,11 @@ class RaportWysylekController extends Controller
         // Słowniki do filtrów
         $importerzy = Importer::where('is_active', true)->orderBy('name')->get();
         $przewoznicy = Przewoznik::where('is_active', true)->orderBy('nazwa')->get();
-        $towary     = LsGoods::where('is_active', true)->orderBy('name')->get();
+        $towary = LsGoods::where('is_active', true)->orderBy('name')->get();
         $kodyOdpadow = WasteCode::where('is_active', true)->orderBy('code')->get();
 
         // Miesiące do nawigacji (ostatnie 11 + bieżący, bieżący ostatni)
-        $miesiace = collect(range(-11, 0))->map(fn($i) => Carbon::now()->startOfMonth()->addMonths($i));
+        $miesiace = collect(range(-11, 0))->map(fn ($i) => Carbon::now()->startOfMonth()->addMonths($i));
 
         // Automatyczne dopasowanie kosztu transportu
         $this->dopasujKosztyTransportu($wysylki);
@@ -154,59 +155,63 @@ class RaportWysylekController extends Controller
     }
 
     private function dopasujKosztyTransportu($wysylki): void
-{
-    foreach ($wysylki as $w) {
-        // Pomiń jeśli już ma ręcznie wpisany koszt
-        if ($w->wysylkaTransport && $w->wysylkaTransport->recznie) {
-            continue;
-        }
+    {
+        foreach ($wysylki as $w) {
+            // Pomiń jeśli już ma ręcznie wpisany koszt
+            if ($w->wysylkaTransport && $w->wysylkaTransport->recznie) {
+                continue;
+            }
 
-        $startId = $w->start_client_id;
-        $stopId  = $w->client_id;
+            $startId = $w->start_client_id;
+            $stopId = $w->client_id;
 
-        if (!$startId || !$stopId) continue;
+            if (! $startId || ! $stopId) {
+                continue;
+            }
 
-        // Firma kierowcy – szukamy przewoźnika o tej samej nazwie
-        $firmaKierowcy = $w->driver?->firma;
+            // Firma kierowcy – szukamy przewoźnika o tej samej nazwie
+            $firmaKierowcy = $w->driver?->firma;
 
-        $query = KosztTransportu::where('start_id', $startId)
-            ->where('stop_id', $stopId)
-            ->where('is_active', true);
+            $query = KosztTransportu::where('start_id', $startId)
+                ->where('stop_id', $stopId)
+                ->where('is_active', true);
 
-        // Jeśli kierowca ma firmę – spróbuj dopasować przez przewoźnika
-        if ($firmaKierowcy) {
-            $koszt = (clone $query)
-                ->whereHas('przewoznik', fn($q) => $q->where('nazwa', $firmaKierowcy))
-                ->first();
+            // Jeśli kierowca ma firmę – spróbuj dopasować przez przewoźnika
+            if ($firmaKierowcy) {
+                $koszt = (clone $query)
+                    ->whereHas('przewoznik', fn ($q) => $q->where('nazwa', $firmaKierowcy))
+                    ->first();
 
-            // Fallback: dopasowanie bez warunku na przewoźnika
-            if (!$koszt) {
+                // Fallback: dopasowanie bez warunku na przewoźnika
+                if (! $koszt) {
+                    $koszt = $query->first();
+                }
+            } else {
                 $koszt = $query->first();
             }
-        } else {
-            $koszt = $query->first();
-        }
 
-        if (!$koszt) continue;
+            if (! $koszt) {
+                continue;
+            }
 
-        $existing = $w->wysylkaTransport;
-        if (!$existing) {
-            WysylkaTransport::create([
-                'order_id'      => $w->id,
-                'przewoznik_id' => $koszt->przewoznik_id,
-                'cena_eur'      => $koszt->cena_eur,
-                'recznie'       => false,
-            ]);
-            $w->load('wysylkaTransport.przewoznik');
-        } elseif (!$existing->recznie && $existing->cena_eur != $koszt->cena_eur) {
-            $existing->update([
-                'przewoznik_id' => $koszt->przewoznik_id,
-                'cena_eur'      => $koszt->cena_eur,
-            ]);
-            $w->load('wysylkaTransport.przewoznik');
+            $existing = $w->wysylkaTransport;
+            if (! $existing) {
+                WysylkaTransport::create([
+                    'order_id' => $w->id,
+                    'przewoznik_id' => $koszt->przewoznik_id,
+                    'cena_eur' => $koszt->cena_eur,
+                    'recznie' => false,
+                ]);
+                $w->load('wysylkaTransport.przewoznik');
+            } elseif (! $existing->recznie && $existing->cena_eur != $koszt->cena_eur) {
+                $existing->update([
+                    'przewoznik_id' => $koszt->przewoznik_id,
+                    'cena_eur' => $koszt->cena_eur,
+                ]);
+                $w->load('wysylkaTransport.przewoznik');
+            }
         }
     }
-}
 
     private function tygodnieWMiesiacu(Carbon $miesiac): array
     {
@@ -216,7 +221,7 @@ class RaportWysylekController extends Controller
 
         while ($dzien->lte($koniec)) {
             $nr = $dzien->isoWeek;
-            if (!in_array($nr, $tygodnie)) {
+            if (! in_array($nr, $tygodnie)) {
                 $tygodnie[] = $nr;
             }
             $dzien->addDay();

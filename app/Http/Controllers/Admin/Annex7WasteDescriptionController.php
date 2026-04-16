@@ -11,6 +11,7 @@ class Annex7WasteDescriptionController extends Controller
     public function index()
     {
         $descriptions = Annex7WasteDescription::orderBy('description')->paginate(20);
+
         return view('admin.annex7.waste_descriptions.index', compact('descriptions'));
     }
 
@@ -39,7 +40,7 @@ class Annex7WasteDescriptionController extends Controller
     public function update(Request $request, Annex7WasteDescription $annex7WasteDescription)
     {
         $request->validate([
-            'description' => 'required|string|max:500|unique:annex7_waste_descriptions,description,' . $annex7WasteDescription->id,
+            'description' => 'required|string|max:500|unique:annex7_waste_descriptions,description,'.$annex7WasteDescription->id,
         ]);
 
         $annex7WasteDescription->update($request->only('description'));

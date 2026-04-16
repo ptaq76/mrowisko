@@ -16,7 +16,7 @@ class GusService
             return ['error' => 'Podaj prawidłowy NIP (10 cyfr)'];
         }
 
-        if (!$this->validateNip($nip)) {
+        if (! $this->validateNip($nip)) {
             return ['error' => 'Nieprawidłowy NIP — błędna cyfra kontrolna'];
         }
 
@@ -27,38 +27,38 @@ class GusService
             $reports = $gus->getByNip($nip);
 
             if (empty($reports)) {
-                return ['error' => 'Brak danych dla NIP: ' . $nip];
+                return ['error' => 'Brak danych dla NIP: '.$nip];
             }
 
             $r = $reports[0];
 
             $adres = $r->getApartmentNumber() === ''
-                ? $r->getStreet() . ' ' . $r->getPropertyNumber()
-                : $r->getStreet() . ' ' . $r->getPropertyNumber() . '/' . $r->getApartmentNumber();
+                ? $r->getStreet().' '.$r->getPropertyNumber()
+                : $r->getStreet().' '.$r->getPropertyNumber().'/'.$r->getApartmentNumber();
 
             $kodRaw = preg_replace('/\D/', '', $r->getZipCode() ?? '');
-            $kod    = strlen($kodRaw) === 5
-                ? substr($kodRaw, 0, 2) . '-' . substr($kodRaw, 2)
+            $kod = strlen($kodRaw) === 5
+                ? substr($kodRaw, 0, 2).'-'.substr($kodRaw, 2)
                 : ($r->getZipCode() ?? '');
 
             $nazwa = $r->getName();
 
             return [
-                'nip'     => $nip,
-                'regon'   => $r->getRegon()          ?? '',
-                'nazwa'   => $nazwa,
-                'skrot'   => mb_strlen($nazwa) > 60 ? mb_substr($nazwa, 0, 57) . '…' : $nazwa,
-                'adres'   => trim($adres),
-                'miasto'  => $r->getCity()            ?? '',
-                'kod'     => $kod,
+                'nip' => $nip,
+                'regon' => $r->getRegon() ?? '',
+                'nazwa' => $nazwa,
+                'skrot' => mb_strlen($nazwa) > 60 ? mb_substr($nazwa, 0, 57).'…' : $nazwa,
+                'adres' => trim($adres),
+                'miasto' => $r->getCity() ?? '',
+                'kod' => $kod,
             ];
 
         } catch (InvalidUserKeyException) {
             return ['error' => 'Niepoprawny klucz GUS API'];
         } catch (NotFoundException) {
-            return ['error' => 'Brak danych dla NIP: ' . $nip];
+            return ['error' => 'Brak danych dla NIP: '.$nip];
         } catch (\Exception $e) {
-            return ['error' => 'Błąd: ' . $e->getMessage()];
+            return ['error' => 'Błąd: '.$e->getMessage()];
         }
     }
 
@@ -67,8 +67,9 @@ class GusService
         $wagi = [6, 5, 7, 2, 3, 4, 5, 6, 7];
         $suma = 0;
         for ($i = 0; $i < 9; $i++) {
-            $suma += (int)$nip[$i] * $wagi[$i];
+            $suma += (int) $nip[$i] * $wagi[$i];
         }
-        return ($suma % 11) === (int)$nip[9];
+
+        return ($suma % 11) === (int) $nip[9];
     }
 }

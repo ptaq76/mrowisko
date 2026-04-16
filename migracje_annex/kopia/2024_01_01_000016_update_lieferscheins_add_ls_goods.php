@@ -20,10 +20,10 @@ return new class extends Migration
         Schema::table('lieferscheins', function (Blueprint $table) {
             // Usuń stare kolumny i dodaj nowe
             $table->foreignId('goods_id')
-                  ->nullable()
-                  ->after('client_id')
-                  ->constrained('ls_goods')
-                  ->nullOnDelete();
+                ->nullable()
+                ->after('client_id')
+                ->constrained('ls_goods')
+                ->nullOnDelete();
             $table->boolean('transp_zew')->default(false)->after('is_used');
             $table->boolean('status')->default(false)->after('transp_zew');
             $table->string('pdf_path')->nullable()->after('status');

@@ -16,7 +16,7 @@ class ClientContact extends Model
 
     const CATEGORIES = [
         'awizacje' => 'Awizacje',
-        'faktury'  => 'Faktury',
+        'faktury' => 'Faktury',
         'handlowe' => 'Handlowe',
     ];
 

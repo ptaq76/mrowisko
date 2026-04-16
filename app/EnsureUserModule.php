@@ -17,7 +17,7 @@ class EnsureUserModule
      */
     public function handle(Request $request, Closure $next, string ...$modules): Response
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return redirect()->route('login');
         }
 
@@ -35,7 +35,7 @@ class EnsureUserModule
 
         // Brak dostępu – przekieruj na własny dashboard
         return redirect()
-            ->to('/' . $user->module . '/dashboard')
+            ->to('/'.$user->module.'/dashboard')
             ->with('error', 'Brak dostępu do tego modułu.');
     }
 }

@@ -7,7 +7,8 @@ use Illuminate\Console\Command;
 
 class FetchLsPdfs extends Command
 {
-    protected $signature   = 'ls:fetch-pdfs';
+    protected $signature = 'ls:fetch-pdfs';
+
     protected $description = 'Pobiera PDF z Lieferscheinami ze skrzynki ls@iantra.pl';
 
     public function __construct(private ImapLsService $service)
@@ -27,7 +28,8 @@ class FetchLsPdfs extends Command
                 $this->warn("Błędy: {$result['errors']}");
             }
         } catch (\Throwable $e) {
-            $this->error('Błąd IMAP: ' . $e->getMessage());
+            $this->error('Błąd IMAP: '.$e->getMessage());
+
             return self::FAILURE;
         }
 

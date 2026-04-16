@@ -51,23 +51,23 @@ class VehicleSetSeeder extends Seeder
             ['label' => 'WGM3595C / ZENTEX CZARNY',       'tractor' => 'WGM3595C',    'trailer' => null,          'tare' => 16.000],
             ['label' => 'WGM3595C / PIOTR ZIELONY',       'tractor' => 'WGM3595C',    'trailer' => null,          'tare' => 14.240],
             ['label' => 'WGM2125P / PIOTR ZIELONY',       'tractor' => 'WGM2125P',    'trailer' => null,          'tare' => 6.240],
-            ['label' => 'WGM3595C / KONTENER MAŁY ZIELONY','tractor'=> 'WGM3595C',    'trailer' => null,          'tare' => 13.500],
+            ['label' => 'WGM3595C / KONTENER MAŁY ZIELONY', 'tractor' => 'WGM3595C',    'trailer' => null,          'tare' => 13.500],
             ['label' => 'WGM3595C',                       'tractor' => 'WGM3595C',    'trailer' => null,          'tare' => 11.700],
             ['label' => 'WGM2624C / GCH5U46',             'tractor' => 'WGM2624C',    'trailer' => 'GCH5U46',     'tare' => 16.520],
         ];
 
         foreach ($sets as $s) {
             DB::table('vehicle_sets')->insert([
-                'label'      => $s['label'],
+                'label' => $s['label'],
                 'tractor_id' => $plates[$s['tractor']] ?? null,
                 'trailer_id' => $s['trailer'] ? ($plates[$s['trailer']] ?? null) : null,
-                'tare_kg'    => $s['tare'],
-                'is_active'  => true,
+                'tare_kg' => $s['tare'],
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
         }
 
-        $this->command->info('Zestawy pojazdów z tarami dodane (' . count($sets) . ' zestawów).');
+        $this->command->info('Zestawy pojazdów z tarami dodane ('.count($sets).' zestawów).');
     }
 }

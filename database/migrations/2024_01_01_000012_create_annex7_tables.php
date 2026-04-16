@@ -44,40 +44,40 @@ return new class extends Migration
 
             // Pole 1 - osoba organizująca wysyłkę
             $table->foreignId('arranger_id')
-                  ->constrained('annex7_contractors');
+                ->constrained('annex7_contractors');
 
             // Pole 2 - importer/odbiorca (= pole 7 Recovery facility)
             $table->foreignId('importer_id')
-                  ->constrained('annex7_contractors');
+                ->constrained('annex7_contractors');
 
             // Pole 4 - data wysyłki
             $table->date('date_shipment');
 
             // Pole 5 - pierwszy przewoźnik
             $table->foreignId('carrier_id')
-                  ->constrained('annex7_contractors');
+                ->constrained('annex7_contractors');
             $table->date('carrier_date_transfer')->nullable();
 
             // Pole 6 - wytwórca odpadów
             $table->foreignId('generator_id')
-                  ->constrained('annex7_contractors');
+                ->constrained('annex7_contractors');
 
             // Pole 7 - zakład odzysku
             $table->foreignId('recovery_id')
-                  ->nullable()
-                  ->constrained('annex7_contractors');
+                ->nullable()
+                ->constrained('annex7_contractors');
 
             // Pole 8 - operacja odzysku
             $table->foreignId('recovery_operation_id')
-                  ->constrained('annex7_recovery_operations');
+                ->constrained('annex7_recovery_operations');
 
             // Pole 9 - opis odpadu
             $table->foreignId('waste_description_id')
-                  ->constrained('annex7_waste_descriptions');
+                ->constrained('annex7_waste_descriptions');
 
             // Pole 10 - kod odpadu
             $table->foreignId('waste_code_id')
-                  ->constrained('waste_codes');
+                ->constrained('waste_codes');
 
             $table->enum('status', ['draft', 'generated'])->default('draft');
             $table->string('pdf_path')->nullable();

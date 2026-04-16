@@ -11,21 +11,21 @@ return new class extends Migration
         Schema::create('drivers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->string('name');           // skrót (Sebastian, Łukasz)
             $table->string('full_name');      // pełne imię i nazwisko
             $table->string('color', 20);      // kolor hex
             $table->string('phone')->nullable();
             $table->foreignId('tractor_id')
-                  ->nullable()
-                  ->constrained('vehicles')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('vehicles')
+                ->nullOnDelete();
             $table->foreignId('trailer_id')
-                  ->nullable()
-                  ->constrained('vehicles')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('vehicles')
+                ->nullOnDelete();
             $table->string('avatar')->nullable(); // ścieżka do zdjęcia
             $table->boolean('is_active')->default(true);
             $table->timestamps();

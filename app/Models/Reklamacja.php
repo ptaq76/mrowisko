@@ -21,7 +21,7 @@ class Reklamacja extends Model
     ];
 
     protected $casts = [
-        'mail_date'  => 'datetime',
+        'mail_date' => 'datetime',
         'masa_netto' => 'decimal:3',
     ];
 

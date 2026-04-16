@@ -119,11 +119,11 @@ return [
         ],
 
         'bdo_sync' => [
-       'driver' => 'daily',
-       'path' => storage_path('logs/bdo_sync.log'),
-       'level' => env('LOG_LEVEL', 'debug'),
-       'days' => 30,
-   ],
+            'driver' => 'daily',
+            'path' => storage_path('logs/bdo_sync.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 30,
+        ],
     ],
 
 ];

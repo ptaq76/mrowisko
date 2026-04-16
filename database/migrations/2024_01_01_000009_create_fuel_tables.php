@@ -19,9 +19,9 @@ return new class extends Migration
             $table->id();
             $table->string('nazwa');
             $table->foreignId('grupa_id')
-                  ->nullable()
-                  ->constrained('fuel_vehicle_groups')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('fuel_vehicle_groups')
+                ->nullOnDelete();
             $table->boolean('active')->default(true);
             $table->timestamps();
         });
@@ -30,9 +30,9 @@ return new class extends Migration
             $table->id();
             $table->enum('type', ['tankowanie', 'dostawa', 'inwentaryzacja']);
             $table->foreignId('fuel_vehicle_id')
-                  ->nullable()
-                  ->constrained('fuel_vehicles')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('fuel_vehicles')
+                ->nullOnDelete();
             $table->decimal('liters', 8, 2);
             $table->decimal('tank_after', 8, 2)->nullable();
             $table->string('operator')->nullable();

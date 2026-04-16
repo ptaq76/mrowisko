@@ -19,18 +19,23 @@ class LoadingController extends Controller
             ->where('type', 'sale')
             ->where(function ($q) use ($date) {
                 $q->whereDate('planned_date', $date)
-                  ->orWhere(function ($q2) use ($date) {
-                      $q2->whereDate('planned_date', '<', $date)
-                         ->whereNotIn('status', ['closed', 'tool', 'weighed']);
-                  });
+                    ->orWhere(function ($q2) use ($date) {
+                        $q2->whereDate('planned_date', '<', $date)
+                            ->whereNotIn('status', ['closed', 'tool', 'weighed']);
+                    });
             })
             ->orderByRaw("CASE WHEN status = 'loaded' THEN 1 ELSE 0 END")
             ->orderBy('planned_time')
             ->get();
 
-        $placStatus = function($order) {
-            if ($order->status === 'loaded') return ['label' => 'Zamknięty', 'class' => 'sp-closed', 'done' => true];
-            if ($order->loadingItems->isNotEmpty()) return ['label' => 'W trakcie', 'class' => 'sp-progress', 'done' => false];
+        $placStatus = function ($order) {
+            if ($order->status === 'loaded') {
+                return ['label' => 'Zamknięty', 'class' => 'sp-closed', 'done' => true];
+            }
+            if ($order->loadingItems->isNotEmpty()) {
+                return ['label' => 'W trakcie', 'class' => 'sp-progress', 'done' => false];
+            }
+
             return ['label' => 'Zaplanowany', 'class' => 'sp-planned', 'done' => false];
         };
 

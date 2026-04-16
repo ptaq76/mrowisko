@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Client extends Model
 {
@@ -29,8 +30,8 @@ class Client extends Model
 
     const TYPES = [
         'pickup' => 'Dostawca',
-        'sale'   => 'Odbiorca',
-        'both'   => 'Dostawca i odbiorca',
+        'sale' => 'Odbiorca',
+        'both' => 'Dostawca i odbiorca',
     ];
 
     const COUNTRIES = [
@@ -78,21 +79,21 @@ class Client extends Model
 
     public function typeColor(): string
     {
-        return match($this->type) {
+        return match ($this->type) {
             'pickup' => 'bg-primary',
-            'sale'   => 'bg-success',
-            'both'   => 'bg-warning text-dark',
-            default  => 'bg-secondary',
+            'sale' => 'bg-success',
+            'both' => 'bg-warning text-dark',
+            default => 'bg-secondary',
         };
     }
 
-        public function orders(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
 
     public function pickupRequests()
-{
-    return $this->hasMany(\App\Models\PickupRequest::class);
-}
+    {
+        return $this->hasMany(PickupRequest::class);
+    }
 }

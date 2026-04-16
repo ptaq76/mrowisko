@@ -12,11 +12,11 @@ return new class extends Migration
             $table->id();
             $table->string('number');
             $table->foreignId('importer_id')
-                  ->constrained('importers')
-                  ->restrictOnDelete();
+                ->constrained('importers')
+                ->restrictOnDelete();
             $table->foreignId('client_id')
-                  ->constrained('clients')
-                  ->restrictOnDelete();
+                ->constrained('clients')
+                ->restrictOnDelete();
             $table->date('date');
             $table->string('time_window')->nullable();
             $table->text('goods_description')->nullable();

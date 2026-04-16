@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class WysylkaTransport extends Model
 {
-    protected $table    = 'wysylki_transport';
+    protected $table = 'wysylki_transport';
+
     protected $fillable = ['order_id', 'przewoznik_id', 'cena_eur', 'recznie'];
-    protected $casts    = ['cena_eur' => 'decimal:2', 'recznie' => 'boolean'];
+
+    protected $casts = ['cena_eur' => 'decimal:2', 'recznie' => 'boolean'];
 
     public function order()
     {

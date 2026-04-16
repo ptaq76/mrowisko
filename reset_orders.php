@@ -4,11 +4,11 @@
 // Uruchom: php reset_orders.php
 // UWAGA: Usuwa wszystkie zlecenia i powiązane dane!
 
-$host   = '127.0.0.1';
-$db     = 'mrowisko_local';
-$user   = 'root';
-$pass   = '';
-$port   = 3306;
+$host = '127.0.0.1';
+$db = 'mrowisko_local';
+$user = 'root';
+$pass = '';
+$port = 3306;
 
 try {
     $pdo = new PDO("mysql:host=$host;port=$port;dbname=$db;charset=utf8", $user, $pass);
@@ -31,6 +31,7 @@ try {
         $stmt = $pdo->query("SHOW TABLES LIKE '$table'");
         if ($stmt->rowCount() === 0) {
             echo "  Pominięto (brak tabeli): $table\n";
+
             continue;
         }
 
@@ -52,5 +53,5 @@ try {
     echo "\nGotowe! Wszystkie zlecenia zostały usunięte.\n";
 
 } catch (PDOException $e) {
-    echo "Błąd: " . $e->getMessage() . "\n";
+    echo 'Błąd: '.$e->getMessage()."\n";
 }

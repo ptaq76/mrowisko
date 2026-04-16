@@ -33,12 +33,12 @@ class Annex7Contractor extends Model
 
     public function roleName(): string
     {
-        return match($this->role) {
-            'arranger'  => 'Pole 1 – Arranger',
-            'importer'  => 'Pole 2 – Importer / Consignee',
-            'carrier'   => 'Pole 5 – Carrier',
+        return match ($this->role) {
+            'arranger' => 'Pole 1 – Arranger',
+            'importer' => 'Pole 2 – Importer / Consignee',
+            'carrier' => 'Pole 5 – Carrier',
             'generator' => 'Pole 6 – Generator',
-            default     => $this->role,
+            default => $this->role,
         };
     }
 

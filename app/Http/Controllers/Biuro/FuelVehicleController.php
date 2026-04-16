@@ -21,22 +21,24 @@ class FuelVehicleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nazwa'    => ['required', 'string', 'max:100'],
+            'nazwa' => ['required', 'string', 'max:100'],
             'grupa_id' => ['required', 'exists:fuel_vehicle_groups,id'],
         ]);
 
         FuelVehicle::create($request->only('nazwa', 'grupa_id'));
+
         return response()->json(['success' => true]);
     }
 
     public function update(Request $request, FuelVehicle $fuelVehicle)
     {
         $request->validate([
-            'nazwa'    => ['required', 'string', 'max:100'],
+            'nazwa' => ['required', 'string', 'max:100'],
             'grupa_id' => ['required', 'exists:fuel_vehicle_groups,id'],
         ]);
 
         $fuelVehicle->update($request->only('nazwa', 'grupa_id', 'active'));
+
         return response()->json(['success' => true]);
     }
 
@@ -46,12 +48,14 @@ class FuelVehicleController extends Controller
             return response()->json(['success' => false, 'error' => 'Pojazd ma historię tankowań.'], 422);
         }
         $fuelVehicle->delete();
+
         return response()->json(['success' => true]);
     }
 
     public function toggle(FuelVehicle $fuelVehicle)
     {
-        $fuelVehicle->update(['active' => !$fuelVehicle->active]);
+        $fuelVehicle->update(['active' => ! $fuelVehicle->active]);
+
         return response()->json(['success' => true, 'active' => $fuelVehicle->active]);
     }
 }

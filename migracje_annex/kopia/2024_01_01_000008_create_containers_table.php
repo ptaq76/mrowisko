@@ -14,9 +14,9 @@ return new class extends Migration
             $table->decimal('tare_kg', 8, 2)->default(0);
             $table->enum('location', ['plac', 'klient', 'transport'])->default('plac');
             $table->foreignId('client_id')
-                  ->nullable()
-                  ->constrained('clients')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('clients')
+                ->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

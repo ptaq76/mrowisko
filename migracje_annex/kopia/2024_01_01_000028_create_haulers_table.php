@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('haulers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')
-                  ->constrained('clients')
-                  ->cascadeOnDelete();
+                ->constrained('clients')
+                ->cascadeOnDelete();
             $table->integer('sort_order')->default(0);
             $table->timestamps();
         });

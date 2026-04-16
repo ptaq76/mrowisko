@@ -44,13 +44,13 @@ return new class extends Migration
             $table->boolean('show_in_production')->default(true);
             $table->boolean('show_in_sales')->default(true);
             $table->foreignId('client_id')
-                  ->nullable()
-                  ->constrained('clients')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('clients')
+                ->nullOnDelete();
             $table->foreignId('group_id')
-                  ->nullable()
-                  ->constrained('waste_fraction_groups')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('waste_fraction_groups')
+                ->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -68,21 +68,21 @@ return new class extends Migration
             $table->id();
             $table->string('number')->unique();
             $table->foreignId('importer_id')
-                  ->nullable()
-                  ->constrained('importers')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('importers')
+                ->nullOnDelete();
             $table->foreignId('client_id')
-                  ->nullable()
-                  ->constrained('clients')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('clients')
+                ->nullOnDelete();
             $table->foreignId('goods_id')
-                  ->nullable()
-                  ->constrained('ls_goods')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('ls_goods')
+                ->nullOnDelete();
             $table->foreignId('waste_code_id')
-                  ->nullable()
-                  ->constrained('waste_codes')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('waste_codes')
+                ->nullOnDelete();
             $table->date('date');
             $table->string('time_window')->nullable();
             $table->text('goods_description')->nullable();

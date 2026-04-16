@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\AgentChat;
 use App\Http\Controllers\Controller;
+use App\Models\AgentChat;
 use App\Models\Driver;
 use App\Models\Order;
-use App\Models\Weighing;
-use App\Models\WarehouseItem;
 use App\Models\User;
+use App\Models\WarehouseItem;
+use App\Models\Weighing;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -20,11 +20,11 @@ class AdminController extends Controller
         $today = Carbon::today();
 
         $stats = [
-            'orders_today'   => Order::whereDate('planned_date', $today)->count(),
-            'orders_active'  => Order::whereNotIn('status', ['closed'])->whereDate('planned_date', '>=', now()->subDays(3))->count(),
-            'weighings_today'=> Weighing::whereDate('weighed_at', $today)->count() + Order::whereDate('updated_at', $today)->whereNotNull('weight_netto')->count(),
-            'warehouse_bales'=> (int) WarehouseItem::sum('bales'),
-            'users'          => User::count(),
+            'orders_today' => Order::whereDate('planned_date', $today)->count(),
+            'orders_active' => Order::whereNotIn('status', ['closed'])->whereDate('planned_date', '>=', now()->subDays(3))->count(),
+            'weighings_today' => Weighing::whereDate('weighed_at', $today)->count() + Order::whereDate('updated_at', $today)->whereNotNull('weight_netto')->count(),
+            'warehouse_bales' => (int) WarehouseItem::sum('bales'),
+            'users' => User::count(),
         ];
 
         $drivers = Driver::where('is_active', true)
@@ -40,7 +40,7 @@ class AdminController extends Controller
     public function driversIndex()
     {
         $drivers = Driver::where('is_active', true)->orderBy('name')->get();
-        $driver  = $drivers->first();
+        $driver = $drivers->first();
 
         return redirect()->route('admin.drivers.show', $driver);
     }
@@ -50,7 +50,7 @@ class AdminController extends Controller
         $drivers = Driver::where('is_active', true)->orderBy('name')->get();
 
         $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subDays(7)->format('Y-m-d');
-        $dateTo   = $request->filled('date_to')   ? $request->date_to   : now()->format('Y-m-d');
+        $dateTo = $request->filled('date_to') ? $request->date_to : now()->format('Y-m-d');
 
         $query = Order::with(['client', 'tractor', 'trailer'])
             ->where('driver_id', $driver->id)
@@ -69,6 +69,7 @@ class AdminController extends Controller
     public function agentView()
     {
         $chats = AgentChat::orderByDesc('updated_at')->get();
+
         return view('admin.agent', compact('chats'));
     }
 
@@ -77,39 +78,41 @@ class AdminController extends Controller
         $chat = AgentChat::updateOrCreate(
             ['id' => $request->chat_id ?: null],
             [
-                'title'    => $request->title ?: 'Czat ' . now()->format('d.m H:i'),
+                'title' => $request->title ?: 'Czat '.now()->format('d.m H:i'),
                 'messages' => $request->messages,
-                'user_id'  => null,
+                'user_id' => null,
             ]
         );
+
         return response()->json(['success' => true, 'chat_id' => $chat->id, 'title' => $chat->title]);
     }
 
     public function agentChatDelete(AgentChat $chat)
     {
         $chat->delete();
+
         return response()->json(['success' => true]);
     }
 
     public function agentChat(Request $request)
     {
-        $apiKey   = config('services.anthropic.key') ?? env('ANTHROPIC_API_KEY');
+        $apiKey = config('services.anthropic.key') ?? env('ANTHROPIC_API_KEY');
         $messages = $request->messages ?? [];
-        $system   = $request->system ?? '';
+        $system = $request->system ?? '';
 
-        if (!$apiKey) {
+        if (! $apiKey) {
             return response()->json(['success' => false, 'error' => 'Brak klucza ANTHROPIC_API_KEY w pliku .env']);
         }
 
         $response = Http::withHeaders([
-            'x-api-key'         => $apiKey,
+            'x-api-key' => $apiKey,
             'anthropic-version' => '2023-06-01',
-            'content-type'      => 'application/json',
+            'content-type' => 'application/json',
         ])->post('https://api.anthropic.com/v1/messages', [
-            'model'      => 'claude-opus-4-5',
+            'model' => 'claude-opus-4-5',
             'max_tokens' => 2048,
-            'system'     => $system,
-            'messages'   => $messages,
+            'system' => $system,
+            'messages' => $messages,
         ]);
 
         if ($response->failed()) {

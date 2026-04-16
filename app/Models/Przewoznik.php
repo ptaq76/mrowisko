@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Przewoznik extends Model
 {
-    protected $table    = 'przewoznicy';
+    protected $table = 'przewoznicy';
+
     protected $fillable = ['nazwa', 'is_active'];
-    protected $casts    = ['is_active' => 'boolean'];
+
+    protected $casts = ['is_active' => 'boolean'];
 
     public function koszty()
     {

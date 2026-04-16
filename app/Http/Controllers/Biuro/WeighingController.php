@@ -6,12 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Hauler;
 use App\Models\Order;
-use App\Models\Weighing;
-use App\Models\WasteFraction;
+use App\Models\Vehicle;
 use App\Models\VehicleSet;
-use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
+use App\Models\WasteFraction;
+use App\Models\Weighing;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class WeighingController extends Controller
 {
@@ -38,8 +38,8 @@ class WeighingController extends Controller
             ->orderBy('planned_date')
             ->get();
 
-        $clients   = Client::orderBy('short_name')->get();
-        $haulers   = Hauler::with('client')->orderBy('sort_order')->get();
+        $clients = Client::orderBy('short_name')->get();
+        $haulers = Hauler::with('client')->orderBy('sort_order')->get();
         $fractions = WasteFraction::where('is_active', true)->orderBy('name')->get();
 
         return view('biuro.weighings.index', compact(
@@ -51,28 +51,28 @@ class WeighingController extends Controller
     {
         $request->validate([
             'weighed_at' => ['required', 'date'],
-            'client_id'  => ['nullable', 'exists:clients,id'],
-            'order_id'   => ['nullable', 'exists:orders,id'],
-            'plate1'     => ['nullable', 'string', 'max:20'],
-            'plate2'     => ['nullable', 'string', 'max:20'],
-            'weight1'    => ['required', 'numeric', 'min:0'],
-            'weight2'    => ['nullable', 'numeric', 'min:0'],
-            'goods'      => ['nullable', 'string', 'max:255'],
-            'notes'      => ['nullable', 'string'],
+            'client_id' => ['nullable', 'exists:clients,id'],
+            'order_id' => ['nullable', 'exists:orders,id'],
+            'plate1' => ['nullable', 'string', 'max:20'],
+            'plate2' => ['nullable', 'string', 'max:20'],
+            'weight1' => ['required', 'numeric', 'min:0'],
+            'weight2' => ['nullable', 'numeric', 'min:0'],
+            'goods' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string'],
         ]);
 
         $weighing = DB::transaction(function () use ($request) {
             $w = Weighing::create([
-                'weighed_at'      => $request->weighed_at,
-                'client_id'       => $request->client_id ?: null,
-                'order_id'        => $request->order_id ?: null,
-                'plate1'          => $request->plate1,
-                'plate2'          => $request->plate2,
-                'weight1'         => $request->weight1,
-                'weight2'         => $request->weight2 ?: null,
-                'goods'           => $request->goods,
-                'notes'           => $request->notes,
-                'source'          => 'manual',
+                'weighed_at' => $request->weighed_at,
+                'client_id' => $request->client_id ?: null,
+                'order_id' => $request->order_id ?: null,
+                'plate1' => $request->plate1,
+                'plate2' => $request->plate2,
+                'weight1' => $request->weight1,
+                'weight2' => $request->weight2 ?: null,
+                'goods' => $request->goods,
+                'notes' => $request->notes,
+                'source' => 'manual',
                 'created_by_user' => null,
             ]);
 
@@ -81,11 +81,11 @@ class WeighingController extends Controller
                 $order = Order::find($request->order_id);
                 if ($order) {
                     $brutto = (float) $request->weight1;
-                    $netto  = round(abs((float)$request->weight1 - (float)$request->weight2), 3);
+                    $netto = round(abs((float) $request->weight1 - (float) $request->weight2), 3);
                     $order->update([
                         'weight_brutto' => $brutto,
-                        'weight_netto'  => $netto,
-                        'status'        => 'weighed',
+                        'weight_netto' => $netto,
+                        'status' => 'weighed',
                     ]);
                 }
             }
@@ -99,18 +99,18 @@ class WeighingController extends Controller
         });
 
         return response()->json([
-            'success'  => true,
+            'success' => true,
             'weighing' => [
-                'id'         => $weighing->id,
+                'id' => $weighing->id,
                 'weighed_at' => $weighing->weighed_at->format('d.m.Y H:i'),
-                'client'     => $weighing->client?->short_name ?? '–',
-                'plate1'     => $weighing->plate1,
-                'plate2'     => $weighing->plate2,
-                'weight1'    => $weighing->weight1,
-                'weight2'    => $weighing->weight2,
-                'result'     => $weighing->result,
-                'goods'      => $weighing->goods,
-                'notes'      => $weighing->notes,
+                'client' => $weighing->client?->short_name ?? '–',
+                'plate1' => $weighing->plate1,
+                'plate2' => $weighing->plate2,
+                'weight1' => $weighing->weight1,
+                'weight2' => $weighing->weight2,
+                'result' => $weighing->result,
+                'goods' => $weighing->goods,
+                'notes' => $weighing->notes,
             ],
         ]);
     }
@@ -119,20 +119,20 @@ class WeighingController extends Controller
     {
         $request->validate([
             'weighed_at' => ['required', 'date'],
-            'weight1'    => ['required', 'numeric', 'min:0'],
-            'weight2'    => ['nullable', 'numeric', 'min:0'],
+            'weight1' => ['required', 'numeric', 'min:0'],
+            'weight2' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $weighing->update([
             'weighed_at' => $request->weighed_at,
-            'client_id'  => $request->client_id ?: null,
-            'order_id'   => $request->order_id ?: null,
-            'plate1'     => $request->plate1,
-            'plate2'     => $request->plate2,
-            'weight1'    => $request->weight1,
-            'weight2'    => $request->weight2 ?: null,
-            'goods'      => $request->goods,
-            'notes'      => $request->notes,
+            'client_id' => $request->client_id ?: null,
+            'order_id' => $request->order_id ?: null,
+            'plate1' => $request->plate1,
+            'plate2' => $request->plate2,
+            'weight1' => $request->weight1,
+            'weight2' => $request->weight2 ?: null,
+            'goods' => $request->goods,
+            'notes' => $request->notes,
         ]);
 
         if ($request->push_to_order && $weighing->order_id && $request->weight1 && $request->weight2) {
@@ -140,8 +140,8 @@ class WeighingController extends Controller
             if ($order) {
                 $order->update([
                     'weight_brutto' => (float) $request->weight1,
-                    'weight_netto'  => round(abs((float)$request->weight1 - (float)$request->weight2), 3),
-                    'status'        => 'weighed',
+                    'weight_netto' => round(abs((float) $request->weight1 - (float) $request->weight2), 3),
+                    'status' => 'weighed',
                 ]);
             }
         }
@@ -166,31 +166,34 @@ class WeighingController extends Controller
     public function archive(Weighing $weighing)
     {
         $weighing->update(['is_archived' => true]);
+
         return response()->json(['success' => true]);
     }
 
     public function unarchive(Weighing $weighing)
     {
         $weighing->update(['is_archived' => false]);
+
         return response()->json(['success' => true]);
     }
 
     public function edit(Weighing $weighing)
     {
-        $order = $weighing->order_id ? \App\Models\Order::with('client')->find($weighing->order_id) : null;
+        $order = $weighing->order_id ? Order::with('client')->find($weighing->order_id) : null;
+
         return response()->json([
-            'id'               => $weighing->id,
+            'id' => $weighing->id,
             'weighed_at_input' => $weighing->weighed_at->format('Y-m-d\TH:i'),
-            'client_id'        => $weighing->client_id,
-            'order_id'         => $weighing->order_id,
-            'order_label'      => $order ? ($order->client?->short_name . ' · ' . $order->planned_date->format('d.m')) : null,
-            'order_type'       => $order?->type,
-            'plate1'           => $weighing->plate1,
-            'plate2'           => $weighing->plate2,
-            'weight1'          => $weighing->weight1,
-            'weight2'          => $weighing->weight2,
-            'goods'            => $weighing->goods,
-            'notes'            => $weighing->notes,
+            'client_id' => $weighing->client_id,
+            'order_id' => $weighing->order_id,
+            'order_label' => $order ? ($order->client?->short_name.' · '.$order->planned_date->format('d.m')) : null,
+            'order_type' => $order?->type,
+            'plate1' => $weighing->plate1,
+            'plate2' => $weighing->plate2,
+            'weight1' => $weighing->weight1,
+            'weight2' => $weighing->weight2,
+            'goods' => $weighing->goods,
+            'notes' => $weighing->notes,
         ]);
     }
 
@@ -209,13 +212,13 @@ class WeighingController extends Controller
         $plate2 = $request->input('plate2');
 
         $set = VehicleSet::findForVehicles(
-            optional(\App\Models\Vehicle::where('plate', $plate1)->first())->id,
-            optional(\App\Models\Vehicle::where('plate', $plate2)->first())->id
+            optional(Vehicle::where('plate', $plate1)->first())->id,
+            optional(Vehicle::where('plate', $plate2)->first())->id
         );
 
         return response()->json([
             'found' => (bool) $set,
-            'tare'  => $set?->tare_kg,
+            'tare' => $set?->tare_kg,
             'label' => $set?->label,
         ]);
     }
@@ -223,6 +226,7 @@ class WeighingController extends Controller
     public function destroy(Weighing $weighing)
     {
         $weighing->delete();
+
         return response()->json(['success' => true]);
     }
 }

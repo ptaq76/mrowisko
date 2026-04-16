@@ -36,7 +36,7 @@ class PlanningController extends Controller
         // Zlecenia aktywnego kierowcy na wybrany dzień
         $orders = Order::with([
             'client', 'startClient', 'tractor', 'trailer',
-            'lieferschein.importer', 'loadingItems', 'warehouseLoadingItems', 'warehouseDeliveryItems'
+            'lieferschein.importer', 'loadingItems', 'warehouseLoadingItems', 'warehouseDeliveryItems',
         ])
             ->where('driver_id', $driver?->id)
             ->whereDate('planned_date', $date)
@@ -45,7 +45,7 @@ class PlanningController extends Controller
 
         // Tydzień do lewej kolumny (bieżący tydzień)
         $startOfWeek = $date->copy()->startOfWeek();
-        $weekDays    = collect();
+        $weekDays = collect();
         for ($i = 0; $i < 7; $i++) {
             $d = $startOfWeek->copy()->addDays($i);
             $weekOrders = Order::with(['client', 'driver'])
@@ -53,7 +53,7 @@ class PlanningController extends Controller
                 ->orderBy('planned_time')
                 ->get();
             $weekDays->put($d->format('Y-m-d'), [
-                'date'   => $d,
+                'date' => $d,
                 'orders' => $weekOrders,
             ]);
         }
@@ -62,13 +62,13 @@ class PlanningController extends Controller
         $topPickup = Order::where('type', 'pickup')
             ->select('client_id', DB::raw('count(*) as cnt'))
             ->groupBy('client_id')->orderByDesc('cnt')->take(10)->get()
-            ->map(fn($r) => Client::find($r->client_id))
+            ->map(fn ($r) => Client::find($r->client_id))
             ->filter()->values();
 
         $topSale = Order::where('type', 'sale')
             ->select('client_id', DB::raw('count(*) as cnt'))
             ->groupBy('client_id')->orderByDesc('cnt')->take(10)->get()
-            ->map(fn($r) => Client::find($r->client_id))
+            ->map(fn ($r) => Client::find($r->client_id))
             ->filter()->values();
 
         // Wolne LS (nieprzypisane do zlecenia) na wybrany dzień
@@ -99,12 +99,12 @@ class PlanningController extends Controller
         // Zlecenia widoczne na placu tego dnia
         $orders = Order::with([
             'client', 'startClient', 'driver', 'tractor', 'trailer',
-            'lieferschein.importer', 'loadingItems.fraction', 'warehouseLoadingItems'
+            'lieferschein.importer', 'loadingItems.fraction', 'warehouseLoadingItems',
         ])
-        ->whereNotNull('plac_date')
-        ->whereDate('plac_date', $date)
-        ->orderBy('planned_time')
-        ->get();
+            ->whereNotNull('plac_date')
+            ->whereDate('plac_date', $date)
+            ->orderBy('planned_time')
+            ->get();
 
         // Grupuj po kierowcach jak w module plac
         $drivers = $orders->groupBy('driver_id');

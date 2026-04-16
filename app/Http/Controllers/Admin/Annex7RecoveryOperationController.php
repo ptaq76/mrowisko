@@ -11,6 +11,7 @@ class Annex7RecoveryOperationController extends Controller
     public function index()
     {
         $operations = Annex7RecoveryOperation::orderBy('code')->paginate(20);
+
         return view('admin.annex7.recovery_operations.index', compact('operations'));
     }
 
@@ -22,7 +23,7 @@ class Annex7RecoveryOperationController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'code'        => 'required|string|max:10|unique:annex7_recovery_operations,code',
+            'code' => 'required|string|max:10|unique:annex7_recovery_operations,code',
             'description' => 'required|string|max:500',
         ]);
 
@@ -40,7 +41,7 @@ class Annex7RecoveryOperationController extends Controller
     public function update(Request $request, Annex7RecoveryOperation $annex7RecoveryOperation)
     {
         $request->validate([
-            'code'        => 'required|string|max:10|unique:annex7_recovery_operations,code,' . $annex7RecoveryOperation->id,
+            'code' => 'required|string|max:10|unique:annex7_recovery_operations,code,'.$annex7RecoveryOperation->id,
             'description' => 'required|string|max:500',
         ]);
 

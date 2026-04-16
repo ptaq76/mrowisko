@@ -5,10 +5,10 @@ namespace App\Providers;
 use App\Services\ImapGewichtsmeldungService;
 use App\Services\ImapReklamacjeService;
 use App\Services\PdfParserService;
-use Illuminate\Support\ServiceProvider;
 use Carbon\Carbon;
-// 1. DODAJEMY TEN IMPORT:
 use Illuminate\Support\Facades\Schema;
+// 1. DODAJEMY TEN IMPORT:
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {

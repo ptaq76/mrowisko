@@ -9,7 +9,7 @@ class VehicleSet extends Model
     protected $fillable = ['label', 'tractor_id', 'trailer_id', 'tare_kg', 'is_active'];
 
     protected $casts = [
-        'tare_kg'   => 'decimal:3',
+        'tare_kg' => 'decimal:3',
         'is_active' => 'boolean',
     ];
 

@@ -28,10 +28,10 @@ class ImporterSeeder extends Seeder
 
         foreach ($importers as $i) {
             DB::table('importers')->insert([
-                'id'         => $i['id'],
-                'name'       => $i['name'],
-                'country'    => $i['country'],
-                'is_active'  => true,
+                'id' => $i['id'],
+                'name' => $i['name'],
+                'country' => $i['country'],
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

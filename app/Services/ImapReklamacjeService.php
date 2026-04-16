@@ -3,29 +3,30 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
-use Webklex\PHPIMAP\ClientManager;
 use Webklex\PHPIMAP\Client;
+use Webklex\PHPIMAP\ClientManager;
 
 class ImapReklamacjeService
 {
     private ClientManager $manager;
+
     private Client $client;
 
     public function __construct()
     {
-        $this->manager = new ClientManager();
+        $this->manager = new ClientManager;
     }
 
     private function polacz(): void
     {
         $this->client = $this->manager->make([
-            'host'          => config('reklamacje.imap.host'),
-            'port'          => config('reklamacje.imap.port'),
-            'encryption'    => config('reklamacje.imap.encryption'),
+            'host' => config('reklamacje.imap.host'),
+            'port' => config('reklamacje.imap.port'),
+            'encryption' => config('reklamacje.imap.encryption'),
             'validate_cert' => config('reklamacje.imap.validate_cert', true),
-            'username'      => config('reklamacje.imap.username'),
-            'password'      => config('reklamacje.imap.password'),
-            'protocol'      => 'imap',
+            'username' => config('reklamacje.imap.username'),
+            'password' => config('reklamacje.imap.password'),
+            'protocol' => 'imap',
         ]);
 
         $this->client->connect();
@@ -53,8 +54,8 @@ class ImapReklamacjeService
         $this->polacz();
 
         $folderName = config('reklamacje.imap.folder', 'INBOX');
-        $folder     = $this->client->getFolder($folderName);
-        $messages   = $folder->query()->unseen()->get();
+        $folder = $this->client->getFolder($folderName);
+        $messages = $folder->query()->unseen()->get();
 
         $wyniki = [];
 
@@ -62,7 +63,7 @@ class ImapReklamacjeService
             try {
                 $wyniki[] = $this->przetworzWiadomosc($message);
             } catch (\Exception $e) {
-                Log::error('ImapReklamacjeService: błąd przetwarzania wiadomości: ' . $e->getMessage());
+                Log::error('ImapReklamacjeService: błąd przetwarzania wiadomości: '.$e->getMessage());
             }
         }
 
@@ -85,9 +86,9 @@ class ImapReklamacjeService
 
         $podstawa = [
             'mail_subject' => $subject,
-            'mail_date'    => $date,
-            'blad'         => null,
-            'zalaczniki'   => [],
+            'mail_date' => $date,
+            'blad' => null,
+            'zalaczniki' => [],
         ];
 
         // Filtrujemy tylko PDF-y
@@ -106,14 +107,14 @@ class ImapReklamacjeService
 
         if (count($pdfy) !== 2) {
             return array_merge($podstawa, [
-                'blad' => 'Wiadomość zawiera ' . count($pdfy) . ' załączników PDF (oczekiwano 2).',
+                'blad' => 'Wiadomość zawiera '.count($pdfy).' załączników PDF (oczekiwano 2).',
             ]);
         }
 
         $zalaczniki = [];
         foreach ($pdfy as $pdf) {
             $zalaczniki[] = [
-                'nazwa'     => $this->sanityzujNazwe($pdf->getName() ?? ('plik_' . uniqid() . '.pdf')),
+                'nazwa' => $this->sanityzujNazwe($pdf->getName() ?? ('plik_'.uniqid().'.pdf')),
                 'zawartosc' => $pdf->getContent(),
             ];
         }
@@ -124,6 +125,7 @@ class ImapReklamacjeService
     private function sanityzujNazwe(string $nazwa): string
     {
         $czysta = preg_replace('/[^\w.\-]/u', '_', $nazwa);
+
         return substr($czysta, 0, 200);
     }
 }

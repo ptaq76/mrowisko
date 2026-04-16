@@ -23,9 +23,9 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->text('notes')->nullable();
             $table->foreignId('salesman_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -33,8 +33,8 @@ return new class extends Migration
         Schema::create('client_contacts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')
-                  ->constrained('clients')
-                  ->cascadeOnDelete();
+                ->constrained('clients')
+                ->cascadeOnDelete();
             $table->enum('category', ['awizacje', 'faktury', 'handlowe']);
             $table->string('name');
             $table->string('email')->nullable();
@@ -45,8 +45,8 @@ return new class extends Migration
         Schema::create('client_addresses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')
-                  ->constrained('clients')
-                  ->cascadeOnDelete();
+                ->constrained('clients')
+                ->cascadeOnDelete();
             $table->string('city');
             $table->string('postal_code')->nullable();
             $table->string('street');

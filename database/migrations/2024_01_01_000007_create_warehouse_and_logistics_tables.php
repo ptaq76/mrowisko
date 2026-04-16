@@ -13,20 +13,20 @@ return new class extends Migration
             $table->id();
             $table->date('date');
             $table->foreignId('fraction_id')
-                  ->constrained('waste_fractions')
-                  ->cascadeOnDelete();
+                ->constrained('waste_fractions')
+                ->cascadeOnDelete();
             $table->integer('bales')->default(0);        // liczba belek (może być ujemna przy wydaniu)
             $table->decimal('weight_kg', 10, 2);
             $table->enum('origin', ['production', 'loading', 'delivery', 'inventory'])
-                  ->default('production');
+                ->default('production');
             $table->foreignId('origin_order_id')
-                  ->nullable()
-                  ->constrained('orders')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('orders')
+                ->nullOnDelete();
             $table->foreignId('operator_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->text('notes')->nullable();
             $table->timestamps();
         });
@@ -35,18 +35,18 @@ return new class extends Migration
         Schema::create('loading_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')
-                  ->constrained('orders')
-                  ->cascadeOnDelete();
+                ->constrained('orders')
+                ->cascadeOnDelete();
             $table->foreignId('fraction_id')
-                  ->constrained('waste_fractions')
-                  ->cascadeOnDelete();
+                ->constrained('waste_fractions')
+                ->cascadeOnDelete();
             $table->integer('bales')->default(0);
             $table->decimal('weight_kg', 10, 2);
             $table->text('notes')->nullable();
             $table->foreignId('operator_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
 
@@ -57,9 +57,9 @@ return new class extends Migration
             $table->decimal('tare_kg', 8, 2)->default(0);
             $table->enum('location', ['plac', 'klient', 'transport'])->default('plac');
             $table->foreignId('client_id')
-                  ->nullable()
-                  ->constrained('clients')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('clients')
+                ->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
@@ -67,39 +67,39 @@ return new class extends Migration
         Schema::create('order_containers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')
-                  ->constrained('orders')
-                  ->cascadeOnDelete();
+                ->constrained('orders')
+                ->cascadeOnDelete();
             $table->foreignId('container_id')
-                  ->constrained('containers')
-                  ->cascadeOnDelete();
+                ->constrained('containers')
+                ->cascadeOnDelete();
             $table->enum('action', ['zostawiony', 'zabrany']);
             $table->enum('location_from', ['plac', 'klient', 'transport'])->nullable();
             $table->enum('location_to', ['plac', 'klient', 'transport'])->nullable();
             $table->foreignId('client_id')
-                  ->nullable()
-                  ->constrained('clients')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('clients')
+                ->nullOnDelete();
             $table->timestamps();
         });
 
         Schema::create('container_events', function (Blueprint $table) {
             $table->id();
             $table->foreignId('container_id')
-                  ->constrained('containers')
-                  ->cascadeOnDelete();
+                ->constrained('containers')
+                ->cascadeOnDelete();
             $table->foreignId('order_id')
-                  ->nullable()
-                  ->constrained('orders')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('orders')
+                ->nullOnDelete();
             $table->enum('event_type', ['wydanie', 'powrot', 'korekta'])->default('wydanie');
             $table->foreignId('client_id')
-                  ->nullable()
-                  ->constrained('clients')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('clients')
+                ->nullOnDelete();
             $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
 
@@ -107,11 +107,11 @@ return new class extends Migration
         Schema::create('delivery_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')
-                  ->constrained('orders')
-                  ->cascadeOnDelete();
+                ->constrained('orders')
+                ->cascadeOnDelete();
             $table->foreignId('waste_fraction_id')
-                  ->constrained('waste_fractions')
-                  ->cascadeOnDelete();
+                ->constrained('waste_fractions')
+                ->cascadeOnDelete();
             $table->enum('form', ['luz', 'belka']);
             $table->decimal('weight_kg', 10, 2)->default(0);
             $table->timestamps();
@@ -120,11 +120,11 @@ return new class extends Migration
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')
-                  ->constrained('orders')
-                  ->cascadeOnDelete();
+                ->constrained('orders')
+                ->cascadeOnDelete();
             $table->foreignId('waste_fraction_id')
-                  ->constrained('waste_fractions')
-                  ->cascadeOnDelete();
+                ->constrained('waste_fractions')
+                ->cascadeOnDelete();
             $table->decimal('weight_kg', 10, 2)->nullable();
             $table->timestamps();
         });
@@ -133,28 +133,28 @@ return new class extends Migration
         Schema::create('productions', function (Blueprint $table) {
             $table->id();
             $table->foreignId('waste_fraction_id')
-                  ->constrained('waste_fractions')
-                  ->cascadeOnDelete();
+                ->constrained('waste_fractions')
+                ->cascadeOnDelete();
             $table->decimal('weight_kg', 10, 2);
             $table->timestamp('produced_at')->nullable();
             $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
 
         Schema::create('inventory_adjustments', function (Blueprint $table) {
             $table->id();
             $table->foreignId('waste_fraction_id')
-                  ->constrained('waste_fractions')
-                  ->cascadeOnDelete();
+                ->constrained('waste_fractions')
+                ->cascadeOnDelete();
             $table->decimal('weight_kg', 10, 2);
             $table->text('reason')->nullable();
             $table->foreignId('user_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->timestamps();
         });
     }

@@ -31,11 +31,11 @@ class User extends Authenticatable
 
     // Dostępne moduły
     const MODULES = [
-        'admin'      => 'Administrator',
-        'biuro'      => 'Biuro',
-        'kierowca'   => 'Kierowca',
-        'hakowiec'   => 'Hakowiec',
-        'plac'       => 'Plac',
+        'admin' => 'Administrator',
+        'biuro' => 'Biuro',
+        'kierowca' => 'Kierowca',
+        'hakowiec' => 'Hakowiec',
+        'plac' => 'Plac',
         'handlowiec' => 'Handlowiec',
     ];
 

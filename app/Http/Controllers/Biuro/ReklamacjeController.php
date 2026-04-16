@@ -14,7 +14,7 @@ class ReklamacjeController extends Controller
         $typ = $request->input('typ');
 
         $reklamacje = Reklamacja::with('lieferscheinModel')
-            ->when($typ, fn($q) => $q->where('typ', $typ))
+            ->when($typ, fn ($q) => $q->where('typ', $typ))
             ->orderByDesc('mail_date')
             ->paginate(30)
             ->withQueryString();
@@ -32,6 +32,7 @@ class ReklamacjeController extends Controller
     public function bledy(Request $request)
     {
         $bledy = ReklamacjaBled::orderByDesc('created_at')->paginate(30);
+
         return view('biuro.reklamacje.bledy', compact('bledy'));
     }
 
@@ -39,18 +40,20 @@ class ReklamacjeController extends Controller
     {
         $request->validate(['status' => ['required', 'in:nowy,zweryfikowany,pominiety']]);
         $reklamacjaBled->update(['status' => $request->status]);
+
         return response()->json(['success' => true, 'status' => $reklamacjaBled->status]);
     }
 
     public function showFile(string $path)
     {
-        $fullPath = storage_path('app/' . $path);
-        if (!file_exists($fullPath)) {
+        $fullPath = storage_path('app/'.$path);
+        if (! file_exists($fullPath)) {
             abort(404, 'Plik nie istnieje.');
         }
+
         return response()->file($fullPath, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . basename($fullPath) . '"',
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.basename($fullPath).'"',
         ]);
     }
 
@@ -58,6 +61,7 @@ class ReklamacjeController extends Controller
     {
         try {
             \Artisan::call('reklamacje:przetwarzaj');
+
             return response()->json(['success' => true, 'message' => 'Przetwarzanie zakończone.']);
         } catch (\Throwable $e) {
             return response()->json(['success' => false, 'error' => $e->getMessage()], 500);

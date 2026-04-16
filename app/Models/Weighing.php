@@ -15,9 +15,9 @@ class Weighing extends Model
 
     protected $casts = [
         'weighed_at' => 'datetime',
-        'weight1'    => 'decimal:3',
-        'weight2'    => 'decimal:3',
-        'result'     => 'decimal:3',
+        'weight1' => 'decimal:3',
+        'weight2' => 'decimal:3',
+        'result' => 'decimal:3',
     ];
 
     public function client()
@@ -35,7 +35,7 @@ class Weighing extends Model
     {
         static::saving(function (self $w) {
             if ($w->weight1 !== null && $w->weight2 !== null) {
-                $w->result = round((float)$w->weight1 - (float)$w->weight2, 3);
+                $w->result = round((float) $w->weight1 - (float) $w->weight2, 3);
             }
         });
     }

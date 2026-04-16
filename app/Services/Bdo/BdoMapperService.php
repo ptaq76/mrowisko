@@ -72,7 +72,8 @@ class BdoMapperService
         try {
             return date('Y-m-d H:i:s', strtotime($value));
         } catch (\Throwable $e) {
-            Log::warning("BDO: invalid datetime format", ['value' => $value, 'error' => $e->getMessage()]);
+            Log::warning('BDO: invalid datetime format', ['value' => $value, 'error' => $e->getMessage()]);
+
             return null;
         }
     }

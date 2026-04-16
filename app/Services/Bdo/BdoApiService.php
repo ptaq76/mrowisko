@@ -3,7 +3,6 @@
 namespace App\Services\Bdo;
 
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class BdoApiService
 {
@@ -22,37 +21,37 @@ class BdoApiService
         $url = 'https://rejestr-bdo.mos.gov.pl/api/WasteRegister/WasteTransferCard/v1/Kpo/receiver/search';
 
         $payload = [
-            "PaginationParameters" => [
-                "Order" => [
-                    "IsAscending" => true,
+            'PaginationParameters' => [
+                'Order' => [
+                    'IsAscending' => true,
                 ],
-                "Page" => [
-                    "Index" => $page,
-                    "Size" => $pageSize
-                ]
+                'Page' => [
+                    'Index' => $page,
+                    'Size' => $pageSize,
+                ],
             ],
-            "Year" => $year,
-            "SearchInCarriers" => true,
-            "SearchInSenders" => true,
-            "Name" => "",
-            "Locality" => "",
-            "Street" => "",
-            "Nip" => "",
-            "IdentificationNumber" => "",
-            "WasteCodeAndDescription" => "",
-            "CardNumber" => "",
-            "CardStatusCodeNames" => "",
-            "TransportTime" => "",
-            "ReceiveConfirmationTime" => "",
-            "SenderFirstNameAndLastName" => "",
-            "ReceiverFirstAndLastName" => "",
-            "VehicleRegNumber" => "",
-            "TransportDateRange" => false,
-            "TransportDateFrom" => "",
-            "TransportDateTo" => "",
-            "ReceiveConfirmationDateRange" => false,
-            "ReceiveConfirmationDateFrom" => "",
-            "ReceiveConfirmationDateTo" => ""
+            'Year' => $year,
+            'SearchInCarriers' => true,
+            'SearchInSenders' => true,
+            'Name' => '',
+            'Locality' => '',
+            'Street' => '',
+            'Nip' => '',
+            'IdentificationNumber' => '',
+            'WasteCodeAndDescription' => '',
+            'CardNumber' => '',
+            'CardStatusCodeNames' => '',
+            'TransportTime' => '',
+            'ReceiveConfirmationTime' => '',
+            'SenderFirstNameAndLastName' => '',
+            'ReceiverFirstAndLastName' => '',
+            'VehicleRegNumber' => '',
+            'TransportDateRange' => false,
+            'TransportDateFrom' => '',
+            'TransportDateTo' => '',
+            'ReceiveConfirmationDateRange' => false,
+            'ReceiveConfirmationDateFrom' => '',
+            'ReceiveConfirmationDateTo' => '',
         ];
 
         try {
@@ -62,20 +61,22 @@ class BdoApiService
                 ->post($url, $payload);
 
             if ($response->failed()) {
-                BdoLogger::error("BDOApiService fetchWasteCardsPage failed", [
+                BdoLogger::error('BDOApiService fetchWasteCardsPage failed', [
                     'page' => $page,
                     'status' => $response->status(),
-                    'body' => $response->body()
+                    'body' => $response->body(),
                 ]);
+
                 return [];
             }
 
             return $response->json('items') ?? [];
         } catch (\Exception $e) {
-            BdoLogger::error("BDOApiService fetchWasteCardsPage exception", [
+            BdoLogger::error('BDOApiService fetchWasteCardsPage exception', [
                 'page' => $page,
-                'exception' => $e->getMessage()
+                'exception' => $e->getMessage(),
             ]);
+
             return [];
         }
     }
@@ -88,38 +89,38 @@ class BdoApiService
         $url = 'https://rejestr-bdo.mos.gov.pl/api/WasteRegister/WasteTransferCard/v1/Kpo/sender/search';
 
         $payload = [
-            "PaginationParameters" => [
-                "Order" => [
-                    "IsAscending" => true,
-                    "OrderColumn" => "cardNumber"
+            'PaginationParameters' => [
+                'Order' => [
+                    'IsAscending' => true,
+                    'OrderColumn' => 'cardNumber',
                 ],
-                "Page" => [
-                    "Index" => $page,
-                    "Size" => $pageSize
-                ]
+                'Page' => [
+                    'Index' => $page,
+                    'Size' => $pageSize,
+                ],
             ],
-            "Year" => $year,
-            "SearchInCarriers" => true,
-            "SearchInReceivers" => true,
-            "Name" => "",
-            "Locality" => "",
-            "Street" => "",
-            "Nip" => "",
-            "IdentificationNumber" => "",
-            "WasteCodeAndDescription" => "",
-            "CardNumber" => "",
-            "CardStatusCodeNames" => "",
-            "TransportTime" => "",
-            "ReceiveConfirmationTime" => "",
-            "SenderFirstNameAndLastName" => "",
-            "ReceiverFirstAndLastName" => "",
-            "VehicleRegNumber" => "",
-            "TransportDateRange" => !empty($transportDateFrom),
-            "TransportDateFrom" => $transportDateFrom ?? "",
-            "TransportDateTo" => "",
-            "ReceiveConfirmationDateRange" => false,
-            "ReceiveConfirmationDateFrom" => "",
-            "ReceiveConfirmationDateTo" => ""
+            'Year' => $year,
+            'SearchInCarriers' => true,
+            'SearchInReceivers' => true,
+            'Name' => '',
+            'Locality' => '',
+            'Street' => '',
+            'Nip' => '',
+            'IdentificationNumber' => '',
+            'WasteCodeAndDescription' => '',
+            'CardNumber' => '',
+            'CardStatusCodeNames' => '',
+            'TransportTime' => '',
+            'ReceiveConfirmationTime' => '',
+            'SenderFirstNameAndLastName' => '',
+            'ReceiverFirstAndLastName' => '',
+            'VehicleRegNumber' => '',
+            'TransportDateRange' => ! empty($transportDateFrom),
+            'TransportDateFrom' => $transportDateFrom ?? '',
+            'TransportDateTo' => '',
+            'ReceiveConfirmationDateRange' => false,
+            'ReceiveConfirmationDateFrom' => '',
+            'ReceiveConfirmationDateTo' => '',
         ];
 
         try {
@@ -129,20 +130,22 @@ class BdoApiService
                 ->post($url, $payload);
 
             if ($response->failed()) {
-                BdoLogger::error("BDOApiService fetchWasteCardsPagePrzekazujacy failed", [
+                BdoLogger::error('BDOApiService fetchWasteCardsPagePrzekazujacy failed', [
                     'page' => $page,
                     'status' => $response->status(),
-                    'body' => $response->body()
+                    'body' => $response->body(),
                 ]);
+
                 return [];
             }
 
             return $response->json('items') ?? [];
         } catch (\Exception $e) {
-            BdoLogger::error("BDOApiService fetchWasteCardsPagePrzekazujacy exception", [
+            BdoLogger::error('BDOApiService fetchWasteCardsPagePrzekazujacy exception', [
                 'page' => $page,
-                'exception' => $e->getMessage()
+                'exception' => $e->getMessage(),
             ]);
+
             return [];
         }
     }
@@ -155,38 +158,38 @@ class BdoApiService
         $url = 'https://rejestr-bdo.mos.gov.pl/api/WasteRegister/WasteTransferCard/v1/Kpo/receiver/search';
 
         $payload = [
-            "PaginationParameters" => [
-                "Order" => [
-                    "IsAscending" => true,
-                    "OrderColumn" => "cardNumber"
+            'PaginationParameters' => [
+                'Order' => [
+                    'IsAscending' => true,
+                    'OrderColumn' => 'cardNumber',
                 ],
-                "Page" => [
-                    "Index" => 1,
-                    "Size" => 1
-                ]
+                'Page' => [
+                    'Index' => 1,
+                    'Size' => 1,
+                ],
             ],
-            "Year" => $year,
-            "SearchInCarriers" => true,
-            "SearchInSenders" => true,
-            "CardNumber" => $cardNumber,
-            "Name" => "",
-            "Locality" => "",
-            "Street" => "",
-            "Nip" => "",
-            "IdentificationNumber" => "",
-            "WasteCodeAndDescription" => "",
-            "CardStatusCodeNames" => "",
-            "TransportTime" => "",
-            "ReceiveConfirmationTime" => "",
-            "SenderFirstNameAndLastName" => "",
-            "ReceiverFirstAndLastName" => "",
-            "VehicleRegNumber" => "",
-            "TransportDateRange" => false,
-            "TransportDateFrom" => "",
-            "TransportDateTo" => "",
-            "ReceiveConfirmationDateRange" => false,
-            "ReceiveConfirmationDateFrom" => "",
-            "ReceiveConfirmationDateTo" => ""
+            'Year' => $year,
+            'SearchInCarriers' => true,
+            'SearchInSenders' => true,
+            'CardNumber' => $cardNumber,
+            'Name' => '',
+            'Locality' => '',
+            'Street' => '',
+            'Nip' => '',
+            'IdentificationNumber' => '',
+            'WasteCodeAndDescription' => '',
+            'CardStatusCodeNames' => '',
+            'TransportTime' => '',
+            'ReceiveConfirmationTime' => '',
+            'SenderFirstNameAndLastName' => '',
+            'ReceiverFirstAndLastName' => '',
+            'VehicleRegNumber' => '',
+            'TransportDateRange' => false,
+            'TransportDateFrom' => '',
+            'TransportDateTo' => '',
+            'ReceiveConfirmationDateRange' => false,
+            'ReceiveConfirmationDateFrom' => '',
+            'ReceiveConfirmationDateTo' => '',
         ];
 
         try {
@@ -196,22 +199,25 @@ class BdoApiService
                 ->post($url, $payload);
 
             if ($response->failed()) {
-                BdoLogger::error("BDOApiService fetchSingleCardByNumber failed", [
+                BdoLogger::error('BDOApiService fetchSingleCardByNumber failed', [
                     'cardNumber' => $cardNumber,
                     'status' => $response->status(),
-                    'body' => $response->body()
+                    'body' => $response->body(),
                 ]);
+
                 return null;
             }
 
             $items = $response->json('items') ?? [];
-            return !empty($items) ? $items[0] : null;
+
+            return ! empty($items) ? $items[0] : null;
 
         } catch (\Exception $e) {
-            BdoLogger::error("BDOApiService fetchSingleCardByNumber exception", [
+            BdoLogger::error('BDOApiService fetchSingleCardByNumber exception', [
                 'cardNumber' => $cardNumber,
-                'exception' => $e->getMessage()
+                'exception' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -224,38 +230,38 @@ class BdoApiService
         $url = 'https://rejestr-bdo.mos.gov.pl/api/WasteRegister/WasteTransferCard/v1/Kpo/sender/search';
 
         $payload = [
-            "PaginationParameters" => [
-                "Order" => [
-                    "IsAscending" => true,
-                    "OrderColumn" => "cardNumber"
+            'PaginationParameters' => [
+                'Order' => [
+                    'IsAscending' => true,
+                    'OrderColumn' => 'cardNumber',
                 ],
-                "Page" => [
-                    "Index" => 1,
-                    "Size" => 1
-                ]
+                'Page' => [
+                    'Index' => 1,
+                    'Size' => 1,
+                ],
             ],
-            "Year" => $year,
-            "SearchInCarriers" => true,
-            "SearchInSenders" => true,
-            "CardNumber" => $cardNumber,
-            "Name" => "",
-            "Locality" => "",
-            "Street" => "",
-            "Nip" => "",
-            "IdentificationNumber" => "",
-            "WasteCodeAndDescription" => "",
-            "CardStatusCodeNames" => "",
-            "TransportTime" => "",
-            "ReceiveConfirmationTime" => "",
-            "SenderFirstNameAndLastName" => "",
-            "ReceiverFirstAndLastName" => "",
-            "VehicleRegNumber" => "",
-            "TransportDateRange" => false,
-            "TransportDateFrom" => "",
-            "TransportDateTo" => "",
-            "ReceiveConfirmationDateRange" => false,
-            "ReceiveConfirmationDateFrom" => "",
-            "ReceiveConfirmationDateTo" => ""
+            'Year' => $year,
+            'SearchInCarriers' => true,
+            'SearchInSenders' => true,
+            'CardNumber' => $cardNumber,
+            'Name' => '',
+            'Locality' => '',
+            'Street' => '',
+            'Nip' => '',
+            'IdentificationNumber' => '',
+            'WasteCodeAndDescription' => '',
+            'CardStatusCodeNames' => '',
+            'TransportTime' => '',
+            'ReceiveConfirmationTime' => '',
+            'SenderFirstNameAndLastName' => '',
+            'ReceiverFirstAndLastName' => '',
+            'VehicleRegNumber' => '',
+            'TransportDateRange' => false,
+            'TransportDateFrom' => '',
+            'TransportDateTo' => '',
+            'ReceiveConfirmationDateRange' => false,
+            'ReceiveConfirmationDateFrom' => '',
+            'ReceiveConfirmationDateTo' => '',
         ];
 
         try {
@@ -265,22 +271,25 @@ class BdoApiService
                 ->post($url, $payload);
 
             if ($response->failed()) {
-                BdoLogger::error("BDOApiService fetchSingleCardByNumberPrzekazujacy failed", [
+                BdoLogger::error('BDOApiService fetchSingleCardByNumberPrzekazujacy failed', [
                     'cardNumber' => $cardNumber,
                     'status' => $response->status(),
-                    'body' => $response->body()
+                    'body' => $response->body(),
                 ]);
+
                 return null;
             }
 
             $items = $response->json('items') ?? [];
-            return !empty($items) ? $items[0] : null;
+
+            return ! empty($items) ? $items[0] : null;
 
         } catch (\Exception $e) {
-            BdoLogger::error("BDOApiService fetchSingleCardByNumberPrzekazujacy exception", [
+            BdoLogger::error('BDOApiService fetchSingleCardByNumberPrzekazujacy exception', [
                 'cardNumber' => $cardNumber,
-                'exception' => $e->getMessage()
+                'exception' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -299,11 +308,12 @@ class BdoApiService
                 ->get($url);
 
             if ($response->failed()) {
-                BdoLogger::error("BDOApiService fetchCardDetails failed", [
+                BdoLogger::error('BDOApiService fetchCardDetails failed', [
                     'kpoId' => $kpoId,
                     'status' => $response->status(),
-                    'body' => $response->body()
+                    'body' => $response->body(),
                 ]);
+
                 return null;
             }
 
@@ -316,10 +326,11 @@ class BdoApiService
             return $cardData;
 
         } catch (\Exception $e) {
-            BdoLogger::error("BDOApiService fetchCardDetails exception", [
+            BdoLogger::error('BDOApiService fetchCardDetails exception', [
                 'kpoId' => $kpoId,
-                'exception' => $e->getMessage()
+                'exception' => $e->getMessage(),
             ]);
+
             return null;
         }
     }

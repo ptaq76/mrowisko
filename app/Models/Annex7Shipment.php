@@ -16,7 +16,7 @@ class Annex7Shipment extends Model
     ];
 
     protected $casts = [
-        'date_shipment'         => 'date',
+        'date_shipment' => 'date',
         'carrier_date_transfer' => 'date',
     ];
 

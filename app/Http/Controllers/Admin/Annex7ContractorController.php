@@ -12,18 +12,18 @@ class Annex7ContractorController extends Controller
     {
         $role = $request->input('role');
 
-        $contractors = Annex7Contractor::when($role, fn($q) => $q->where('role', $role))
+        $contractors = Annex7Contractor::when($role, fn ($q) => $q->where('role', $role))
             ->orderBy('role')
             ->orderBy('name')
             ->paginate(20)
             ->withQueryString();
 
         $roles = [
-            'arranger'  => 'Arranger',
-            'importer'  => 'Importer',
-            'carrier'   => 'Carrier',
+            'arranger' => 'Arranger',
+            'importer' => 'Importer',
+            'carrier' => 'Carrier',
             'generator' => 'Generator',
-            'recovery'  => 'Recovery facility',
+            'recovery' => 'Recovery facility',
         ];
 
         return view('admin.annex7.contractors.index', compact('contractors', 'roles', 'role'));
@@ -37,13 +37,13 @@ class Annex7ContractorController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'       => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'short_name' => 'nullable|string|max:50',
-            'role'       => 'required|in:arranger,importer,carrier,generator',
-            'address'    => 'required|string|max:500',
-            'contact'    => 'required|string|max:255',
-            'tel'        => 'required|string|max:50',
-            'mail'       => 'required|email|max:255',
+            'role' => 'required|in:arranger,importer,carrier,generator',
+            'address' => 'required|string|max:500',
+            'contact' => 'required|string|max:255',
+            'tel' => 'required|string|max:50',
+            'mail' => 'required|email|max:255',
         ]);
 
         Annex7Contractor::create($request->only(
@@ -62,13 +62,13 @@ class Annex7ContractorController extends Controller
     public function update(Request $request, Annex7Contractor $annex7Contractor)
     {
         $request->validate([
-            'name'       => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'short_name' => 'nullable|string|max:50',
-            'role'       => 'required|in:arranger,importer,carrier,generator',
-            'address'    => 'required|string|max:500',
-            'contact'    => 'required|string|max:255',
-            'tel'        => 'required|string|max:50',
-            'mail'       => 'required|email|max:255',
+            'role' => 'required|in:arranger,importer,carrier,generator',
+            'address' => 'required|string|max:500',
+            'contact' => 'required|string|max:255',
+            'tel' => 'required|string|max:50',
+            'mail' => 'required|email|max:255',
         ]);
 
         $annex7Contractor->update($request->only(

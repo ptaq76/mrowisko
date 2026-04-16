@@ -12,23 +12,24 @@ class ImporterController extends Controller
     public function index()
     {
         $importers = Importer::orderBy('name')->get();
+
         return view('biuro.importers.index', compact('importers'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name'    => ['required', 'string', 'max:255', 'unique:importers,name'],
+            'name' => ['required', 'string', 'max:255', 'unique:importers,name'],
             'country' => ['required', Rule::in(['PL', 'DE'])],
         ], [
             'name.required' => 'Podaj nazwę importera.',
-            'name.unique'   => 'Importer o tej nazwie już istnieje.',
+            'name.unique' => 'Importer o tej nazwie już istnieje.',
             'country.required' => 'Wybierz kraj.',
         ]);
 
         Importer::create([
-            'name'      => $request->name,
-            'country'   => $request->country,
+            'name' => $request->name,
+            'country' => $request->country,
             'is_active' => true,
         ]);
 
@@ -38,17 +39,17 @@ class ImporterController extends Controller
     public function update(Request $request, Importer $importer)
     {
         $request->validate([
-            'name'    => ['required', 'string', 'max:255', Rule::unique('importers', 'name')->ignore($importer->id)],
+            'name' => ['required', 'string', 'max:255', Rule::unique('importers', 'name')->ignore($importer->id)],
             'country' => ['required', Rule::in(['PL', 'DE'])],
             'is_active' => ['boolean'],
         ], [
             'name.required' => 'Podaj nazwę importera.',
-            'name.unique'   => 'Importer o tej nazwie już istnieje.',
+            'name.unique' => 'Importer o tej nazwie już istnieje.',
         ]);
 
         $importer->update([
-            'name'      => $request->name,
-            'country'   => $request->country,
+            'name' => $request->name,
+            'country' => $request->country,
             'is_active' => $request->boolean('is_active'),
         ]);
 

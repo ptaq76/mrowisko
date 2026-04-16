@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Log;
 class BdoAuthService
 {
     protected string $clientId;
+
     protected string $clientSecret;
 
     public function __construct()
@@ -35,16 +36,19 @@ class BdoAuthService
             if ($response->failed()) {
                 Log::error('BDO getEupId failed', [
                     'status' => $response->status(),
-                    'body' => $response->body()
+                    'body' => $response->body(),
                 ]);
+
                 return null;
             }
 
             $items = $response->json('items') ?? [];
+
             return $items[0]['eupId'] ?? null;
 
         } catch (\Exception $e) {
             Log::error('BDO getEupId exception', ['msg' => $e->getMessage()]);
+
             return null;
         }
     }
@@ -54,11 +58,12 @@ class BdoAuthService
      */
     public function generateToken(?string $eupId = null): ?string
     {
-        if (!$eupId) {
+        if (! $eupId) {
             $eupId = $this->getEupId();
         }
-        if (!$eupId) {
+        if (! $eupId) {
             Log::error('BDO generateToken failed: brak EupId');
+
             return null;
         }
 
@@ -78,8 +83,9 @@ class BdoAuthService
             if ($response->failed()) {
                 Log::error('BDO generateToken failed', [
                     'status' => $response->status(),
-                    'body' => $response->body()
+                    'body' => $response->body(),
                 ]);
+
                 return null;
             }
 
@@ -88,14 +94,17 @@ class BdoAuthService
             if ($token) {
                 // cache na 55 minut
                 Cache::put($cacheKey, $token, 3300);
+
                 return $token;
             }
 
             Log::error('BDO generateToken: brak AccessToken w odpowiedzi', ['body' => $response->body()]);
+
             return null;
 
         } catch (\Exception $e) {
             Log::error('BDO generateToken exception', ['msg' => $e->getMessage()]);
+
             return null;
         }
     }

@@ -6,18 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Client;
 use App\Models\Driver;
 use App\Models\Order;
-use App\Models\WasteFraction;
 use App\Models\PickupRequest;
+use App\Models\User;
+use App\Models\WarehouseItem;
+use App\Models\WasteFraction;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-
 
 class ReportController extends Controller
 {
     public function loadings(Request $request)
     {
         $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subMonths(3)->startOfMonth()->format('Y-m-d');
-        $dateTo   = $request->filled('date_to')   ? $request->date_to   : now()->format('Y-m-d');
+        $dateTo = $request->filled('date_to') ? $request->date_to : now()->format('Y-m-d');
 
         $query = Order::with([
             'client', 'tractor', 'trailer', 'driver',
@@ -28,9 +28,9 @@ class ReportController extends Controller
             ->where('is_archived', false)
             ->whereExists(function ($q) {
                 $q->select(\DB::raw(1))
-                  ->from('warehouse_items')
-                  ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
-                  ->where('warehouse_items.origin', 'loading');
+                    ->from('warehouse_items')
+                    ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
+                    ->where('warehouse_items.origin', 'loading');
             })
             ->whereDate('planned_date', '>=', $dateFrom)
             ->whereDate('planned_date', '<=', $dateTo);
@@ -48,14 +48,14 @@ class ReportController extends Controller
         $orders = $query->orderByDesc('planned_date')->get();
 
         $clients = Client::whereHas('orders', function ($q) {
-                $q->where('type', 'sale')
-                  ->whereExists(function ($q2) {
-                      $q2->select(\DB::raw(1))
-                         ->from('warehouse_items')
-                         ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
-                         ->where('warehouse_items.origin', 'loading');
-                  });
-            })
+            $q->where('type', 'sale')
+                ->whereExists(function ($q2) {
+                    $q2->select(\DB::raw(1))
+                        ->from('warehouse_items')
+                        ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
+                        ->where('warehouse_items.origin', 'loading');
+                });
+        })
             ->orderBy('short_name')
             ->get();
 
@@ -71,7 +71,7 @@ class ReportController extends Controller
     public function loadingsArchived(Request $request)
     {
         $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subMonths(3)->startOfMonth()->format('Y-m-d');
-        $dateTo   = $request->filled('date_to')   ? $request->date_to   : now()->format('Y-m-d');
+        $dateTo = $request->filled('date_to') ? $request->date_to : now()->format('Y-m-d');
 
         $query = Order::with([
             'client', 'tractor', 'trailer', 'driver',
@@ -95,14 +95,14 @@ class ReportController extends Controller
         $orders = $query->orderByDesc('planned_date')->get();
 
         $clients = Client::whereHas('orders', function ($q) {
-                $q->where('type', 'sale')
-                  ->whereExists(function ($q2) {
-                      $q2->select(\DB::raw(1))
-                         ->from('warehouse_items')
-                         ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
-                         ->where('warehouse_items.origin', 'loading');
-                  });
-            })
+            $q->where('type', 'sale')
+                ->whereExists(function ($q2) {
+                    $q2->select(\DB::raw(1))
+                        ->from('warehouse_items')
+                        ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
+                        ->where('warehouse_items.origin', 'loading');
+                });
+        })
             ->orderBy('short_name')
             ->get();
 
@@ -118,13 +118,14 @@ class ReportController extends Controller
     public function archive(Order $order)
     {
         $order->update(['is_archived' => true]);
+
         return response()->json(['success' => true]);
     }
 
     public function revert(Order $order)
     {
         \DB::transaction(function () use ($order) {
-            \App\Models\WarehouseItem::where('origin', 'loading')
+            WarehouseItem::where('origin', 'loading')
                 ->where('origin_order_id', $order->id)
                 ->delete();
 
@@ -141,6 +142,7 @@ class ReportController extends Controller
     public function unarchive(Order $order)
     {
         $order->update(['is_archived' => false]);
+
         return response()->json(['success' => true]);
     }
 
@@ -151,10 +153,10 @@ class ReportController extends Controller
             ->select('orders.*');
 
         $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subDays(7)->format('Y-m-d');
-        $dateTo   = $request->filled('date_to')   ? $request->date_to   : now()->format('Y-m-d');
+        $dateTo = $request->filled('date_to') ? $request->date_to : now()->format('Y-m-d');
 
         $query->whereDate('planned_date', '>=', $dateFrom)
-              ->whereDate('planned_date', '<=', $dateTo);
+            ->whereDate('planned_date', '<=', $dateTo);
 
         if ($request->filled('driver_id')) {
             $query->where('driver_id', $request->driver_id);
@@ -163,7 +165,7 @@ class ReportController extends Controller
             $query->where('client_id', $request->client_id);
         }
 
-        $orders  = $query->orderByDesc('planned_date')->orderByDesc('id')->get();
+        $orders = $query->orderByDesc('planned_date')->orderByDesc('id')->get();
         $drivers = Driver::orderBy('name')->get();
         $clients = Client::whereIn('id',
             Order::whereNotNull('weight_netto')
@@ -177,7 +179,7 @@ class ReportController extends Controller
 
     public function revertWeighing(Order $order)
     {
-        $hasLoading = \App\Models\WarehouseItem::where('origin_order_id', $order->id)
+        $hasLoading = WarehouseItem::where('origin_order_id', $order->id)
             ->where('origin', 'loading')->exists();
 
         if ($order->weight_netto) {
@@ -191,12 +193,12 @@ class ReportController extends Controller
 
     public function deleteWeighing(Order $order)
     {
-        $hasLoading = \App\Models\WarehouseItem::where('origin_order_id', $order->id)
+        $hasLoading = WarehouseItem::where('origin_order_id', $order->id)
             ->where('origin', 'loading')->exists();
         $order->update([
             'weight_brutto' => null,
-            'weight_netto'  => null,
-            'status'        => $hasLoading ? 'loaded' : 'planned',
+            'weight_netto' => null,
+            'status' => $hasLoading ? 'loaded' : 'planned',
         ]);
 
         return response()->json(['success' => true]);
@@ -205,7 +207,7 @@ class ReportController extends Controller
     public function deliveries(Request $request)
     {
         $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subMonths(3)->startOfMonth()->format('Y-m-d');
-        $dateTo   = $request->filled('date_to')   ? $request->date_to   : now()->format('Y-m-d');
+        $dateTo = $request->filled('date_to') ? $request->date_to : now()->format('Y-m-d');
 
         $query = Order::with(['client', 'tractor', 'trailer', 'driver', 'loadingItems.fraction'])
             ->where('type', 'pickup')
@@ -213,9 +215,9 @@ class ReportController extends Controller
             ->where('is_archived', false)
             ->whereExists(function ($q) {
                 $q->select(\DB::raw(1))
-                  ->from('warehouse_items')
-                  ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
-                  ->where('warehouse_items.origin', 'delivery');
+                    ->from('warehouse_items')
+                    ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
+                    ->where('warehouse_items.origin', 'delivery');
             })
             ->whereDate('planned_date', '>=', $dateFrom)
             ->whereDate('planned_date', '<=', $dateTo);
@@ -233,14 +235,14 @@ class ReportController extends Controller
         $orders = $query->orderByDesc('planned_date')->get();
 
         $clients = Client::whereHas('orders', function ($q) {
-                $q->where('type', 'pickup')
-                  ->whereExists(function ($q2) {
-                      $q2->select(\DB::raw(1))
-                         ->from('warehouse_items')
-                         ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
-                         ->where('warehouse_items.origin', 'delivery');
-                  });
-            })
+            $q->where('type', 'pickup')
+                ->whereExists(function ($q2) {
+                    $q2->select(\DB::raw(1))
+                        ->from('warehouse_items')
+                        ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
+                        ->where('warehouse_items.origin', 'delivery');
+                });
+        })
             ->orderBy('short_name')
             ->get();
 
@@ -255,13 +257,14 @@ class ReportController extends Controller
     public function archiveDelivery(Order $order)
     {
         $order->update(['is_archived' => true]);
+
         return response()->json(['success' => true]);
     }
 
     public function deliveriesArchived(Request $request)
     {
         $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subMonths(3)->startOfMonth()->format('Y-m-d');
-        $dateTo   = $request->filled('date_to')   ? $request->date_to   : now()->format('Y-m-d');
+        $dateTo = $request->filled('date_to') ? $request->date_to : now()->format('Y-m-d');
 
         $query = Order::with(['client', 'tractor', 'trailer', 'driver', 'loadingItems.fraction'])
             ->where('type', 'pickup')
@@ -282,14 +285,14 @@ class ReportController extends Controller
         $orders = $query->orderByDesc('planned_date')->get();
 
         $clients = Client::whereHas('orders', function ($q) {
-                $q->where('type', 'pickup')
-                  ->whereExists(function ($q2) {
-                      $q2->select(\DB::raw(1))
-                         ->from('warehouse_items')
-                         ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
-                         ->where('warehouse_items.origin', 'delivery');
-                  });
-            })
+            $q->where('type', 'pickup')
+                ->whereExists(function ($q2) {
+                    $q2->select(\DB::raw(1))
+                        ->from('warehouse_items')
+                        ->whereColumn('warehouse_items.origin_order_id', 'orders.id')
+                        ->where('warehouse_items.origin', 'delivery');
+                });
+        })
             ->orderBy('short_name')
             ->get();
 
@@ -304,13 +307,14 @@ class ReportController extends Controller
     public function unarchiveDelivery(Order $order)
     {
         $order->update(['is_archived' => false]);
+
         return response()->json(['success' => true]);
     }
 
     public function revertDelivery(Order $order)
     {
         \DB::transaction(function () use ($order) {
-            \App\Models\WarehouseItem::where('origin', 'delivery')
+            WarehouseItem::where('origin', 'delivery')
                 ->where('origin_order_id', $order->id)
                 ->delete();
 
@@ -321,42 +325,42 @@ class ReportController extends Controller
     }
 
     public function pickupRequests(Request $request)
-{
-    $query = PickupRequest::with(['client', 'salesman', 'items', 'order'])
-        ->orderByDesc('requested_date');
+    {
+        $query = PickupRequest::with(['client', 'salesman', 'items', 'order'])
+            ->orderByDesc('requested_date');
 
-    if ($request->filled('client_id')) {
-        $query->where('client_id', $request->client_id);
+        if ($request->filled('client_id')) {
+            $query->where('client_id', $request->client_id);
+        }
+
+        if ($request->filled('salesman_id')) {
+            $query->where('salesman_id', $request->salesman_id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $zlecenia = $query->get();
+
+        $clients = Client::whereHas('pickupRequests')
+            ->orderBy('short_name')
+            ->get(['id', 'short_name']);
+
+        $handlowcy = User::where('module', 'handlowiec')
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $statuses = [
+            'nowe' => 'Nowe',
+            'przyjete' => 'Przyjęte',
+            'zrealizowane' => 'Zrealizowane',
+            'anulowane' => 'Anulowane',
+            'odrzucone_biuro' => 'Odrzucone przez biuro',
+        ];
+
+        return view('biuro.reports.pickup_requests', compact(
+            'zlecenia', 'clients', 'handlowcy', 'statuses'
+        ));
     }
-
-    if ($request->filled('salesman_id')) {
-        $query->where('salesman_id', $request->salesman_id);
-    }
-
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
-
-    $zlecenia = $query->get();
-
-    $clients = Client::whereHas('pickupRequests')
-        ->orderBy('short_name')
-        ->get(['id', 'short_name']);
-
-    $handlowcy = \App\Models\User::where('module', 'handlowiec')
-        ->orderBy('name')
-        ->get(['id', 'name']);
-
-    $statuses = [
-        'nowe'            => 'Nowe',
-        'przyjete'        => 'Przyjęte',
-        'zrealizowane'    => 'Zrealizowane',
-        'anulowane'       => 'Anulowane',
-        'odrzucone_biuro' => 'Odrzucone przez biuro',
-    ];
-
-    return view('biuro.reports.pickup_requests', compact(
-        'zlecenia', 'clients', 'handlowcy', 'statuses'
-    ));
-}
 }

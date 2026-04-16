@@ -25,13 +25,13 @@ class Annex7Controller extends Controller
 
     public function create()
     {
-        $arrangers          = Annex7Contractor::where('role', 'arranger')->orderBy('name')->get();
-        $importers          = Annex7Contractor::where('role', 'importer')->orderBy('name')->get();
-        $carriers           = Annex7Contractor::where('role', 'carrier')->orderBy('name')->get();
-        $generators         = Annex7Contractor::where('role', 'generator')->orderBy('name')->get();
+        $arrangers = Annex7Contractor::where('role', 'arranger')->orderBy('name')->get();
+        $importers = Annex7Contractor::where('role', 'importer')->orderBy('name')->get();
+        $carriers = Annex7Contractor::where('role', 'carrier')->orderBy('name')->get();
+        $generators = Annex7Contractor::where('role', 'generator')->orderBy('name')->get();
         $recoveryOperations = Annex7RecoveryOperation::orderBy('code')->get();
-        $wasteDescriptions  = Annex7WasteDescription::orderBy('description')->get();
-        $wasteCodes         = WasteCode::orderBy('code')->get();
+        $wasteDescriptions = Annex7WasteDescription::orderBy('description')->get();
+        $wasteCodes = WasteCode::orderBy('code')->get();
 
         return view('biuro.annex7.create', compact(
             'arrangers', 'importers', 'carriers', 'generators',
@@ -42,15 +42,15 @@ class Annex7Controller extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'arranger_id'           => 'required|exists:annex7_contractors,id',
-            'importer_id'           => 'required|exists:annex7_contractors,id',
-            'date_shipment'         => 'required|date',
-            'carrier_id'            => 'required|exists:annex7_contractors,id',
+            'arranger_id' => 'required|exists:annex7_contractors,id',
+            'importer_id' => 'required|exists:annex7_contractors,id',
+            'date_shipment' => 'required|date',
+            'carrier_id' => 'required|exists:annex7_contractors,id',
             'carrier_date_transfer' => 'nullable|date',
-            'generator_id'          => 'required|exists:annex7_contractors,id',
+            'generator_id' => 'required|exists:annex7_contractors,id',
             'recovery_operation_id' => 'required|exists:annex7_recovery_operations,id',
-            'waste_description_id'  => 'required|exists:annex7_waste_descriptions,id',
-            'waste_code_id'         => 'required|exists:waste_codes,id',
+            'waste_description_id' => 'required|exists:annex7_waste_descriptions,id',
+            'waste_code_id' => 'required|exists:waste_codes,id',
         ]);
 
         $shipment = Annex7Shipment::create($validated);
@@ -81,13 +81,13 @@ class Annex7Controller extends Controller
         $pdf = Pdf::loadView('biuro.annex7.pdf', compact('annex7'))
             ->setPaper('a4', 'portrait');
 
-        $filename = 'annex7_' . $annex7->id . '_' . now()->format('Ymd_His') . '.pdf';
-        $path     = 'annex7/' . $filename;
+        $filename = 'annex7_'.$annex7->id.'_'.now()->format('Ymd_His').'.pdf';
+        $path = 'annex7/'.$filename;
 
         Storage::disk('public')->put($path, $pdf->output());
 
         $annex7->update([
-            'status'   => 'generated',
+            'status' => 'generated',
             'pdf_path' => $path,
         ]);
 

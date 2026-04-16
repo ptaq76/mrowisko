@@ -2,10 +2,10 @@
 
 namespace App\Services\Bdo;
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class BdoSyncService
 {
@@ -23,23 +23,23 @@ class BdoSyncService
         $syncStopped = false;
         $failureDetails = null;
 
-        $auth = new BdoAuthService();
+        $auth = new BdoAuthService;
         $token = $auth->generateToken();
 
-        if (!$token) {
-            throw new \Exception("Brak tokenu BDO");
+        if (! $token) {
+            throw new \Exception('Brak tokenu BDO');
         }
 
-        BdoLogger::info("BDO Sync started");
+        BdoLogger::info('BDO Sync started');
 
         $api = new BdoApiService($token);
-        $currentYear = (int)date('Y');
+        $currentYear = (int) date('Y');
         $startYear = 2024;
         $allCardsToProcess = [];
 
         // Iteruj od roku bieżącego wstecz do 2024
         for ($year = $currentYear; $year >= $startYear; $year--) {
-            BdoLogger::info("BDO: Rozpoczynam pobieranie kart dla roku", ['year' => $year]);
+            BdoLogger::info('BDO: Rozpoczynam pobieranie kart dla roku', ['year' => $year]);
 
             $secondLastModified = DB::table('bdo_karty')
                 ->select('kpo_last_modified_at')
@@ -55,7 +55,7 @@ class BdoSyncService
 
             BdoLogger::info("BDO: Cutoff date dla roku {$year}", [
                 'cutoff_date' => $cutoffDate ? $cutoffDate->toDateTimeString() : 'NULL (będzie pobrane wszystko)',
-                'is_first_sync_for_year' => $cutoffDate === null
+                'is_first_sync_for_year' => $cutoffDate === null,
             ]);
 
             $page = 1;
@@ -64,7 +64,7 @@ class BdoSyncService
             while (true) {
                 $cards = $api->fetchWasteCardsPage($year, $page, $this->pageSize);
 
-                if (!is_array($cards) || empty($cards)) {
+                if (! is_array($cards) || empty($cards)) {
                     break;
                 }
 
@@ -85,11 +85,12 @@ class BdoSyncService
                 $cardsForYear = array_filter($cardsForYear, function ($card) use ($cutoffDate) {
                     $kpoLastModified = $card['kpoLastModifiedAt'] ?? null;
 
-                    if (!$kpoLastModified) {
+                    if (! $kpoLastModified) {
                         return true;
                     }
 
                     $cardDate = Carbon::parse($kpoLastModified);
+
                     return $cardDate->greaterThan($cutoffDate);
                 });
 
@@ -99,23 +100,24 @@ class BdoSyncService
                     'original_count' => $originalCount,
                     'after_filter_count' => count($cardsForYear),
                     'filtered_out' => $originalCount - count($cardsForYear),
-                    'cutoff_date' => $cutoffDate->toDateTimeString()
+                    'cutoff_date' => $cutoffDate->toDateTimeString(),
                 ]);
             }
 
             $allCardsToProcess = array_merge($allCardsToProcess, $cardsForYear);
         }
 
-        BdoLogger::info("BDO: Pobrano łącznie kart do przetworzenia (po filtrowaniu)", ['count' => count($allCardsToProcess)]);
+        BdoLogger::info('BDO: Pobrano łącznie kart do przetworzenia (po filtrowaniu)', ['count' => count($allCardsToProcess)]);
 
         // Sortuj wszystkie karty chronologicznie
         usort($allCardsToProcess, function ($a, $b) {
             $dateA = $a['kpoLastModifiedAt'] ?? '1970-01-01T00:00:00';
             $dateB = $b['kpoLastModifiedAt'] ?? '1970-01-01T00:00:00';
+
             return strcmp($dateA, $dateB);
         });
 
-        $mapper = new BdoMapperService();
+        $mapper = new BdoMapperService;
 
         $chunkSize = 50;
         $delayBetweenCards = 200000;
@@ -137,9 +139,10 @@ class BdoSyncService
 
                 $kpoId = $item['kpoId'] ?? null;
 
-                if (!$kpoId) {
-                    BdoLogger::warning("BDO: Brak kpoId w item z API", ['item' => $item]);
+                if (! $kpoId) {
+                    BdoLogger::warning('BDO: Brak kpoId w item z API', ['item' => $item]);
                     $errors++;
+
                     continue;
                 }
 
@@ -151,14 +154,14 @@ class BdoSyncService
                     return $api->fetchCardDetails($kpoId);
                 }, 500);
 
-                if (!$detailData) {
-                    BdoLogger::error("BDO: KRYTYCZNY BŁĄD - nie udało się pobrać detali karty. SYNC ZATRZYMANY.", [
+                if (! $detailData) {
+                    BdoLogger::error('BDO: KRYTYCZNY BŁĄD - nie udało się pobrać detali karty. SYNC ZATRZYMANY.', [
                         'kpo_id' => $kpoId,
                         'card_number' => $item['cardNumber'] ?? 'BRAK',
                         'kpo_last_modified_at' => $kpoLastModified,
                         'chunk_number' => $chunkIndex + 1,
                         'cards_processed_before_failure' => $created + $updated + $skipped,
-                        'overall_progress' => ($created + $updated + $skipped + $errors) . '/' . count($allCardsToProcess),
+                        'overall_progress' => ($created + $updated + $skipped + $errors).'/'.count($allCardsToProcess),
                     ]);
 
                     $syncStopped = true;
@@ -172,7 +175,7 @@ class BdoSyncService
                         'stopped_at_card' => $kpoId,
                         'stopped_at_card_number' => $item['cardNumber'] ?? 'BRAK',
                         'status' => 'FAILED',
-                        'message' => 'Sync zatrzymany z powodu błędu pobierania detali karty.'
+                        'message' => 'Sync zatrzymany z powodu błędu pobierania detali karty.',
                     ];
                     break;
                 }
@@ -180,10 +183,11 @@ class BdoSyncService
                 $mapped = $mapper->mapToBdoKartyDetale($item, $detailData);
 
                 if (empty($mapped['kpo_id'])) {
-                    BdoLogger::warning("BDO: Pominięto kartę - brak kpo_id po mapowaniu", [
+                    BdoLogger::warning('BDO: Pominięto kartę - brak kpo_id po mapowaniu', [
                         'original_kpoId' => $kpoId,
                     ]);
                     $errors++;
+
                     continue;
                 }
 
@@ -211,7 +215,7 @@ class BdoSyncService
                         $created++;
                     }
                 } catch (\Exception $e) {
-                    Log::error("BDO: Błąd zapisu karty do bazy", [
+                    Log::error('BDO: Błąd zapisu karty do bazy', [
                         'kpo_id' => $kpoId,
                         'card_number' => $mapped['card_number'] ?? 'BRAK',
                         'exception' => $e->getMessage(),
@@ -230,7 +234,8 @@ class BdoSyncService
         }
 
         if ($syncStopped && $failureDetails) {
-            BdoLogger::error("BDO Sync FAILED - zwracam szczegóły błędu", $failureDetails);
+            BdoLogger::error('BDO Sync FAILED - zwracam szczegóły błędu', $failureDetails);
+
             return $failureDetails;
         }
 
@@ -242,10 +247,10 @@ class BdoSyncService
             'errors' => $errors,
             'difference' => count($allCardsToProcess) - ($created + $updated + $skipped + $errors),
             'status' => 'SUCCESS',
-            'message' => 'Wszystkie karty przetworzone pomyślnie'
+            'message' => 'Wszystkie karty przetworzone pomyślnie',
         ];
 
-        BdoLogger::info("BDO Sync zakończona - podsumowanie", $summary);
+        BdoLogger::info('BDO Sync zakończona - podsumowanie', $summary);
 
         return $summary;
     }
@@ -262,11 +267,11 @@ class BdoSyncService
         $syncStopped = false;
         $failureDetails = null;
 
-        $auth = new BdoAuthService();
+        $auth = new BdoAuthService;
         $token = $auth->generateToken();
 
-        if (!$token) {
-            throw new \Exception("Brak tokenu BDO");
+        if (! $token) {
+            throw new \Exception('Brak tokenu BDO');
         }
 
         $secondLastModified = DB::table('bdo_karty_przekazujacy')
@@ -280,9 +285,9 @@ class BdoSyncService
             ? Carbon::parse($secondLastModified->kpo_last_modified_at)
             : null;
 
-        BdoLogger::info("BDO Przekazujący Sync started", [
+        BdoLogger::info('BDO Przekazujący Sync started', [
             'is_first_sync' => $cutoffDate === null,
-            'kpo_last_modified_at_cutoff' => $cutoffDate ? $cutoffDate->toDateTimeString() : 'NULL (będzie pobrane wszystko)'
+            'kpo_last_modified_at_cutoff' => $cutoffDate ? $cutoffDate->toDateTimeString() : 'NULL (będzie pobrane wszystko)',
         ]);
 
         $api = new BdoApiService($token);
@@ -293,7 +298,7 @@ class BdoSyncService
         while (true) {
             $cards = $api->fetchWasteCardsPagePrzekazujacy($year, $page, $this->pageSize);
 
-            if (!is_array($cards) || empty($cards)) {
+            if (! is_array($cards) || empty($cards)) {
                 break;
             }
 
@@ -301,16 +306,17 @@ class BdoSyncService
             $page++;
 
             if ($page > 100) {
-                BdoLogger::warning("BDO Przekazujący: Przerwano po 100 stronach");
+                BdoLogger::warning('BDO Przekazujący: Przerwano po 100 stronach');
                 break;
             }
         }
 
-        BdoLogger::info("BDO Przekazujący: Pobrano kart z API", ['count' => count($allCards)]);
+        BdoLogger::info('BDO Przekazujący: Pobrano kart z API', ['count' => count($allCards)]);
 
         usort($allCards, function ($a, $b) {
             $dateA = $a['kpoLastModifiedAt'] ?? '1970-01-01T00:00:00';
             $dateB = $b['kpoLastModifiedAt'] ?? '1970-01-01T00:00:00';
+
             return strcmp($dateA, $dateB);
         });
 
@@ -320,25 +326,26 @@ class BdoSyncService
             $allCards = array_filter($allCards, function ($card) use ($cutoffDate) {
                 $kpoLastModified = $card['kpoLastModifiedAt'] ?? null;
 
-                if (!$kpoLastModified) {
+                if (! $kpoLastModified) {
                     return true;
                 }
 
                 $cardDate = Carbon::parse($kpoLastModified);
+
                 return $cardDate->greaterThan($cutoffDate);
             });
 
             $allCards = array_values($allCards);
 
-            BdoLogger::info("BDO Przekazujący: Filtrowanie zakończone", [
+            BdoLogger::info('BDO Przekazujący: Filtrowanie zakończone', [
                 'original_count' => $originalCount,
                 'after_filter_count' => count($allCards),
                 'filtered_out' => $originalCount - count($allCards),
-                'cutoff_date' => $cutoffDate->toDateTimeString()
+                'cutoff_date' => $cutoffDate->toDateTimeString(),
             ]);
         }
 
-        $mapper = new BdoMapperService();
+        $mapper = new BdoMapperService;
 
         $chunkSize = 50;
         $delayBetweenCards = 200000;
@@ -358,9 +365,10 @@ class BdoSyncService
 
                 $kpoId = $item['kpoId'] ?? null;
 
-                if (!$kpoId) {
-                    BdoLogger::warning("BDO Przekazujący: Brak kpoId w item z API", ['item' => $item]);
+                if (! $kpoId) {
+                    BdoLogger::warning('BDO Przekazujący: Brak kpoId w item z API', ['item' => $item]);
                     $errors++;
+
                     continue;
                 }
 
@@ -372,8 +380,8 @@ class BdoSyncService
                     return $api->fetchCardDetails($kpoId);
                 }, 300);
 
-                if (!$detailData) {
-                    BdoLogger::error("BDO Przekazujący: KRYTYCZNY BŁĄD - nie udało się pobrać detali karty. SYNC ZATRZYMANY.", [
+                if (! $detailData) {
+                    BdoLogger::error('BDO Przekazujący: KRYTYCZNY BŁĄD - nie udało się pobrać detali karty. SYNC ZATRZYMANY.', [
                         'kpo_id' => $kpoId,
                         'card_number' => $item['cardNumber'] ?? 'BRAK',
                     ]);
@@ -386,7 +394,7 @@ class BdoSyncService
                         'skipped' => $skipped,
                         'errors' => $errors + 1,
                         'status' => 'FAILED',
-                        'message' => 'Sync zatrzymany z powodu błędu pobierania detali karty.'
+                        'message' => 'Sync zatrzymany z powodu błędu pobierania detali karty.',
                     ];
                     break;
                 }
@@ -395,6 +403,7 @@ class BdoSyncService
 
                 if (empty($mapped['kpo_id'])) {
                     $errors++;
+
                     continue;
                 }
 
@@ -422,7 +431,7 @@ class BdoSyncService
                         $created++;
                     }
                 } catch (\Exception $e) {
-                    Log::error("BDO Przekazujący: Błąd zapisu karty do bazy", [
+                    Log::error('BDO Przekazujący: Błąd zapisu karty do bazy', [
                         'kpo_id' => $kpoId,
                         'exception' => $e->getMessage(),
                     ]);
@@ -440,7 +449,8 @@ class BdoSyncService
         }
 
         if ($syncStopped && $failureDetails) {
-            BdoLogger::error("BDO Przekazujący Sync FAILED", $failureDetails);
+            BdoLogger::error('BDO Przekazujący Sync FAILED', $failureDetails);
+
             return $failureDetails;
         }
 
@@ -451,10 +461,10 @@ class BdoSyncService
             'skipped' => $skipped,
             'errors' => $errors,
             'status' => 'SUCCESS',
-            'message' => 'Wszystkie karty przetworzone pomyślnie'
+            'message' => 'Wszystkie karty przetworzone pomyślnie',
         ];
 
-        BdoLogger::info("BDO Przekazujący Sync zakończona - podsumowanie", $summary);
+        BdoLogger::info('BDO Przekazujący Sync zakończona - podsumowanie', $summary);
 
         return $summary;
     }
@@ -465,15 +475,16 @@ class BdoSyncService
     public function fetchAndUpdateSingleCard(string $kpoId, int $year): bool
     {
         try {
-            $auth = new BdoAuthService();
+            $auth = new BdoAuthService;
             $token = $auth->generateToken();
 
-            if (!$token) {
-                BdoLogger::error("fetchAndUpdateSingleCard: Brak tokenu BDO", ['kpo_id' => $kpoId]);
+            if (! $token) {
+                BdoLogger::error('fetchAndUpdateSingleCard: Brak tokenu BDO', ['kpo_id' => $kpoId]);
+
                 return false;
             }
 
-            $url = "https://rejestr-bdo.mos.gov.pl/api/WasteRegister/WasteTransferCard/v1/Kpo/printingpage";
+            $url = 'https://rejestr-bdo.mos.gov.pl/api/WasteRegister/WasteTransferCard/v1/Kpo/printingpage';
 
             $detailData = retry(3, function () use ($url, $token, $kpoId) {
                 $response = Http::withToken($token)
@@ -482,35 +493,38 @@ class BdoSyncService
                     ->get($url, ['KpoId' => $kpoId]);
 
                 if ($response->failed()) {
-                    BdoLogger::warning("fetchAndUpdateSingleCard: Błąd pobierania detali", [
+                    BdoLogger::warning('fetchAndUpdateSingleCard: Błąd pobierania detali', [
                         'kpo_id' => $kpoId,
                         'status' => $response->status(),
                         'body' => $response->body(),
                     ]);
+
                     return null;
                 }
 
                 return $response->json();
             }, 500);
 
-            if (!$detailData) {
-                BdoLogger::error("fetchAndUpdateSingleCard: Nie udało się pobrać detali karty", ['kpo_id' => $kpoId]);
+            if (! $detailData) {
+                BdoLogger::error('fetchAndUpdateSingleCard: Nie udało się pobrać detali karty', ['kpo_id' => $kpoId]);
+
                 return false;
             }
 
-            $mapper = new BdoMapperService();
+            $mapper = new BdoMapperService;
 
             $listItem = [
                 'cardNumber' => $detailData['cardNumber'] ?? null,
                 'calendarYear' => $year,
                 'kpoId' => $kpoId,
-                'kpoLastModifiedAt' => $detailData['kpoLastModifiedAt'] ?? null
+                'kpoLastModifiedAt' => $detailData['kpoLastModifiedAt'] ?? null,
             ];
 
             $mapped = $mapper->mapToBdoKartyDetale($listItem, $detailData);
 
             if (empty($mapped['kpo_id'])) {
-                BdoLogger::error("fetchAndUpdateSingleCard: Brak kpo_id po mapowaniu", ['kpo_id' => $kpoId]);
+                BdoLogger::error('fetchAndUpdateSingleCard: Brak kpo_id po mapowaniu', ['kpo_id' => $kpoId]);
+
                 return false;
             }
 
@@ -518,8 +532,9 @@ class BdoSyncService
                 ->where('kpo_id', $kpoId)
                 ->first();
 
-            if (!$existing) {
-                BdoLogger::error("fetchAndUpdateSingleCard: Nie znaleziono karty w bazie", ['kpo_id' => $kpoId]);
+            if (! $existing) {
+                BdoLogger::error('fetchAndUpdateSingleCard: Nie znaleziono karty w bazie', ['kpo_id' => $kpoId]);
+
                 return false;
             }
 
@@ -530,18 +545,19 @@ class BdoSyncService
                 ->where('id', $existing->id)
                 ->update($mapped);
 
-            BdoLogger::info("fetchAndUpdateSingleCard: Zaktualizowano kartę", [
+            BdoLogger::info('fetchAndUpdateSingleCard: Zaktualizowano kartę', [
                 'kpo_id' => $kpoId,
-                'id' => $existing->id
+                'id' => $existing->id,
             ]);
 
             return true;
 
         } catch (\Throwable $e) {
-            BdoLogger::error("fetchAndUpdateSingleCard: Nieoczekiwany błąd", [
+            BdoLogger::error('fetchAndUpdateSingleCard: Nieoczekiwany błąd', [
                 'kpo_id' => $kpoId,
                 'exception' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -551,14 +567,15 @@ class BdoSyncService
      */
     public function confirmWasteCard(string $kpoId, float $wasteMass): bool
     {
-        $auth = new BdoAuthService();
+        $auth = new BdoAuthService;
         $accessToken = $auth->generateToken();
 
-        if (!$accessToken) {
-            BdoLogger::error("Brak tokenu przy potwierdzaniu karty KPO", [
+        if (! $accessToken) {
+            BdoLogger::error('Brak tokenu przy potwierdzaniu karty KPO', [
                 'kpo_id' => $kpoId,
-                'masa' => $wasteMass
+                'masa' => $wasteMass,
             ]);
+
             return false;
         }
 
@@ -576,28 +593,30 @@ class BdoSyncService
                 ->put($url, $data);
 
             if ($response->successful()) {
-                BdoLogger::info("Potwierdzono kartę KPO", [
+                BdoLogger::info('Potwierdzono kartę KPO', [
                     'kpo_id' => $kpoId,
                     'masa' => $wasteMass,
-                    'response' => $response->json()
+                    'response' => $response->json(),
                 ]);
+
                 return true;
             }
 
-            BdoLogger::error("Błąd potwierdzania karty KPO", [
+            BdoLogger::error('Błąd potwierdzania karty KPO', [
                 'kpo_id' => $kpoId,
                 'masa' => $wasteMass,
                 'status' => $response->status(),
-                'response' => $response->body()
+                'response' => $response->body(),
             ]);
 
             return false;
 
         } catch (\Throwable $e) {
-            BdoLogger::error("Wyjątek przy potwierdzaniu karty KPO", [
+            BdoLogger::error('Wyjątek przy potwierdzaniu karty KPO', [
                 'kpo_id' => $kpoId,
-                'msg' => $e->getMessage()
+                'msg' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -607,14 +626,15 @@ class BdoSyncService
      */
     public function rejectWasteCard(string $kpoId, float $wasteMass): bool
     {
-        $auth = new BdoAuthService();
+        $auth = new BdoAuthService;
         $accessToken = $auth->generateToken();
 
-        if (!$accessToken) {
-            BdoLogger::error("Brak tokenu przy odrzucaniu karty KPO", [
+        if (! $accessToken) {
+            BdoLogger::error('Brak tokenu przy odrzucaniu karty KPO', [
                 'kpo_id' => $kpoId,
-                'masa' => $wasteMass
+                'masa' => $wasteMass,
             ]);
+
             return false;
         }
 
@@ -633,27 +653,29 @@ class BdoSyncService
                 ->put($url, $data);
 
             if ($response->successful()) {
-                BdoLogger::info("Odrzucono kartę KPO", [
+                BdoLogger::info('Odrzucono kartę KPO', [
                     'kpo_id' => $kpoId,
                     'masa' => $wasteMass,
                     'remarks' => $remarks,
                 ]);
+
                 return true;
             }
 
-            BdoLogger::error("Błąd odrzucania karty KPO", [
+            BdoLogger::error('Błąd odrzucania karty KPO', [
                 'kpo_id' => $kpoId,
                 'status' => $response->status(),
-                'response' => $response->body()
+                'response' => $response->body(),
             ]);
 
             return false;
 
         } catch (\Throwable $e) {
-            BdoLogger::error("Wyjątek przy odrzucaniu karty KPO", [
+            BdoLogger::error('Wyjątek przy odrzucaniu karty KPO', [
                 'kpo_id' => $kpoId,
-                'msg' => $e->getMessage()
+                'msg' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -668,7 +690,7 @@ class BdoSyncService
         string $realTransportTime
     ): bool {
         try {
-            $auth = new BdoAuthService();
+            $auth = new BdoAuthService;
             $token = $auth->generateToken();
 
             $url = 'https://rejestr-bdo.mos.gov.pl/api/WasteRegister/WasteTransferCard/v1/Kpo/carrier/update/approved/generateconfirmation';
@@ -678,17 +700,17 @@ class BdoSyncService
             $realTransportDateFormatted = $dateTime->format('Y-m-d\TH:i:s.v\Z');
 
             $payload = [
-                "KpoId" => $kpoId,
-                "VehicleRegNumber" => $vehicleRegNumber,
-                "RealTransportTime" => $realTransportTime,
-                "RealTransportDate" => $realTransportDateFormatted
+                'KpoId' => $kpoId,
+                'VehicleRegNumber' => $vehicleRegNumber,
+                'RealTransportTime' => $realTransportTime,
+                'RealTransportDate' => $realTransportDateFormatted,
             ];
 
-            BdoLogger::info("Wysyłanie potwierdzenia transportu do BDO", [
+            BdoLogger::info('Wysyłanie potwierdzenia transportu do BDO', [
                 'url' => $url,
                 'method' => 'PUT',
                 'kpo_id' => $kpoId,
-                'payload' => $payload
+                'payload' => $payload,
             ]);
 
             $response = Http::withToken($token)
@@ -698,26 +720,28 @@ class BdoSyncService
                 ->put($url, $payload);
 
             if ($response->successful()) {
-                BdoLogger::info("Potwierdzenie transportu zakończone sukcesem", [
+                BdoLogger::info('Potwierdzenie transportu zakończone sukcesem', [
                     'kpo_id' => $kpoId,
-                    'response' => $response->json()
+                    'response' => $response->json(),
                 ]);
+
                 return true;
             }
 
-            BdoLogger::error("Błąd BDO przy potwierdzaniu transportu", [
+            BdoLogger::error('Błąd BDO przy potwierdzaniu transportu', [
                 'status' => $response->status(),
                 'body' => $response->body(),
-                'payload' => $payload
+                'payload' => $payload,
             ]);
 
             return false;
 
         } catch (\Throwable $e) {
-            Log::error("Wyjątek przy confirmTransportStart", [
+            Log::error('Wyjątek przy confirmTransportStart', [
                 'message' => $e->getMessage(),
-                'kpo_id' => $kpoId
+                'kpo_id' => $kpoId,
             ]);
+
             return false;
         }
     }

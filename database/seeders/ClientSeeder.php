@@ -17,74 +17,84 @@ class ClientSeeder extends Seeder
 
         // --- MIGRACJA KONTRAHENTÓW ---
         $oldKontrahenci = DB::table('mrowisko.kontrahenci')->get();
-        $this->command->info("Migracja " . $oldKontrahenci->count() . " kontrahentów...");
+        $this->command->info('Migracja '.$oldKontrahenci->count().' kontrahentów...');
 
         foreach ($oldKontrahenci as $k) {
             // Logika mapowania typu: dostawca/odbiorca -> pickup/sale/both
             $type = 'both';
-            if ($k->dostawca == 1 && $k->odbiorca == 0) $type = 'pickup';
-            if ($k->dostawca == 0 && $k->odbiorca == 1) $type = 'sale';
+            if ($k->dostawca == 1 && $k->odbiorca == 0) {
+                $type = 'pickup';
+            }
+            if ($k->dostawca == 0 && $k->odbiorca == 1) {
+                $type = 'sale';
+            }
 
             DB::table('clients')->insert([
-                'id'            => $k->id,
-                'name'          => $k->nazwa,
-                'short_name'    => $k->skrot,
-                'nip'           => $k->nip,
-                'bdo'           => null, // brak w starej bazie
-                'country'       => 'PL',
-                'type'          => $type,
-                'street'        => $k->adres,
-                'postal_code'   => $k->kod,
-                'city'          => $k->miasto,
-                'salesman_id'   => $k->operator, // mapowanie na ID handlowca
-                'is_active'     => 1,
-                'created_at'    => $k->created_at,
-                'updated_at'    => $k->updated_at,
+                'id' => $k->id,
+                'name' => $k->nazwa,
+                'short_name' => $k->skrot,
+                'nip' => $k->nip,
+                'bdo' => null, // brak w starej bazie
+                'country' => 'PL',
+                'type' => $type,
+                'street' => $k->adres,
+                'postal_code' => $k->kod,
+                'city' => $k->miasto,
+                'salesman_id' => $k->operator, // mapowanie na ID handlowca
+                'is_active' => 1,
+                'created_at' => $k->created_at,
+                'updated_at' => $k->updated_at,
             ]);
         }
 
         // --- MIGRACJA ADRESÓW ---
         $oldAdresy = DB::table('mrowisko.kontrahenci_adresy')->get();
-        $this->command->info("Migracja " . $oldAdresy->count() . " dodatkowych adresów...");
+        $this->command->info('Migracja '.$oldAdresy->count().' dodatkowych adresów...');
 
         foreach ($oldAdresy as $a) {
             DB::table('client_addresses')->insert([
-                'id'          => $a->id,
-                'client_id'   => $a->id_kontrahenta,
-                'city'        => $a->miasto,
+                'id' => $a->id,
+                'client_id' => $a->id_kontrahenta,
+                'city' => $a->miasto,
                 'postal_code' => $a->kod,
-                'street'      => $a->adres,
-                'hours'       => $a->godziny,
-                'notes'       => $a->uwagi,
+                'street' => $a->adres,
+                'hours' => $a->godziny,
+                'notes' => $a->uwagi,
                 'distance_km' => $a->dystans,
-                'latitude'    => $a->latitude,
-                'longitude'   => $a->longitude,
-                'created_at'  => $a->created_at,
-                'updated_at'  => $a->updated_at,
+                'latitude' => $a->latitude,
+                'longitude' => $a->longitude,
+                'created_at' => $a->created_at,
+                'updated_at' => $a->updated_at,
             ]);
         }
 
         // --- MIGRACJA KONTAKTÓW ---
         $oldKontakty = DB::table('mrowisko.kontrahenci_kontakty')->get();
-        $this->command->info("Migracja " . $oldKontakty->count() . " kontaktów...");
+        $this->command->info('Migracja '.$oldKontakty->count().' kontaktów...');
 
         foreach ($oldKontakty as $c) {
             // Mapowanie działów na ENUM: awizacje, faktury, handlowe
             // Zakładam mapowanie na podstawie nazw działów ze starej bazy
             $category = 'handlowe'; // default
             $dzial = mb_strtolower($c->dzial);
-            
-            if (str_contains($dzial, 'awiz') || str_contains($dzial, 'logist')) $category = 'awizacje';
-            if (str_contains($dzial, 'fakt') || str_contains($dzial, 'księg')) $category = 'faktury';
-            if (str_contains($dzial, 'handl') || str_contains($dzial, 'sprzed')) $category = 'handlowe';
+
+            if (str_contains($dzial, 'awiz') || str_contains($dzial, 'logist')) {
+                $category = 'awizacje';
+            }
+            if (str_contains($dzial, 'fakt') || str_contains($dzial, 'księg')) {
+                $category = 'faktury';
+            }
+            if (str_contains($dzial, 'handl') || str_contains($dzial, 'sprzed')) {
+                $category = 'handlowe';
+            }
 
             DB::table('client_contacts')->insert([
-                'id'         => $c->id,
-                'client_id'  => $c->id_kontrahenta,
-                'category'   => $category,
-                'name'       => $c->osoba,
-                'email'      => $c->mail,
-                'phone'      => $c->telefon,
+                'id' => $c->id,
+                'client_id' => $c->id_kontrahenta,
+                'category' => $category,
+                'name' => $c->osoba,
+                'email' => $c->mail,
+                'phone' => $c->telefon,
                 'created_at' => $c->timestamp,
                 'updated_at' => $c->timestamp,
             ]);
@@ -96,7 +106,7 @@ class ClientSeeder extends Seeder
         $this->resetAutoIncrement('client_contacts');
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
-        $this->command->info("✅ Migracja klientów zakończona pomyślnie.");
+        $this->command->info('✅ Migracja klientów zakończona pomyślnie.');
     }
 
     private function resetAutoIncrement($table)

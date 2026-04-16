@@ -38,63 +38,63 @@ class DashboardController extends Controller
     public function storeKlient(Request $request)
     {
         $request->validate([
-            'name'             => ['required', 'string', 'max:255'],
-            'short_name'       => ['required', 'string', 'max:255', 'unique:clients,short_name'],
-            'nip'              => ['nullable', 'string', 'max:50', 'unique:clients,nip'],
-            'type'             => ['required', 'in:pickup,sale,both'],
-            'street'           => ['required', 'string', 'max:255'],
-            'postal_code'      => ['required', 'string', 'max:20'],
-            'city'             => ['nullable', 'string', 'max:255'],
-            'addr_street'      => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
+            'short_name' => ['required', 'string', 'max:255', 'unique:clients,short_name'],
+            'nip' => ['nullable', 'string', 'max:50', 'unique:clients,nip'],
+            'type' => ['required', 'in:pickup,sale,both'],
+            'street' => ['required', 'string', 'max:255'],
+            'postal_code' => ['required', 'string', 'max:20'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'addr_street' => ['required', 'string', 'max:255'],
             'addr_postal_code' => ['required', 'string', 'max:20'],
-            'addr_city'        => ['required', 'string', 'max:255'],
-            'addr_hours'       => ['nullable', 'string', 'max:100'],
-            'addr_notes'       => ['nullable', 'string'],
+            'addr_city' => ['required', 'string', 'max:255'],
+            'addr_hours' => ['nullable', 'string', 'max:100'],
+            'addr_notes' => ['nullable', 'string'],
             'contact_category' => ['required', 'in:awizacje,faktury,handlowe'],
-            'contact_name'     => ['required', 'string', 'max:255'],
-            'contact_phone'    => ['nullable', 'string', 'max:50'],
-            'contact_email'    => ['nullable', 'email', 'max:255'],
+            'contact_name' => ['required', 'string', 'max:255'],
+            'contact_phone' => ['nullable', 'string', 'max:50'],
+            'contact_email' => ['nullable', 'email', 'max:255'],
         ], [
-            'name.required'             => 'Pełna nazwa jest wymagana.',
-            'short_name.required'       => 'Nazwa skrócona jest wymagana.',
-            'short_name.unique'         => 'Ta nazwa skrócona jest już zajęta.',
-            'nip.unique'                => 'Ten NIP jest już zarejestrowany w systemie.',
-            'type.required'             => 'Wybierz typ kontrahenta.',
-            'street.required'           => 'Ulica firmy jest wymagana.',
-            'postal_code.required'      => 'Kod pocztowy firmy jest wymagany.',
-            'addr_street.required'      => 'Ulica punktu odbioru jest wymagana.',
+            'name.required' => 'Pełna nazwa jest wymagana.',
+            'short_name.required' => 'Nazwa skrócona jest wymagana.',
+            'short_name.unique' => 'Ta nazwa skrócona jest już zajęta.',
+            'nip.unique' => 'Ten NIP jest już zarejestrowany w systemie.',
+            'type.required' => 'Wybierz typ kontrahenta.',
+            'street.required' => 'Ulica firmy jest wymagana.',
+            'postal_code.required' => 'Kod pocztowy firmy jest wymagany.',
+            'addr_street.required' => 'Ulica punktu odbioru jest wymagana.',
             'addr_postal_code.required' => 'Kod pocztowy punktu odbioru jest wymagany.',
-            'addr_city.required'        => 'Miasto punktu odbioru jest wymagane.',
-            'contact_name.required'     => 'Imię i nazwisko kontaktu jest wymagane.',
+            'addr_city.required' => 'Miasto punktu odbioru jest wymagane.',
+            'contact_name.required' => 'Imię i nazwisko kontaktu jest wymagane.',
         ]);
 
         DB::transaction(function () use ($request) {
             $client = Client::create([
-                'name'        => $request->name,
-                'short_name'  => $request->short_name,
-                'nip'         => $request->nip ?: null,
-                'type'        => $request->type,
-                'street'      => $request->street,
+                'name' => $request->name,
+                'short_name' => $request->short_name,
+                'nip' => $request->nip ?: null,
+                'type' => $request->type,
+                'street' => $request->street,
                 'postal_code' => $request->postal_code,
-                'city'        => $request->city,
+                'city' => $request->city,
                 'salesman_id' => auth()->user()->id,
-                'is_active'   => true,
-                'country'     => 'PL',
+                'is_active' => true,
+                'country' => 'PL',
             ]);
 
             $client->addresses()->create([
-                'street'      => $request->addr_street,
+                'street' => $request->addr_street,
                 'postal_code' => $request->addr_postal_code,
-                'city'        => $request->addr_city,
-                'hours'       => $request->addr_hours ?: null,
-                'notes'       => $request->addr_notes ?: null,
+                'city' => $request->addr_city,
+                'hours' => $request->addr_hours ?: null,
+                'notes' => $request->addr_notes ?: null,
             ]);
 
             $client->contacts()->create([
                 'category' => $request->contact_category,
-                'name'     => $request->contact_name,
-                'phone'    => $request->contact_phone ?: null,
-                'email'    => $request->contact_email ?: null,
+                'name' => $request->contact_name,
+                'phone' => $request->contact_phone ?: null,
+                'email' => $request->contact_email ?: null,
             ]);
         });
 
@@ -105,6 +105,7 @@ class DashboardController extends Controller
     {
         $this->authorizujKlienta($client);
         $client->load(['addresses', 'contacts']);
+
         return view('handlowiec.klient_edit', compact('client'));
     }
 
@@ -113,16 +114,16 @@ class DashboardController extends Controller
         $this->authorizujKlienta($client);
 
         $request->validate([
-            'name'        => ['required', 'string', 'max:255'],
-            'short_name'  => ['required', 'string', 'max:255'],
-            'nip'         => ['nullable', 'string', 'max:50'],
-            'type'        => ['required', 'in:pickup,sale,both'],
-            'street'      => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
+            'short_name' => ['required', 'string', 'max:255'],
+            'nip' => ['nullable', 'string', 'max:50'],
+            'type' => ['required', 'in:pickup,sale,both'],
+            'street' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'max:20'],
-            'city'        => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $client->update($request->only('name','short_name','nip','type','street','postal_code','city'));
+        $client->update($request->only('name', 'short_name', 'nip', 'type', 'street', 'postal_code', 'city'));
 
         return response()->json(['success' => true]);
     }
@@ -133,13 +134,14 @@ class DashboardController extends Controller
     {
         $this->authorizujKlienta($client);
         $request->validate([
-            'street'      => ['required', 'string', 'max:255'],
+            'street' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'max:20'],
-            'city'        => ['required', 'string', 'max:255'],
-            'hours'       => ['nullable', 'string', 'max:100'],
-            'notes'       => ['nullable', 'string'],
+            'city' => ['required', 'string', 'max:255'],
+            'hours' => ['nullable', 'string', 'max:100'],
+            'notes' => ['nullable', 'string'],
         ]);
-        $client->addresses()->create($request->only('street','postal_code','city','hours','notes'));
+        $client->addresses()->create($request->only('street', 'postal_code', 'city', 'hours', 'notes'));
+
         return response()->json(['success' => true]);
     }
 
@@ -147,13 +149,14 @@ class DashboardController extends Controller
     {
         $this->authorizujKlienta($client);
         $request->validate([
-            'street'      => ['required', 'string', 'max:255'],
+            'street' => ['required', 'string', 'max:255'],
             'postal_code' => ['required', 'string', 'max:20'],
-            'city'        => ['required', 'string', 'max:255'],
-            'hours'       => ['nullable', 'string', 'max:100'],
-            'notes'       => ['nullable', 'string'],
+            'city' => ['required', 'string', 'max:255'],
+            'hours' => ['nullable', 'string', 'max:100'],
+            'notes' => ['nullable', 'string'],
         ]);
-        $address->update($request->only('street','postal_code','city','hours','notes'));
+        $address->update($request->only('street', 'postal_code', 'city', 'hours', 'notes'));
+
         return response()->json(['success' => true]);
     }
 
@@ -161,6 +164,7 @@ class DashboardController extends Controller
     {
         $this->authorizujKlienta($client);
         $address->delete();
+
         return response()->json(['success' => true]);
     }
 
@@ -171,11 +175,12 @@ class DashboardController extends Controller
         $this->authorizujKlienta($client);
         $request->validate([
             'category' => ['required', 'in:awizacje,faktury,handlowe'],
-            'name'     => ['required', 'string', 'max:255'],
-            'phone'    => ['nullable', 'string', 'max:50'],
-            'email'    => ['nullable', 'email', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
+            'email' => ['nullable', 'email', 'max:255'],
         ]);
-        $client->contacts()->create($request->only('category','name','phone','email'));
+        $client->contacts()->create($request->only('category', 'name', 'phone', 'email'));
+
         return response()->json(['success' => true]);
     }
 
@@ -183,6 +188,7 @@ class DashboardController extends Controller
     {
         $this->authorizujKlienta($client);
         $contact->delete();
+
         return response()->json(['success' => true]);
     }
 
@@ -243,20 +249,20 @@ class DashboardController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'client_id'      => ['required', 'exists:clients,id'],
+            'client_id' => ['required', 'exists:clients,id'],
             'requested_date' => ['required', 'date', 'after_or_equal:today'],
-            'notes'          => ['nullable', 'string'],
-            'items'          => ['required', 'array', 'min:1'],
-            'items.*.nazwa'  => ['required', 'string', 'max:200'],
-            'items.*.cena'   => ['nullable', 'numeric', 'min:0'],
-            'items.*.ilosc'  => ['nullable', 'string', 'max:100'],
+            'notes' => ['nullable', 'string'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.nazwa' => ['required', 'string', 'max:200'],
+            'items.*.cena' => ['nullable', 'numeric', 'min:0'],
+            'items.*.ilosc' => ['nullable', 'string', 'max:100'],
         ], [
-            'client_id.required'            => 'Wybierz klienta.',
-            'requested_date.required'       => 'Podaj datę odbioru.',
+            'client_id.required' => 'Wybierz klienta.',
+            'requested_date.required' => 'Podaj datę odbioru.',
             'requested_date.after_or_equal' => 'Data nie może być w przeszłości.',
-            'items.required'                => 'Dodaj co najmniej jeden towar.',
-            'items.min'                     => 'Dodaj co najmniej jeden towar.',
-            'items.*.nazwa.required'        => 'Podaj nazwę towaru.',
+            'items.required' => 'Dodaj co najmniej jeden towar.',
+            'items.min' => 'Dodaj co najmniej jeden towar.',
+            'items.*.nazwa.required' => 'Podaj nazwę towaru.',
         ]);
 
         $client = Client::where('id', $request->client_id)
@@ -265,19 +271,19 @@ class DashboardController extends Controller
 
         DB::transaction(function () use ($request, $client) {
             $pickup = PickupRequest::create([
-                'client_id'      => $client->id,
-                'salesman_id'    => auth()->user()->id,
+                'client_id' => $client->id,
+                'salesman_id' => auth()->user()->id,
                 'requested_date' => $request->requested_date,
-                'notes'          => $request->notes,
-                'status'         => 'nowe',
+                'notes' => $request->notes,
+                'status' => 'nowe',
             ]);
 
             foreach ($request->items as $item) {
                 PickupRequestItem::create([
                     'pickup_request_id' => $pickup->id,
-                    'nazwa'             => $item['nazwa'],
-                    'cena'              => $item['cena'] ?? null,
-                    'ilosc'             => $item['ilosc'] ?? null,
+                    'nazwa' => $item['nazwa'],
+                    'cena' => $item['cena'] ?? null,
+                    'ilosc' => $item['ilosc'] ?? null,
                 ]);
             }
         });
@@ -289,8 +295,9 @@ class DashboardController extends Controller
 
     public function checkNip(Request $request)
     {
-        $nip    = $request->input('nip', '');
+        $nip = $request->input('nip', '');
         $exists = Client::where('nip', $nip)->exists();
+
         return response()->json(['exists' => $exists]);
     }
 
@@ -298,7 +305,7 @@ class DashboardController extends Controller
 
     private function authorizujKlienta(Client $client): void
     {
-        if ((int)$client->salesman_id !== (int)auth()->user()->id) {
+        if ((int) $client->salesman_id !== (int) auth()->user()->id) {
             abort(403);
         }
     }

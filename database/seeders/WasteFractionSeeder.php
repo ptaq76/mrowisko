@@ -16,12 +16,12 @@ class WasteFractionSeeder extends Seeder
 
         // 2. Import GRUP FRAKCJI (towary_grupy -> waste_fraction_groups)
         $oldGroups = DB::table('mrowisko.towary_grupy')->get();
-        $this->command->info("Migracja " . $oldGroups->count() . " grup frakcji...");
+        $this->command->info('Migracja '.$oldGroups->count().' grup frakcji...');
 
         foreach ($oldGroups as $group) {
             DB::table('waste_fraction_groups')->insert([
-                'id'         => $group->id,
-                'name'       => $group->nazwa,
+                'id' => $group->id,
+                'name' => $group->nazwa,
                 'created_at' => $group->created_at,
                 'updated_at' => $group->updated_at,
             ]);
@@ -35,14 +35,14 @@ class WasteFractionSeeder extends Seeder
             ->value('id');
 
         $oldTowary = DB::table('mrowisko.towary')->get();
-        $this->command->info("Migracja " . $oldTowary->count() . " frakcji odpadów...");
+        $this->command->info('Migracja '.$oldTowary->count().' frakcji odpadów...');
 
         foreach ($oldTowary as $t) {
             $name = $t->nazwa;
 
             // Logika allows_luz: 1 jeśli nazwa zawiera 'LUZ' lub nie zawiera ani LUZ ani BELKA
-            $allowsLuz = (str_contains($name, 'LUZ') || (!str_contains($name, 'LUZ') && !str_contains($name, 'BELKA'))) ? 1 : 0;
-            
+            $allowsLuz = (str_contains($name, 'LUZ') || (! str_contains($name, 'LUZ') && ! str_contains($name, 'BELKA'))) ? 1 : 0;
+
             // Logika allows_belka: 1 jeśli nazwa zawiera 'BELKA'
             $allowsBelka = str_contains($name, 'BELKA') ? 1 : 0;
 
@@ -57,19 +57,19 @@ class WasteFractionSeeder extends Seeder
             }
 
             DB::table('waste_fractions')->insert([
-                'id'                 => $t->id,
-                'name'               => $name,
-                'group_id'           => $t->grupa,
-                'allows_luz'         => $allowsLuz,
-                'allows_belka'       => $allowsBelka,
-                'sells_as_luz'       => $sellsAsLuz,
+                'id' => $t->id,
+                'name' => $name,
+                'group_id' => $t->grupa,
+                'allows_luz' => $allowsLuz,
+                'allows_belka' => $allowsBelka,
+                'sells_as_luz' => $sellsAsLuz,
                 'show_in_deliveries' => $t->dostawy,
-                'show_in_loadings'   => $t->zaladunki,
+                'show_in_loadings' => $t->zaladunki,
                 'show_in_production' => $t->produkcja,
-                'client_id'          => $currentClientId,
-                'is_active'          => $t->activ,
-                'created_at'         => $t->created_at,
-                'updated_at'         => $t->updated_at,
+                'client_id' => $currentClientId,
+                'is_active' => $t->activ,
+                'created_at' => $t->created_at,
+                'updated_at' => $t->updated_at,
             ]);
         }
 
@@ -78,8 +78,8 @@ class WasteFractionSeeder extends Seeder
         $this->resetAutoIncrement('waste_fractions');
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
-        $this->command->info("✅ Migracja frakcji zakończona.");
-        if (!$karchemId) {
+        $this->command->info('✅ Migracja frakcji zakończona.');
+        if (! $karchemId) {
             $this->command->warn("⚠️  Nie znaleziono klienta 'Karchem' w tabeli clients. Pole client_id pozostało puste.");
         }
     }

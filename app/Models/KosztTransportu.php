@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class KosztTransportu extends Model
 {
-    protected $table    = 'koszty_transportu';
+    protected $table = 'koszty_transportu';
+
     protected $fillable = ['start_id', 'stop_id', 'przewoznik_id', 'cena_eur', 'is_active'];
-    protected $casts    = ['cena_eur' => 'decimal:2', 'is_active' => 'boolean'];
+
+    protected $casts = ['cena_eur' => 'decimal:2', 'is_active' => 'boolean'];
 
     public function start()
     {

@@ -38,24 +38,24 @@ class PickupRequest extends Model
     public function statusLabel(): string
     {
         return match ($this->status) {
-            'nowe'            => 'Nowe',
-            'przyjete'        => 'Przyjęte',
-            'zrealizowane'    => 'Zrealizowane',
-            'anulowane'       => 'Anulowane',
+            'nowe' => 'Nowe',
+            'przyjete' => 'Przyjęte',
+            'zrealizowane' => 'Zrealizowane',
+            'anulowane' => 'Anulowane',
             'odrzucone_biuro' => 'Odrzucone przez biuro',
-            default           => $this->status,
+            default => $this->status,
         };
     }
 
     public function statusColor(): string
     {
         return match ($this->status) {
-            'nowe'            => '#f39c12',
-            'przyjete'        => '#2980b9',
-            'zrealizowane'    => '#27ae60',
-            'anulowane'       => '#e74c3c',
+            'nowe' => '#f39c12',
+            'przyjete' => '#2980b9',
+            'zrealizowane' => '#27ae60',
+            'anulowane' => '#e74c3c',
             'odrzucone_biuro' => '#8e44ad',
-            default           => '#aaa',
+            default => '#aaa',
         };
     }
 }

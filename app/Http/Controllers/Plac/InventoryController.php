@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\WarehouseItem;
 use App\Models\WasteFraction;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class InventoryController extends Controller
 {
@@ -31,10 +30,10 @@ class InventoryController extends Controller
         $fraction = WasteFraction::findOrFail($fractionId);
 
         $request->validate([
-            'bales'     => ['required', 'integer', 'min:0'],
+            'bales' => ['required', 'integer', 'min:0'],
             'weight_kg' => ['required', 'numeric', 'min:0'],
         ], [
-            'bales.required'     => 'Podaj ilość belek.',
+            'bales.required' => 'Podaj ilość belek.',
             'weight_kg.required' => 'Podaj wagę.',
         ]);
 
@@ -43,34 +42,34 @@ class InventoryController extends Controller
             ->where('fraction_id', $fractionId)
             ->first();
 
-        $currentBales  = (int)   ($current->total_bales  ?? 0);
+        $currentBales = (int) ($current->total_bales ?? 0);
         $currentWeight = (float) ($current->total_weight ?? 0);
 
-        $newBales  = (int)   $request->bales;
+        $newBales = (int) $request->bales;
         $newWeight = (float) $request->weight_kg;
 
-        $diffBales  = $newBales  - $currentBales;
+        $diffBales = $newBales - $currentBales;
         $diffWeight = round($newWeight - $currentWeight, 2);
 
         // Zapisz korektę (może być 0 jeśli bez zmian)
         WarehouseItem::create([
-            'date'        => now()->toDateString(),
+            'date' => now()->toDateString(),
             'fraction_id' => $fractionId,
-            'weight_kg'   => $diffWeight,
-            'bales'       => $diffBales,
-            'origin'      => 'inventory',
+            'weight_kg' => $diffWeight,
+            'bales' => $diffBales,
+            'origin' => 'inventory',
             'operator_id' => null,
-            'notes'       => "Inwentaryzacja: było {$currentBales} bel. / {$currentWeight} kg → jest {$newBales} bel. / {$newWeight} kg",
+            'notes' => "Inwentaryzacja: było {$currentBales} bel. / {$currentWeight} kg → jest {$newBales} bel. / {$newWeight} kg",
         ]);
 
         return response()->json([
-            'success'  => true,
-            'message'  => 'Stan magazynu zaktualizowany.',
+            'success' => true,
+            'message' => 'Stan magazynu zaktualizowany.',
             'fraction' => $fraction->name,
-            'new_bales'  => $newBales,
+            'new_bales' => $newBales,
             'new_weight' => $newWeight,
             'diff_bales' => $diffBales,
-            'diff_weight'=> $diffWeight,
+            'diff_weight' => $diffWeight,
         ]);
     }
 }

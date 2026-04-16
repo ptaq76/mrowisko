@@ -36,32 +36,32 @@ class Order extends Model
     ];
 
     protected $casts = [
-        'planned_date'        => 'date',
-        'plac_date'           => 'date',
+        'planned_date' => 'date',
+        'plac_date' => 'date',
         'confirmed_at_client' => 'datetime',
-        'weight_accepted_at'  => 'datetime',
-        'approved_at'         => 'datetime',
-        'is_archived'         => 'boolean',
-        'is_unplanned'        => 'boolean',
-        'weight_brutto'       => 'decimal:3',
-        'weight_netto'        => 'decimal:3',
-        'weight_receiver'     => 'decimal:3',
-        'weight_original'     => 'decimal:3',
+        'weight_accepted_at' => 'datetime',
+        'approved_at' => 'datetime',
+        'is_archived' => 'boolean',
+        'is_unplanned' => 'boolean',
+        'weight_brutto' => 'decimal:3',
+        'weight_netto' => 'decimal:3',
+        'weight_receiver' => 'decimal:3',
+        'weight_original' => 'decimal:3',
     ];
 
     const STATUSES_PICKUP = [
-        'planned'    => 'Zaplanowane',
-        'in_progress'=> 'W trakcie realizacji',
-        'weighed'    => 'Zważone',
+        'planned' => 'Zaplanowane',
+        'in_progress' => 'W trakcie realizacji',
+        'weighed' => 'Zważone',
         'classified' => 'Sklasyfikowane',
-        'closed'     => 'Zamknięte',
+        'closed' => 'Zamknięte',
     ];
 
     const STATUSES_SALE = [
-        'planned'    => 'Zaplanowane',
-        'loading'    => 'W trakcie załadunku',
-        'weighed'    => 'Zważone',
-        'closed'     => 'Zamknięte',
+        'planned' => 'Zaplanowane',
+        'loading' => 'W trakcie załadunku',
+        'weighed' => 'Zważone',
+        'closed' => 'Zamknięte',
     ];
 
     public function client()
@@ -96,23 +96,23 @@ class Order extends Model
 
     public function warehouseDeliveryItems()
     {
-        return $this->hasMany(\App\Models\WarehouseItem::class, 'origin_order_id')
+        return $this->hasMany(WarehouseItem::class, 'origin_order_id')
             ->where('origin', 'delivery');
     }
 
     public function wysylkaTransport()
     {
-        return $this->hasOne(\App\Models\WysylkaTransport::class);
+        return $this->hasOne(WysylkaTransport::class);
     }
 
     public function wysylkaCena()
     {
-        return $this->hasOne(\App\Models\WysylkaCena::class);
+        return $this->hasOne(WysylkaCena::class);
     }
 
     public function warehouseLoadingItems()
     {
-        return $this->hasMany(\App\Models\WarehouseItem::class, 'origin_order_id')
+        return $this->hasMany(WarehouseItem::class, 'origin_order_id')
             ->where('origin', 'loading');
     }
 

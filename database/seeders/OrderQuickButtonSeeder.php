@@ -26,10 +26,10 @@ class OrderQuickButtonSeeder extends Seeder
         $sort = 1;
         foreach ($goods as $label) {
             DB::table('order_quick_buttons')->insert([
-                'label'      => $label,
-                'type'       => 'goods',
-                'sort'       => $sort++,
-                'is_active'  => true,
+                'label' => $label,
+                'type' => 'goods',
+                'sort' => $sort++,
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -38,10 +38,10 @@ class OrderQuickButtonSeeder extends Seeder
         $sort = 1;
         foreach ($notes as $label) {
             DB::table('order_quick_buttons')->insert([
-                'label'      => $label,
-                'type'       => 'notes',
-                'sort'       => $sort++,
-                'is_active'  => true,
+                'label' => $label,
+                'type' => 'notes',
+                'sort' => $sort++,
+                'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

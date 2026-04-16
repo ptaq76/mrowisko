@@ -17,18 +17,18 @@ class Vehicle extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
-        'tare_kg'   => 'decimal:2',
+        'tare_kg' => 'decimal:2',
     ];
 
     const TYPES = [
         'ciągnik' => 'Ciągnik',
         'naczepa' => 'Naczepa',
-        'solo'    => 'Solo',
+        'solo' => 'Solo',
     ];
 
     const SUBTYPES = [
-        'hakowiec'     => 'Hakowiec',
-        'firana'       => 'Firana',
+        'hakowiec' => 'Hakowiec',
+        'firana' => 'Firana',
         'walking_floor' => 'Walking Floor',
     ];
 
@@ -45,7 +45,10 @@ class Vehicle extends Model
     public function fullName(): string
     {
         $name = $this->plate;
-        if ($this->subtype) $name .= ' (' . $this->subtypeName() . ')';
+        if ($this->subtype) {
+            $name .= ' ('.$this->subtypeName().')';
+        }
+
         return $name;
     }
 

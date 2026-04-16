@@ -12,36 +12,36 @@ return new class extends Migration
             $table->id();
             $table->enum('type', ['pickup', 'sale']);
             $table->foreignId('client_id')
-                  ->nullable()
-                  ->constrained('clients')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('clients')
+                ->nullOnDelete();
             $table->foreignId('start_client_id')
-                  ->nullable()
-                  ->constrained('clients')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('clients')
+                ->nullOnDelete();
             $table->foreignId('driver_id')
-                  ->nullable()
-                  ->constrained('drivers')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('drivers')
+                ->nullOnDelete();
             $table->foreignId('tractor_id')
-                  ->nullable()
-                  ->constrained('vehicles')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('vehicles')
+                ->nullOnDelete();
             $table->foreignId('trailer_id')
-                  ->nullable()
-                  ->constrained('vehicles')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('vehicles')
+                ->nullOnDelete();
             $table->foreignId('lieferschein_id')
-                  ->nullable()
-                  ->constrained('lieferscheins')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('lieferscheins')
+                ->nullOnDelete();
             $table->date('planned_date')->nullable();
             $table->date('plac_date')->nullable();       // kiedy widoczne na placu
             $table->time('planned_time')->nullable();
             $table->text('fractions_note')->nullable();
             $table->text('notes')->nullable();
             $table->enum('status', [
-                'planned', 'loading', 'loaded', 'weighed', 'delivered', 'closed'
+                'planned', 'loading', 'loaded', 'weighed', 'delivered', 'closed',
             ])->default('planned');
             $table->boolean('is_archived')->default(false);
             $table->decimal('weight_brutto', 10, 2)->nullable();
@@ -59,7 +59,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        
     }
 
     public function down(): void

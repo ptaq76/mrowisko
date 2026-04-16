@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
@@ -13,38 +12,40 @@ class UserController extends Controller
     public function index()
     {
         $users = User::orderBy('module')->orderBy('name')->get();
+
         return view('admin.users.index', compact('users'));
     }
 
     public function create()
     {
         $modules = User::MODULES;
+
         return view('admin.users.create', compact('modules'));
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'name'     => ['required', 'string', 'max:255'],
-            'login'    => ['required', 'string', 'max:64', 'unique:users,login', 'regex:/^\S+$/'],
+            'name' => ['required', 'string', 'max:255'],
+            'login' => ['required', 'string', 'max:64', 'unique:users,login', 'regex:/^\S+$/'],
             'password' => ['required', 'string', 'min:6'],
-            'module'   => ['required', Rule::in(array_keys(User::MODULES))],
+            'module' => ['required', Rule::in(array_keys(User::MODULES))],
         ], [
-            'name.required'     => 'Podaj imię i nazwisko.',
-            'login.required'    => 'Podaj login.',
-            'login.unique'      => 'Ten login jest już zajęty.',
-            'login.regex'       => 'Login nie może zawierać spacji.',
+            'name.required' => 'Podaj imię i nazwisko.',
+            'login.required' => 'Podaj login.',
+            'login.unique' => 'Ten login jest już zajęty.',
+            'login.regex' => 'Login nie może zawierać spacji.',
             'password.required' => 'Podaj hasło.',
-            'password.min'      => 'Hasło musi mieć co najmniej 6 znaków.',
-            'module.required'   => 'Wybierz moduł.',
-            'module.in'         => 'Nieprawidłowy moduł.',
+            'password.min' => 'Hasło musi mieć co najmniej 6 znaków.',
+            'module.required' => 'Wybierz moduł.',
+            'module.in' => 'Nieprawidłowy moduł.',
         ]);
 
         User::create([
-            'name'     => $request->name,
-            'login'    => $request->login,
+            'name' => $request->name,
+            'login' => $request->login,
             'password' => $request->password,
-            'module'   => $request->module,
+            'module' => $request->module,
         ]);
 
         return redirect()->route('admin.users.index')
@@ -54,20 +55,21 @@ class UserController extends Controller
     public function edit(User $user)
     {
         $modules = User::MODULES;
+
         return view('admin.users.edit', compact('user', 'modules'));
     }
 
     public function update(Request $request, User $user)
     {
         $request->validate([
-            'name'   => ['required', 'string', 'max:255'],
-            'login'  => ['required', 'string', 'max:64', 'regex:/^\S+$/', Rule::unique('users', 'login')->ignore($user->id)],
+            'name' => ['required', 'string', 'max:255'],
+            'login' => ['required', 'string', 'max:64', 'regex:/^\S+$/', Rule::unique('users', 'login')->ignore($user->id)],
             'module' => ['required', Rule::in(array_keys(User::MODULES))],
         ], [
-            'name.required'   => 'Podaj imię i nazwisko.',
-            'login.required'  => 'Podaj login.',
-            'login.unique'    => 'Ten login jest już zajęty.',
-            'login.regex'     => 'Login nie może zawierać spacji.',
+            'name.required' => 'Podaj imię i nazwisko.',
+            'login.required' => 'Podaj login.',
+            'login.unique' => 'Ten login jest już zajęty.',
+            'login.regex' => 'Login nie może zawierać spacji.',
             'module.required' => 'Wybierz moduł.',
         ]);
 
@@ -77,8 +79,8 @@ class UserController extends Controller
         }
 
         $user->update([
-            'name'   => $request->name,
-            'login'  => $request->login,
+            'name' => $request->name,
+            'login' => $request->login,
             'module' => $request->module,
         ]);
 
@@ -92,7 +94,7 @@ class UserController extends Controller
             'password' => ['required', 'string', 'min:6'],
         ], [
             'password.required' => 'Podaj nowe hasło.',
-            'password.min'      => 'Hasło musi mieć co najmniej 6 znaków.',
+            'password.min' => 'Hasło musi mieć co najmniej 6 znaków.',
         ]);
 
         $user->update(['password' => $request->password]);

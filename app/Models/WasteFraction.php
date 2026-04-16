@@ -21,14 +21,14 @@ class WasteFraction extends Model
     ];
 
     protected $casts = [
-        'allows_luz'         => 'boolean',
-        'allows_belka'       => 'boolean',
-        'sells_as_luz'       => 'boolean',
-        'show_in_sales'      => 'boolean',
+        'allows_luz' => 'boolean',
+        'allows_belka' => 'boolean',
+        'sells_as_luz' => 'boolean',
+        'show_in_sales' => 'boolean',
         'show_in_deliveries' => 'boolean',
-        'show_in_loadings'   => 'boolean',
+        'show_in_loadings' => 'boolean',
         'show_in_production' => 'boolean',
-        'is_active'          => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     public function group()
@@ -44,8 +44,13 @@ class WasteFraction extends Model
     // Określa formę na podstawie nazwy (LUZ / BELKA w nazwie)
     public function getFormAttribute(): string
     {
-        if (str_contains(strtoupper($this->name), 'BELKA')) return 'belka';
-        if (str_contains(strtoupper($this->name), 'LUZ'))   return 'luz';
+        if (str_contains(strtoupper($this->name), 'BELKA')) {
+            return 'belka';
+        }
+        if (str_contains(strtoupper($this->name), 'LUZ')) {
+            return 'luz';
+        }
+
         return 'inne';
     }
 

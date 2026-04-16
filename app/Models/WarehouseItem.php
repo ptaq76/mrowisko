@@ -14,15 +14,15 @@ class WarehouseItem extends Model
     ];
 
     protected $casts = [
-        'date'      => 'date',
+        'date' => 'date',
         'weight_kg' => 'decimal:2',
     ];
 
     const ORIGINS = [
         'production' => 'Produkcja',
-        'loading'    => 'Załadunek',
-        'delivery'   => 'Dostawa',
-        'inventory'  => 'Inwentaryzacja',
+        'loading' => 'Załadunek',
+        'delivery' => 'Dostawa',
+        'inventory' => 'Inwentaryzacja',
     ];
 
     public function fraction()
@@ -58,7 +58,7 @@ class WarehouseItem extends Model
             ->first();
 
         return [
-            'bales'  => (int) ($row->total_bales ?? 0),
+            'bales' => (int) ($row->total_bales ?? 0),
             'weight' => (float) ($row->total_weight ?? 0),
         ];
     }
@@ -71,10 +71,13 @@ class WarehouseItem extends Model
             ->where('origin', 'production')  // tylko z produkcji, żeby nie zaburzać średniej załadunkami
             ->first();
 
-        $bales  = (int)   ($row->total_bales  ?? 0);
+        $bales = (int) ($row->total_bales ?? 0);
         $weight = (float) ($row->total_weight ?? 0);
 
-        if ($bales === 0 || $weight <= 0) return 0;
+        if ($bales === 0 || $weight <= 0) {
+            return 0;
+        }
+
         return round(abs($weight) / abs($bales), 2);
     }
 }

@@ -9,7 +9,7 @@ class MigrateOrdersSeeder extends Seeder
 {
     // Tryb testowy - tylko wyświetla dane bez wstawiania
     private bool $testMode = false;
-    
+
     // Limit rekordów do przetworzenia (null = wszystkie)
     private ?int $limit = 1477;
 
@@ -44,12 +44,13 @@ class MigrateOrdersSeeder extends Seeder
                 ->where('planowanie_id', $planowanie->id)
                 ->first();
 
-            if (!$planNaPlac) {
+            if (! $planNaPlac) {
                 $skippedRecords[] = [
                     'planowanie_id' => $planowanie->id,
                     'data' => $planowanie->data,
                     'reason' => 'Brak powiązanego plan_na_plac',
                 ];
+
                 continue;
             }
 
@@ -59,12 +60,13 @@ class MigrateOrdersSeeder extends Seeder
                 ->where('planowanie_id', $planowanie->id)
                 ->first();
 
-            if (!$wazenie) {
+            if (! $wazenie) {
                 $skippedRecords[] = [
                     'planowanie_id' => $planowanie->id,
                     'data' => $planowanie->data,
                     'reason' => 'Brak powiązanego wazenia',
                 ];
+
                 continue;
             }
 
@@ -117,8 +119,9 @@ class MigrateOrdersSeeder extends Seeder
                 $skippedRecords[] = [
                     'planowanie_id' => $planowanie->id,
                     'data' => $planowanie->data,
-                    'reason' => 'Brak towarów w ' . ($planowanie->rodzaj === 'O' ? 'dostawy_towary' : 'zaladunki_towary'),
+                    'reason' => 'Brak towarów w '.($planowanie->rodzaj === 'O' ? 'dostawy_towary' : 'zaladunki_towary'),
                 ];
+
                 continue;
             }
 
@@ -191,7 +194,7 @@ class MigrateOrdersSeeder extends Seeder
         $this->displayResults($ordersToInsert, $loadingItemsToInsert, $warehouseItemsToInsert, $skippedRecords);
 
         // Jeśli nie tryb testowy - wykonaj insert
-        if (!$this->testMode && !empty($ordersToInsert)) {
+        if (! $this->testMode && ! empty($ordersToInsert)) {
             $this->executeInserts($ordersToInsert, $loadingItemsToInsert, $warehouseItemsToInsert);
         }
     }
@@ -235,8 +238,8 @@ class MigrateOrdersSeeder extends Seeder
                     $order['planned_date'],
                     $order['planned_time'],
                     $order['plac_date'],
-                    mb_substr($order['fractions_note'] ?? '', 0, 20) . '...',
-                    mb_substr($order['notes'] ?? '', 0, 15) . '...',
+                    mb_substr($order['fractions_note'] ?? '', 0, 20).'...',
+                    mb_substr($order['notes'] ?? '', 0, 15).'...',
                     $order['status'],
                     $order['weight_brutto'],
                     $order['weight_netto'],
@@ -309,7 +312,7 @@ class MigrateOrdersSeeder extends Seeder
                     $item['origin'],
                     $item['origin_order_id'],
                     $item['operator_id'],
-                    mb_substr($item['notes'] ?? '', 0, 20) . '...',
+                    mb_substr($item['notes'] ?? '', 0, 20).'...',
                 ];
             }
 
@@ -331,10 +334,10 @@ class MigrateOrdersSeeder extends Seeder
 
         $this->command->newLine();
         $this->command->info('=== PODSUMOWANIE ===');
-        $this->command->info('Rekordów do orders: ' . count($orders));
-        $this->command->info('Rekordów do loading_items: ' . count($loadingItems));
-        $this->command->info('Rekordów do warehouse_items: ' . count($warehouseItems));
-        $this->command->warn('Pominiętych rekordów: ' . count($skipped));
+        $this->command->info('Rekordów do orders: '.count($orders));
+        $this->command->info('Rekordów do loading_items: '.count($loadingItems));
+        $this->command->info('Rekordów do warehouse_items: '.count($warehouseItems));
+        $this->command->warn('Pominiętych rekordów: '.count($skipped));
 
         if ($this->testMode) {
             $this->command->newLine();
@@ -365,7 +368,7 @@ class MigrateOrdersSeeder extends Seeder
                 $this->command->info("Wstawiono order ID: {$orderId} (z planowanie ID: {$planowanieId})");
 
                 // Wstaw loading_items dla tego orderu
-                $itemsForOrder = array_filter($loadingItems, fn($item) => $item['_planowanie_id'] === $planowanieId);
+                $itemsForOrder = array_filter($loadingItems, fn ($item) => $item['_planowanie_id'] === $planowanieId);
 
                 foreach ($itemsForOrder as $item) {
                     unset($item['_planowanie_id']);
@@ -376,10 +379,10 @@ class MigrateOrdersSeeder extends Seeder
                         ->insert($item);
                 }
 
-                $this->command->info("  → Wstawiono " . count($itemsForOrder) . " pozycji loading_items");
+                $this->command->info('  → Wstawiono '.count($itemsForOrder).' pozycji loading_items');
 
                 // Wstaw warehouse_items dla tego orderu
-                $warehouseForOrder = array_filter($warehouseItems, fn($item) => $item['_planowanie_id'] === $planowanieId);
+                $warehouseForOrder = array_filter($warehouseItems, fn ($item) => $item['_planowanie_id'] === $planowanieId);
 
                 foreach ($warehouseForOrder as $item) {
                     unset($item['_planowanie_id']);
@@ -390,7 +393,7 @@ class MigrateOrdersSeeder extends Seeder
                         ->insert($item);
                 }
 
-                $this->command->info("  → Wstawiono " . count($warehouseForOrder) . " pozycji warehouse_items");
+                $this->command->info('  → Wstawiono '.count($warehouseForOrder).' pozycji warehouse_items');
             }
 
             DB::connection('mysql')->commit();
@@ -398,7 +401,7 @@ class MigrateOrdersSeeder extends Seeder
 
         } catch (\Exception $e) {
             DB::connection('mysql')->rollBack();
-            $this->command->error('Błąd podczas migracji: ' . $e->getMessage());
+            $this->command->error('Błąd podczas migracji: '.$e->getMessage());
             throw $e;
         }
     }

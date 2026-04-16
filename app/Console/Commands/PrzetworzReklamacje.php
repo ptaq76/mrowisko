@@ -8,18 +8,20 @@ use App\Models\ReklamacjaBled;
 use App\Services\ImapGewichtsmeldungService;
 use App\Services\ImapReklamacjeService;
 use App\Services\PdfParserService;
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class PrzetworzReklamacje extends Command
 {
-    protected $signature   = 'reklamacje:przetwarzaj';
+    protected $signature = 'reklamacje:przetwarzaj';
+
     protected $description = 'Pobiera reklamacje i Gewichtsmeldungen z maili i zapisuje do bazy';
 
     public function __construct(
-        private ImapReklamacjeService      $imapService,
-        private PdfParserService           $pdfService,
+        private ImapReklamacjeService $imapService,
+        private PdfParserService $pdfService,
         private ImapGewichtsmeldungService $gewichtService,
     ) {
         parent::__construct();
@@ -36,14 +38,14 @@ class PrzetworzReklamacje extends Command
             if (empty($wiadomosci)) {
                 $this->info('Brak nowych reklamacji.');
             } else {
-                $this->info('Znaleziono reklamacji: ' . count($wiadomosci));
+                $this->info('Znaleziono reklamacji: '.count($wiadomosci));
                 foreach ($wiadomosci as $w) {
                     $this->przetworzReklamacje($w);
                 }
             }
         } catch (\Exception $e) {
-            $this->error('Błąd IMAP reklamacji: ' . $e->getMessage());
-            Log::error('reklamacje:przetwarzaj — błąd IMAP: ' . $e->getMessage());
+            $this->error('Błąd IMAP reklamacji: '.$e->getMessage());
+            Log::error('reklamacje:przetwarzaj — błąd IMAP: '.$e->getMessage());
         }
 
         // ── Gewichtsmeldungen ─────────────────────────────────────────────────
@@ -53,17 +55,18 @@ class PrzetworzReklamacje extends Command
             if (empty($wiadomosci)) {
                 $this->info('Brak nowych Gewichtsmeldungen.');
             } else {
-                $this->info('Znaleziono Gewichtsmeldungen: ' . count($wiadomosci));
+                $this->info('Znaleziono Gewichtsmeldungen: '.count($wiadomosci));
                 foreach ($wiadomosci as $w) {
                     $this->przetworzGewichtsmeldung($w);
                 }
             }
         } catch (\Exception $e) {
-            $this->error('Błąd IMAP Gewichtsmeldung: ' . $e->getMessage());
-            Log::error('reklamacje:przetwarzaj — błąd IMAP Gewicht: ' . $e->getMessage());
+            $this->error('Błąd IMAP Gewichtsmeldung: '.$e->getMessage());
+            Log::error('reklamacje:przetwarzaj — błąd IMAP Gewicht: '.$e->getMessage());
         }
 
         Log::info('reklamacje:przetwarzaj — koniec');
+
         return self::SUCCESS;
     }
 
@@ -76,9 +79,10 @@ class PrzetworzReklamacje extends Command
         $subject = $wiadomosc['mail_subject'] ?? '(brak tematu)';
         $this->line("  Przetwarzam reklamację: {$subject}");
 
-        if (!empty($wiadomosc['blad'])) {
+        if (! empty($wiadomosc['blad'])) {
             $this->zapiszBlad($wiadomosc, $wiadomosc['blad'], $wiadomosc['zalaczniki']);
             $this->warn("    → Błąd IMAP: {$wiadomosc['blad']}");
+
             return;
         }
 
@@ -90,18 +94,20 @@ class PrzetworzReklamacje extends Command
                 $zalaczniki[1]['zawartosc'], $zalaczniki[1]['nazwa'],
             );
         } catch (\Exception $e) {
-            $this->zapiszBlad($wiadomosc, 'Błąd parsowania PDF: ' . $e->getMessage(), $zalaczniki);
-            $this->warn("    → Błąd parsowania: " . $e->getMessage());
+            $this->zapiszBlad($wiadomosc, 'Błąd parsowania PDF: '.$e->getMessage(), $zalaczniki);
+            $this->warn('    → Błąd parsowania: '.$e->getMessage());
+
             return;
         }
 
         $lieferschein = $dane['lieferschein'];
-        $masaNetto    = $dane['masa_netto'];
+        $masaNetto = $dane['masa_netto'];
 
         if ($lieferschein === null || $masaNetto === null) {
             $opis = $this->opisBledu($lieferschein, $masaNetto);
             $this->zapiszBlad($wiadomosc, $opis, $zalaczniki);
             $this->warn("    → Błąd: {$opis}");
+
             return;
         }
 
@@ -115,14 +121,14 @@ class PrzetworzReklamacje extends Command
         $lieferscheinId = Lieferschein::where('number', $lieferschein)->value('id');
 
         Reklamacja::create([
-            'typ'               => 'reklamacja',
-            'lieferschein'      => $lieferschein,
-            'lieferschein_id'   => $lieferscheinId,
-            'masa_netto'        => $masaNetto,
-            'mail_subject'      => $wiadomosc['mail_subject'],
-            'mail_date'         => $wiadomosc['mail_date'],
+            'typ' => 'reklamacja',
+            'lieferschein' => $lieferschein,
+            'lieferschein_id' => $lieferscheinId,
+            'masa_netto' => $masaNetto,
+            'mail_subject' => $wiadomosc['mail_subject'],
+            'mail_date' => $wiadomosc['mail_date'],
             'plik_lieferschein' => $dane['plik_lieferschein'],
-            'plik_masa'         => $dane['plik_masa'],
+            'plik_masa' => $dane['plik_masa'],
             'sciezka_pliku_masy' => $sciezkaPliku,
         ]);
 
@@ -139,9 +145,10 @@ class PrzetworzReklamacje extends Command
         $subject = $wiadomosc['mail_subject'] ?? '(brak tematu)';
         $this->line("  Przetwarzam Gewichtsmeldung: {$subject}");
 
-        if (!empty($wiadomosc['blad'])) {
+        if (! empty($wiadomosc['blad'])) {
             $this->zapiszBlad($wiadomosc, $wiadomosc['blad'], []);
             $this->warn("    → Błąd IMAP: {$wiadomosc['blad']}");
+
             return;
         }
 
@@ -150,18 +157,20 @@ class PrzetworzReklamacje extends Command
         try {
             $dane = $this->pdfService->przetworzGewichtsmeldung($zal['zawartosc'], $zal['nazwa']);
         } catch (\Exception $e) {
-            $this->zapiszBlad($wiadomosc, 'Błąd parsowania PDF: ' . $e->getMessage(), $wiadomosc['zalaczniki']);
-            $this->warn("    → Błąd parsowania: " . $e->getMessage());
+            $this->zapiszBlad($wiadomosc, 'Błąd parsowania PDF: '.$e->getMessage(), $wiadomosc['zalaczniki']);
+            $this->warn('    → Błąd parsowania: '.$e->getMessage());
+
             return;
         }
 
         $lieferschein = $dane['lieferschein'];
-        $masaNetto    = $dane['masa_netto'];
+        $masaNetto = $dane['masa_netto'];
 
         if ($lieferschein === null || $masaNetto === null) {
             $opis = $this->opisBledu($lieferschein, $masaNetto);
             $this->zapiszBlad($wiadomosc, $opis, $wiadomosc['zalaczniki']);
             $this->warn("    → Błąd: {$opis}");
+
             return;
         }
 
@@ -175,14 +184,14 @@ class PrzetworzReklamacje extends Command
         $lieferscheinId = Lieferschein::where('number', $lieferschein)->value('id');
 
         Reklamacja::create([
-            'typ'                => 'gewichtsmeldung',
-            'lieferschein'       => $lieferschein,
-            'lieferschein_id'    => $lieferscheinId,
-            'masa_netto'         => $masaNetto,
-            'mail_subject'       => $wiadomosc['mail_subject'],
-            'mail_date'          => $wiadomosc['mail_date'],
-            'plik_lieferschein'  => null,
-            'plik_masa'          => $dane['plik'],
+            'typ' => 'gewichtsmeldung',
+            'lieferschein' => $lieferschein,
+            'lieferschein_id' => $lieferscheinId,
+            'masa_netto' => $masaNetto,
+            'mail_subject' => $wiadomosc['mail_subject'],
+            'mail_date' => $wiadomosc['mail_date'],
+            'plik_lieferschein' => null,
+            'plik_masa' => $dane['plik'],
             'sciezka_pliku_masy' => $sciezkaPliku,
         ]);
 
@@ -196,10 +205,10 @@ class PrzetworzReklamacje extends Command
 
     private function zapiszPlik(string $zawartosc, string $nazwaPliku, string $lieferschein, ?string $mailDate): string
     {
-        $data            = $mailDate ? \Carbon\Carbon::parse($mailDate) : now();
+        $data = $mailDate ? Carbon::parse($mailDate) : now();
         $folderLieferschein = preg_replace('/[^\w\-]/u', '_', $lieferschein);
-        $folder          = "reklamacje/{$data->format('Y')}/{$data->format('m')}/{$folderLieferschein}";
-        $sciezka         = "{$folder}/{$nazwaPliku}";
+        $folder = "reklamacje/{$data->format('Y')}/{$data->format('m')}/{$folderLieferschein}";
+        $sciezka = "{$folder}/{$nazwaPliku}";
 
         Storage::makeDirectory($folder);
         Storage::put($sciezka, $zawartosc);
@@ -210,10 +219,10 @@ class PrzetworzReklamacje extends Command
     private function zapiszBlad(array $wiadomosc, string $opis, array $zalaczniki): void
     {
         $folderBledy = null;
-        $nazwy       = [];
+        $nazwy = [];
 
-        if (!empty($zalaczniki)) {
-            $uniqid      = uniqid('blad_', true);
+        if (! empty($zalaczniki)) {
+            $uniqid = uniqid('blad_', true);
             $folderBledy = "reklamacje/_bledy/{$uniqid}";
             Storage::makeDirectory($folderBledy);
 
@@ -225,12 +234,12 @@ class PrzetworzReklamacje extends Command
 
         ReklamacjaBled::create([
             'mail_subject' => $wiadomosc['mail_subject'] ?? null,
-            'mail_date'    => $wiadomosc['mail_date'] ?? null,
-            'blad'         => $opis,
-            'plik_1'       => $nazwy[0] ?? null,
-            'plik_2'       => $nazwy[1] ?? null,
-            'folder_temp'  => $folderBledy,
-            'status'       => 'nowy',
+            'mail_date' => $wiadomosc['mail_date'] ?? null,
+            'blad' => $opis,
+            'plik_1' => $nazwy[0] ?? null,
+            'plik_2' => $nazwy[1] ?? null,
+            'folder_temp' => $folderBledy,
+            'status' => 'nowy',
         ]);
 
         Log::warning("reklamacje: błąd [{$opis}]");
@@ -244,6 +253,7 @@ class PrzetworzReklamacje extends Command
         if ($lieferschein === null) {
             return 'Nie znaleziono numeru Lieferschein.';
         }
+
         return 'Nie znaleziono masy.';
     }
 }

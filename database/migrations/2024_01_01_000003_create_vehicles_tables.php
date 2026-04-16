@@ -23,13 +23,13 @@ return new class extends Migration
             $table->id();
             $table->string('label');
             $table->foreignId('tractor_id')
-                  ->nullable()
-                  ->constrained('vehicles')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('vehicles')
+                ->nullOnDelete();
             $table->foreignId('trailer_id')
-                  ->nullable()
-                  ->constrained('vehicles')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('vehicles')
+                ->nullOnDelete();
             $table->decimal('tare_kg', 8, 3);
             $table->boolean('is_active')->default(true);
             $table->timestamps();

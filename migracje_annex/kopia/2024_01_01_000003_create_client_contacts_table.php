@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('client_contacts', function (Blueprint $table) {
             $table->id();
             $table->foreignId('client_id')
-                  ->constrained('clients')
-                  ->cascadeOnDelete();
+                ->constrained('clients')
+                ->cascadeOnDelete();
             $table->enum('category', ['awizacje', 'faktury', 'handlowe']);
             $table->string('name');
             $table->string('email')->nullable();

@@ -23,37 +23,38 @@ class UserSeeder extends Seeder
 
         // 1. Wyłączamy sprawdzanie kluczy obcych
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        
+
         // 2. Czyścimy obecną tabelę users w mrowisko.local
         DB::table('users')->truncate();
 
         // 3. Pobieramy WSZYSTKIE dane z tabeli users w bazie 'mrowisko'
         $oldUsers = DB::table('mrowisko.users')->get();
 
-        $this->command->info("Pobrano " . $oldUsers->count() . " użytkowników z bazy 'mrowisko'.");
+        $this->command->info('Pobrano '.$oldUsers->count()." użytkowników z bazy 'mrowisko'.");
 
         // 4. Przegrywamy dane z mapowaniem
         $skipped = 0;
         foreach ($oldUsers as $user) {
             // Sprawdź czy role_id istnieje w mapowaniu
-            if (!isset($roleMap[$user->role_id])) {
+            if (! isset($roleMap[$user->role_id])) {
                 $this->command->warn("Pominięto użytkownika {$user->username} (ID: {$user->id}) - nieznana role_id: {$user->role_id}");
                 $skipped++;
+
                 continue;
             }
 
             // Mapuj dane ze starej struktury na nową
             $userData = [
-                'id'             => $user->id,
-                'name'           => $user->name,
-                'login'          => $user->username,  // username → login
-                'password'       => $user->password,
-                'module'         => $roleMap[$user->role_id],  // role_id → module
+                'id' => $user->id,
+                'name' => $user->name,
+                'login' => $user->username,  // username → login
+                'password' => $user->password,
+                'module' => $roleMap[$user->role_id],  // role_id → module
                 'remember_token' => $user->remember_token,
-                'created_at'     => $user->created_at,
-                'updated_at'     => $user->updated_at,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
             ];
-            
+
             DB::table('users')->insert($userData);
         }
 

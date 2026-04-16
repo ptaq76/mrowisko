@@ -12,11 +12,11 @@ return new class extends Migration
         Schema::create('delivery_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')
-                  ->constrained('orders')
-                  ->cascadeOnDelete();
+                ->constrained('orders')
+                ->cascadeOnDelete();
             $table->foreignId('waste_fraction_id')
-                  ->constrained('waste_fractions')
-                  ->restrictOnDelete();
+                ->constrained('waste_fractions')
+                ->restrictOnDelete();
             $table->enum('form', ['luz', 'belka']);
             $table->decimal('weight_kg', 10, 2)->default(0);
             $table->timestamps();
@@ -26,11 +26,11 @@ return new class extends Migration
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')
-                  ->constrained('orders')
-                  ->cascadeOnDelete();
+                ->constrained('orders')
+                ->cascadeOnDelete();
             $table->foreignId('waste_fraction_id')
-                  ->constrained('waste_fractions')
-                  ->restrictOnDelete();
+                ->constrained('waste_fractions')
+                ->restrictOnDelete();
             $table->unsignedInteger('quantity')->default(0); // sztuki bel
             $table->decimal('weight_kg', 10, 2)->nullable();  // po raporcie kierowcy
             $table->timestamps();
@@ -40,18 +40,18 @@ return new class extends Migration
         Schema::create('order_containers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')
-                  ->constrained('orders')
-                  ->cascadeOnDelete();
+                ->constrained('orders')
+                ->cascadeOnDelete();
             $table->foreignId('container_id')
-                  ->constrained('containers')
-                  ->restrictOnDelete();
+                ->constrained('containers')
+                ->restrictOnDelete();
             $table->enum('action', ['zostawiony', 'zabrany']);
             $table->enum('location_from', ['plac', 'klient', 'transport'])->nullable();
             $table->enum('location_to', ['plac', 'klient', 'transport'])->nullable();
             $table->foreignId('client_id')
-                  ->nullable()
-                  ->constrained('clients')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('clients')
+                ->nullOnDelete();
             $table->decimal('weight_brutto', 10, 2)->nullable();
             $table->decimal('weight_netto', 10, 2)->nullable();
             $table->timestamps();

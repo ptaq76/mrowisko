@@ -23,9 +23,9 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->text('notes')->nullable();
             $table->foreignId('salesman_id')
-                  ->nullable()
-                  ->constrained('users')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

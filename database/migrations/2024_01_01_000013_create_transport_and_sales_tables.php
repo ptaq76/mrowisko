@@ -18,15 +18,15 @@ return new class extends Migration
         Schema::create('koszty_transportu', function (Blueprint $table) {
             $table->id();
             $table->foreignId('start_id')
-                  ->constrained('clients')
-                  ->restrictOnDelete();
+                ->constrained('clients')
+                ->restrictOnDelete();
             $table->foreignId('stop_id')
-                  ->constrained('clients')
-                  ->restrictOnDelete();
+                ->constrained('clients')
+                ->restrictOnDelete();
             $table->foreignId('przewoznik_id')
-                  ->nullable()
-                  ->constrained('przewoznicy')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('przewoznicy')
+                ->nullOnDelete();
             $table->decimal('cena_eur', 10, 2);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
@@ -35,9 +35,9 @@ return new class extends Migration
         Schema::create('wysylki_ceny', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')
-                  ->unique()
-                  ->constrained('orders')
-                  ->cascadeOnDelete();
+                ->unique()
+                ->constrained('orders')
+                ->cascadeOnDelete();
             $table->decimal('cena_eur', 10, 2)->nullable();
             $table->timestamps();
         });
@@ -45,13 +45,13 @@ return new class extends Migration
         Schema::create('wysylki_transport', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')
-                  ->unique()
-                  ->constrained('orders')
-                  ->cascadeOnDelete();
+                ->unique()
+                ->constrained('orders')
+                ->cascadeOnDelete();
             $table->foreignId('przewoznik_id')
-                  ->nullable()
-                  ->constrained('przewoznicy')
-                  ->nullOnDelete();
+                ->nullable()
+                ->constrained('przewoznicy')
+                ->nullOnDelete();
             $table->decimal('cena_eur', 10, 2)->nullable();
             $table->boolean('recznie')->default(false);
             $table->timestamps();

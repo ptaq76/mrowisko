@@ -3,29 +3,30 @@
 namespace App\Services;
 
 use Illuminate\Support\Facades\Log;
-use Webklex\PHPIMAP\ClientManager;
 use Webklex\PHPIMAP\Client;
+use Webklex\PHPIMAP\ClientManager;
 
 class ImapGewichtsmeldungService
 {
     private ClientManager $manager;
+
     private Client $client;
 
     public function __construct()
     {
-        $this->manager = new ClientManager();
+        $this->manager = new ClientManager;
     }
 
     private function polacz(): void
     {
         $this->client = $this->manager->make([
-            'host'          => config('reklamacje.gewichtsmeldung_imap.host'),
-            'port'          => config('reklamacje.gewichtsmeldung_imap.port'),
-            'encryption'    => config('reklamacje.gewichtsmeldung_imap.encryption'),
+            'host' => config('reklamacje.gewichtsmeldung_imap.host'),
+            'port' => config('reklamacje.gewichtsmeldung_imap.port'),
+            'encryption' => config('reklamacje.gewichtsmeldung_imap.encryption'),
             'validate_cert' => config('reklamacje.gewichtsmeldung_imap.validate_cert', false),
-            'username'      => config('reklamacje.gewichtsmeldung_imap.username'),
-            'password'      => config('reklamacje.gewichtsmeldung_imap.password'),
-            'protocol'      => 'imap',
+            'username' => config('reklamacje.gewichtsmeldung_imap.username'),
+            'password' => config('reklamacje.gewichtsmeldung_imap.password'),
+            'protocol' => 'imap',
         ]);
 
         $this->client->connect();
@@ -48,8 +49,8 @@ class ImapGewichtsmeldungService
         $this->polacz();
 
         $folderName = config('reklamacje.gewichtsmeldung_imap.folder', 'INBOX');
-        $folder     = $this->client->getFolder($folderName);
-        $messages   = $folder->query()->unseen()->get();
+        $folder = $this->client->getFolder($folderName);
+        $messages = $folder->query()->unseen()->get();
 
         $wyniki = [];
 
@@ -57,11 +58,12 @@ class ImapGewichtsmeldungService
             try {
                 $wyniki[] = $this->przetworzWiadomosc($message);
             } catch (\Exception $e) {
-                Log::error('ImapGewichtsmeldungService: błąd: ' . $e->getMessage());
+                Log::error('ImapGewichtsmeldungService: błąd: '.$e->getMessage());
             }
         }
 
         $this->client->disconnect();
+
         return $wyniki;
     }
 
@@ -79,9 +81,9 @@ class ImapGewichtsmeldungService
 
         $podstawa = [
             'mail_subject' => $subject,
-            'mail_date'    => $date,
-            'blad'         => null,
-            'zalaczniki'   => [],
+            'mail_date' => $date,
+            'blad' => null,
+            'zalaczniki' => [],
         ];
 
         $pdfy = [];
@@ -102,9 +104,10 @@ class ImapGewichtsmeldungService
         }
 
         $pdf = $pdfy[0];
+
         return array_merge($podstawa, [
             'zalaczniki' => [[
-                'nazwa'     => $this->sanityzujNazwe($pdf->getName() ?? ('gewicht_' . uniqid() . '.pdf')),
+                'nazwa' => $this->sanityzujNazwe($pdf->getName() ?? ('gewicht_'.uniqid().'.pdf')),
                 'zawartosc' => $pdf->getContent(),
             ]],
         ]);
@@ -113,6 +116,7 @@ class ImapGewichtsmeldungService
     private function sanityzujNazwe(string $nazwa): string
     {
         $czysta = preg_replace('/[^\w.\-]/u', '_', $nazwa);
+
         return substr($czysta, 0, 200);
     }
 }

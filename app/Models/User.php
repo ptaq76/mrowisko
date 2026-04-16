@@ -32,14 +32,14 @@ class User extends Authenticatable
     }
 
     const MODULES = [
-        'admin'      => 'Administrator',
-        'biuro'      => 'Biuro',
-        'kierowca'   => 'Kierowca',
-        'hakowiec'   => 'Hakowiec',
-        'plac'       => 'Plac',
+        'admin' => 'Administrator',
+        'biuro' => 'Biuro',
+        'kierowca' => 'Kierowca',
+        'hakowiec' => 'Hakowiec',
+        'plac' => 'Plac',
         'handlowiec' => 'Handlowiec',
-        'czarnypan'  => 'Czarny Pan',
-        'karchem'    => 'Karchem',
+        'czarnypan' => 'Czarny Pan',
+        'karchem' => 'Karchem',
     ];
 
     public function isAdmin(): bool
@@ -56,5 +56,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(Client::class, 'salesman_id');
     }
-
 }
