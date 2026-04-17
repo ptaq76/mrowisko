@@ -33,6 +33,28 @@
     </button>
 </div>
 
+{{-- Filtr --}}
+@php
+    // Zbierz unikalne numery rejestracyjne z etykiet (rozbij po ' / ')
+    $plates = $sets->flatMap(fn($s) => array_map('trim', explode('/', $s->label)))
+        ->unique()->sort()->values();
+@endphp
+<div class="card mb-3">
+    <div class="card-body py-2">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#888;letter-spacing:.06em">Filtruj:</div>
+            <select id="filterPlate" class="form-select form-select-sm" style="max-width:200px" onchange="filterSets()">
+                <option value="">– wszystkie –</option>
+                @foreach($plates as $plate)
+                <option value="{{ $plate }}">{{ $plate }}</option>
+                @endforeach
+            </select>
+            <button class="btn btn-sm btn-secondary" onclick="document.getElementById('filterPlate').value='';filterSets()">Wyczyść</button>
+            <span id="filterCount" class="text-muted" style="font-size:12px"></span>
+        </div>
+    </div>
+</div>
+
 {{-- Tabela zestawów --}}
 <div style="max-width:50%">
 <div class="card">
@@ -48,7 +70,7 @@
             </thead>
             <tbody id="setsTable">
                 @forelse($sets as $s)
-                <tr id="sr-{{ $s->id }}" class="{{ $s->is_active ? '' : 'text-muted' }}">
+                <tr id="sr-{{ $s->id }}" class="{{ $s->is_active ? '' : 'text-muted' }}" data-label="{{ $s->label }}">
                     <td><strong>{{ $s->label }}</strong></td>
                     <td><span class="tare-val">{{ number_format($s->tare_kg, 3, ',', ' ') }}</span></td>
                     <td>
@@ -270,6 +292,19 @@ async function saveSet() {
     } else {
         Swal.fire({ icon:'error', title:'Błąd', text: data.errors ? Object.values(data.errors).flat().join('\n') : 'Błąd zapisu.' });
     }
+}
+
+function filterSets() {
+    const val  = document.getElementById('filterPlate').value.toLowerCase();
+    const rows = document.querySelectorAll('#setsTable tr[data-label]');
+    let visible = 0;
+    rows.forEach(row => {
+        const match = !val || row.dataset.label.toLowerCase().includes(val);
+        row.style.display = match ? '' : 'none';
+        if (match) visible++;
+    });
+    const cnt = document.getElementById('filterCount');
+    cnt.textContent = val ? `Pokazano: ${visible}` : '';
 }
 
 async function deleteSet(id) {

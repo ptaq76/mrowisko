@@ -27,7 +27,7 @@
 .dc-vehicle { font-weight:800;font-size:14px;color:#1a1a1a; }
 .dc-type    { font-size:12px;color:#888;margin-top:2px; }
 .dc-right   { text-align:right;flex-shrink:0; }
-.dc-days    { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900; }
+.dc-days    { font-family:'Barlow Condensed',sans-serif;font-weight:900;line-height:1; }
 .dc-days.overdue  { color:#e74c3c; }
 .dc-days.soon     { color:#e67e22; }
 .dc-days.upcoming { color:#27ae60; }
@@ -67,10 +67,8 @@
     @foreach($upcoming as $a)
     @php
         $days = $a->days_until_deadline;
-        $cls  = $days < 0 ? 'overdue' : ($days <= 7 ? 'soon' : 'upcoming');
-        $daysLabel = $days < 0
-            ? abs($days) . ' dni po terminie'
-            : ($days === 0 ? 'Dziś!' : 'za ' . $days . ' dni');
+        $cls  = ($days < 0 || $days < 14) ? 'overdue' : ($days < 30 ? 'soon' : 'upcoming');
+        $daysLabel = $days < 0 ? abs($days) : $days;
     @endphp
     <div class="col-md-4 col-lg-3">
         <div class="deadline-card {{ $cls }}">
@@ -82,7 +80,7 @@
                 @endif
             </div>
             <div class="dc-right">
-                <div class="dc-days {{ $cls }}">{{ $daysLabel }}</div>
+                <div class="dc-days {{ $cls }}" style="font-size:32px">{{ $daysLabel }}</div>
                 <div class="dc-date">{{ $a->deadline_date?->format('d.m.Y') }}</div>
                 <div class="d-flex gap-1 justify-content-end mt-1">
                     <button class="btn btn-edit btn-sm edit-akcja-btn"
@@ -166,8 +164,11 @@
                     <td style="font-size:12px;font-weight:700">{{ $a->deadline_date?->format('d.m.Y') ?? '–' }}</td>
                     <td>
                         @if($days !== null)
-                        <span class="badge bg-{{ $badgeClass }}">
-                            {{ $days < 0 ? abs($days).'d po term.' : ($days === 0 ? 'Dziś' : $days.'d') }}
+                        @php
+                            $color = $days < 0 ? '#e74c3c' : ($days < 14 ? '#e74c3c' : ($days < 30 ? '#e67e22' : '#27ae60'));
+                        @endphp
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;color:{{ $color }}">
+                            {{ $days < 0 ? '-'.abs($days) : $days }}
                         </span>
                         @else
                         <span class="text-muted">–</span>
