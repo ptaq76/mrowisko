@@ -245,8 +245,8 @@ async function deleteItem(id) {
     });
     const data = await res.json();
     if (data.success) {
-        document.getElementById('ir-' + id)?.remove();
-        Swal.fire({ icon: 'success', title: 'Usunięto', timer: 1200, showConfirmButton: false });
+        await Swal.fire({ icon: 'success', title: 'Usunięto', timer: 1200, showConfirmButton: false });
+        location.reload();
     }
 }
 

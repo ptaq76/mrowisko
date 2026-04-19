@@ -19,26 +19,28 @@ class DashboardController extends Controller
     }
 
     public function orders(Request $request)
-    {
-        $date = $request->filled('data')
-            ? Carbon::parse($request->input('data'))->startOfDay()
-            : Carbon::today();
+{
+    $date = $request->filled('data')
+        ? Carbon::parse($request->input('data'))->startOfDay()
+        : Carbon::today();
 
-        $orders = Order::with(['client', 'driver', 'tractor', 'trailer', 'loadingItems.fraction', 'lieferschein.importer'])
-            ->where(function ($q) use ($date) {
-                $q->whereDate('planned_date', $date)
-                    ->orWhere(function ($q2) use ($date) {
-                        $q2->whereDate('planned_date', '<', $date)
-                            ->whereNotIn('status', ['closed', 'delivered']);
-                    });
-            })
-            ->orderByRaw("CASE WHEN status = 'loaded' THEN 1 ELSE 0 END")
-            ->orderByRaw('CASE WHEN DATE(planned_date) = ? THEN 0 ELSE 1 END', [$date->format('Y-m-d')])
-            ->orderBy('planned_time')
-            ->get();
+    $today = Carbon::today();
 
-        return view('plac.orders', compact('orders', 'date'));
-    }
+    $orders = Order::with(['client', 'driver', 'tractor', 'trailer', 'loadingItems.fraction', 'lieferschein.importer'])
+        ->where(function ($q) use ($date, $today) {
+            $q->whereDate('plac_date', $date)
+                ->orWhere(function ($q2) use ($today) {
+                    $q2->whereDate('plac_date', '<', $today)
+                        ->whereNotIn('status', ['closed', 'delivered', 'loaded']);
+                });
+        })
+        ->orderByRaw("CASE WHEN status = 'loaded' THEN 1 ELSE 0 END")
+        ->orderByRaw('CASE WHEN DATE(plac_date) = ? THEN 0 ELSE 1 END', [$date->format('Y-m-d')])
+        ->orderBy('planned_time')
+        ->get();
+
+    return view('plac.orders', compact('orders', 'date'));
+}
 
     public function _old_index(Request $request)
     {
@@ -68,11 +70,6 @@ class DashboardController extends Controller
         $order->load(['client', 'driver', 'tractor', 'trailer', 'loadingItems.fraction', 'lieferschein.importer']);
 
         $date = $order->planned_date ?? Carbon::today();
-
-        $fractions = WasteFraction::forLoadings()->orderBy('name')->get();
-
-        // Frakcje z magazynu (tylko te co mają stan > 0)
-        $stock = WarehouseItem::stockSummary();
 
         // Frakcje do szybkiego wyboru (show_in_loadings)
         $fractions = WasteFraction::where('show_in_loadings', true)

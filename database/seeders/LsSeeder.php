@@ -29,52 +29,54 @@ class LsSeeder extends Seeder
         ];
 
         // 2. Pobranie danych ze starej bazy
-        // Zakładamy, że połączenie ma dostęp do bazy 'mrowisko'
         $oldLS = DB::table('mrowisko.ls')->get();
 
         $this->command->info('Rozpoczynanie migracji '.$oldLS->count().' rekordów z tabeli ls...');
 
         $countCreated = 0;
-        $countSkipped = 0;
+        $countUpdated = 0;
 
         foreach ($oldLS as $l) {
-            // 3. Sprawdzenie, czy numer już istnieje (pole number jest UNIQUE)
-            $exists = DB::table('lieferscheins')->where('number', $l->numer)->exists();
+            // 3. Dopasowanie klienta na podstawie kierunku
+            $directionKey = trim($l->kierunek);
+            $mappedClientId = $directionToClientId[$directionKey] ?? null;
 
-            if (! $exists) {
-                // 4. Dopasowanie klienta na podstawie kierunku
-                $directionKey = trim($l->kierunek);
-                $mappedClientId = $directionToClientId[$directionKey] ?? null;
+            // 4. Dane do wstawienia/aktualizacji
+            $data = [
+                'number' => $l->numer,
+                'importer_id' => $l->importer_id,
+                'client_id' => $mappedClientId,
+                'goods_id' => $l->towar_id,
+                'waste_code_id' => null,
+                'date' => $l->data,
+                'time_window' => $l->okienko,
+                'goods_description' => 'Stary kierunek: '.$l->kierunek,
+                'is_used' => 0,
+                'transp_zew' => $l->transp_zew,
+                'status' => $l->status,
+                'pdf_path' => $l->pdf_path,
+                'created_at' => $l->created_at,
+                'updated_at' => $l->updated_at,
+            ];
 
-                // 5. Wstawienie rekordu
-                DB::table('lieferscheins')->insert([
-                    'id' => $l->id,
-                    'number' => $l->numer,
-                    'importer_id' => $l->importer_id,
-                    'client_id' => $mappedClientId,
-                    'goods_id' => $l->towar_id,
-                    'waste_code_id' => null, // brak odpowiednika w starej bazie
-                    'date' => $l->data,
-                    'time_window' => $l->okienko,
-                    'goods_description' => 'Stary kierunek: '.$l->kierunek,
-                    'is_used' => 0,
-                    'transp_zew' => $l->transp_zew,
-                    'status' => $l->status,
-                    'pdf_path' => $l->pdf_path,
-                    'created_at' => $l->created_at,
-                    'updated_at' => $l->updated_at,
-                ]);
+            // 5. Sprawdź czy rekord istnieje (po id)
+            $exists = DB::table('lieferscheins')->where('id', $l->id)->exists();
 
-                $countCreated++;
+            if ($exists) {
+                // Aktualizuj istniejący rekord
+                DB::table('lieferscheins')->where('id', $l->id)->update($data);
+                $countUpdated++;
             } else {
-                $countSkipped++;
+                // Wstaw nowy rekord z zachowaniem id
+                DB::table('lieferscheins')->insert(array_merge(['id' => $l->id], $data));
+                $countCreated++;
             }
         }
 
         $this->command->info('Migracja zakończona!');
         $this->command->info("Utworzono: $countCreated");
-        if ($countSkipped > 0) {
-            $this->command->warn("Pominięto duplikaty: $countSkipped");
+        if ($countUpdated > 0) {
+            $this->command->info("Zaktualizowano: $countUpdated");
         }
     }
 }

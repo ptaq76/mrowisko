@@ -398,37 +398,39 @@ async function askPlacDate(orderId, plannedDate) {
         prevWorkday.setDate(prevWorkday.getDate() - 1);
     }
 
-    const fmt = d => d.toISOString().split('T')[0];
-    const fmtPl = d => d.toLocaleDateString('pl-PL', { weekday:'long', day:'numeric', month:'long' });
+    const fmt   = d => d.toISOString().split('T')[0];
+    const fmtPl = d => d.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' });
 
     const { value: choice } = await Swal.fire({
         title: 'Kiedy zlecenie widoczne na placu?',
         icon: 'question',
-        showCancelButton: true,
-        showDenyButton: true,
-        showConfirmButton: true,
-        confirmButtonText: `0 – tego dnia (${fmtPl(pd)})`,
-        denyButtonText: `-1 – dzień wcześniej (${fmtPl(prevWorkday)})`,
-        cancelButtonText: 'Nie wysyłaj na plac',
+        input: 'radio',
+        inputOptions: {
+            'same': `Tego dnia — ${fmtPl(pd)}`,
+            'prev': `Dzień wcześniej — ${fmtPl(prevWorkday)}`,
+            'none': 'Nie wysyłaj na plac',
+        },
+        inputValue: 'same',
+        showCancelButton: false,
+        confirmButtonText: 'Zapisz',
         confirmButtonColor: '#27ae60',
-        denyButtonColor: '#f39c12',
+        customClass: {
+            input: 'swal-radio-vertical',
+        },
     });
 
-    let placDate = null;
-
-    if (choice === true) {
-        placDate = fmt(pd);
-    } else if (choice === false) {
-        placDate = fmt(prevWorkday);
-    } else {
-        return;
+    if (choice === 'same' || choice === 'prev') {
+        const placDate = choice === 'same' ? fmt(pd) : fmt(prevWorkday);
+        await fetch(`/biuro/orders/${orderId}/plac-date`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ plac_date: placDate }),
+        });
     }
-
-    await fetch(`/biuro/orders/${orderId}/plac-date`, {
-        method: 'POST',
-        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ plac_date: placDate }),
-    });
 }
 
 // ── Usuwanie ─────────────────────────────────────────────────
@@ -692,10 +694,25 @@ async function submitEditOrder() {
         else el?.classList.remove('is-invalid');
     });
     if (!ok) {
-        Swal.fire({ icon: 'warning', title: 'Uzupełnij wymagane pola', timer: 2000, showConfirmButton: false });
+        Swal.fire({ icon: 'warning', title: 'Uzupełnij wymagane pola',
+                    timer: 2000, showConfirmButton: false });
         return;
     }
 
+    const plannedDate     = document.getElementById('edit_order_date').value;
+    const currentPlacDate = document.getElementById('edit_order_plac_date').value;
+
+    const pd = new Date(plannedDate);
+    const prevWorkday = new Date(pd);
+    prevWorkday.setDate(prevWorkday.getDate() - 1);
+    while (prevWorkday.getDay() === 0 || prevWorkday.getDay() === 6) {
+        prevWorkday.setDate(prevWorkday.getDate() - 1);
+    }
+    const fmt   = d => d.toISOString().split('T')[0];
+    const fmtPl = d => d.toLocaleDateString('pl-PL',
+                       { weekday: 'long', day: 'numeric', month: 'long' });
+
+    // Zapisz zlecenie
     const formData = new FormData(form);
     formData.append('_method', 'PUT');
 
@@ -706,17 +723,58 @@ async function submitEditOrder() {
     });
     const data = await res.json();
 
-    if (data.success) {
-        bootstrap.Modal.getInstance(document.getElementById('editOrderModal')).hide();
-        await Swal.fire({ icon: 'success', title: 'Zaktualizowano!', text: data.message,
-                          timer: 1800, showConfirmButton: false });
-        location.reload();
-    } else {
-        const errors = data.errors ? Object.values(data.errors).flat().join('\n') : 'Błąd.';
+    if (!data.success) {
+        const errors = data.errors
+            ? Object.values(data.errors).flat().join('\n') : 'Błąd.';
         Swal.fire({ icon: 'error', title: 'Błąd', text: errors });
+        return;
     }
-}
 
+    bootstrap.Modal.getInstance(document.getElementById('editOrderModal')).hide();
+
+    const placLabel = currentPlacDate
+        ? `Obecna data placu: <strong>${currentPlacDate}</strong>`
+        : 'Brak ustawionej daty placu.';
+
+    // Ustal domyślny wybór na podstawie obecnej plac_date
+    const defaultChoice = currentPlacDate === fmt(pd)
+        ? 'same'
+        : (currentPlacDate === fmt(prevWorkday) ? 'prev' : 'none');
+
+    const { value: choice } = await Swal.fire({
+        title: 'Data widoczności na placu',
+        html: placLabel,
+        icon: 'question',
+        input: 'radio',
+        inputOptions: {
+            'same': `Tego dnia — ${fmtPl(pd)}`,
+            'prev': `Dzień wcześniej — ${fmtPl(prevWorkday)}`,
+            'none': 'Zostaw bez zmian',
+        },
+        inputValue: defaultChoice,
+        showCancelButton: false,
+        confirmButtonText: 'Zapisz',
+        confirmButtonColor: '#27ae60',
+        customClass: {
+            input: 'swal-radio-vertical',
+        },
+    });
+
+    if (choice === 'same' || choice === 'prev') {
+        const newPlacDate = choice === 'same' ? fmt(pd) : fmt(prevWorkday);
+        await fetch(`/biuro/orders/${orderId}/plac-date`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ plac_date: newPlacDate }),
+        });
+    }
+
+    location.reload();
+}
 async function deleteEditOrder() {
     const orderId = document.getElementById('edit_order_id').value;
     const result  = await Swal.fire({
@@ -739,3 +797,22 @@ async function deleteEditOrder() {
     }
 }
 </script>
+
+{{-- style dziedziczone z order_modal.blade.php --}}
+
+<style>
+.swal-radio-vertical {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+    margin: 12px auto !important;
+}
+.swal-radio-vertical label {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 15px !important;
+    cursor: pointer !important;
+}
+</style>

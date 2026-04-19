@@ -21,17 +21,26 @@ class DatabaseSeeder extends Seeder
             // klienci
             clientSeeder::class,
 
+            // towary
+
+            WasteFractionSeeder::class,
+
             // Pojazdy i kierowcy
             VehicleSeeder::class,
             DriverSeeder::class,
             VehicleSetSeeder::class,
             FuelVehicleSeeder::class,
+            PojazdyTerminySeeder::class,
+            TerminyAkcjeSeeder::class,
 
             // Importerzy i towary LS
             WasteFractionSeeder::class,
             ImporterSeeder::class,
             LsGoodsSeeder::class,
             LsSeeder::class,
+
+            MigrateOrdersSeeder::class,
+
 
             // Szybkie przyciski do zleceń
             OrderQuickButtonSeeder::class,

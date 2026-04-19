@@ -29,6 +29,15 @@
 .btn-history { background:#f4f5f7;border:1px solid #dde0e5;border-radius:6px;padding:5px 10px;color:#555;cursor:pointer;font-size:12px;display:inline-flex;align-items:center;gap:4px; }
 .btn-history:hover { background:#1a1a1a;color:#fff;border-color:#1a1a1a; }
 
+.btn-fav {
+    background: none; border: none; cursor: pointer;
+    font-size: 18px; line-height: 1; padding: 2px 4px;
+    transition: transform .15s;
+}
+.btn-fav:hover { transform: scale(1.2); }
+.btn-fav.active { color: #f39c12; }
+.btn-fav.inactive { color: #ddd; }
+
 /* Modal historii */
 .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center; }
 .modal-overlay.open { display:flex; }
@@ -73,6 +82,7 @@
         <table class="report-table">
             <thead>
                 <tr>
+                    <th style="width:36px">★</th>
                     <th>Frakcja</th>
                     <th style="text-align:right">Belki</th>
                     <th style="text-align:right">Waga</th>
@@ -82,6 +92,13 @@
             <tbody>
                 @foreach($stock as $row)
                 <tr>
+                    <td>
+                        <button class="btn-fav {{ $row->fraction->fav_biuro ? 'active' : 'inactive' }}"
+                                onclick="toggleFav({{ $row->fraction_id }}, this)"
+                                title="{{ $row->fraction->fav_biuro ? 'Usuń z ulubionych' : 'Dodaj do ulubionych' }}">
+                            ★
+                        </button>
+                    </td>
                     <td class="fraction-name">{{ $row->fraction->name }}</td>
                     <td style="text-align:right">
                         @if($row->total_bales > 0)
@@ -140,6 +157,23 @@
 
 @section('scripts')
 <script>
+const CSRF = document.querySelector('meta[name="csrf-token"]').content;
+
+async function toggleFav(fractionId, btn) {
+    const isActive = btn.classList.contains('active');
+    const res = await fetch(`/biuro/reports/warehouse/${fractionId}/fav`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ module: 'biuro' }),
+    });
+    const data = await res.json();
+    if (data.success) {
+        btn.classList.toggle('active', data.fav);
+        btn.classList.toggle('inactive', !data.fav);
+        btn.title = data.fav ? 'Usuń z ulubionych' : 'Dodaj do ulubionych';
+    }
+}
+
 async function showHistory(fractionId) {
     document.getElementById('histTitle').textContent = 'Historia';
     document.getElementById('histBody').innerHTML = '<tr><td colspan="5" style="text-align:center;padding:24px;color:#ccc">Ładowanie...</td></tr>';

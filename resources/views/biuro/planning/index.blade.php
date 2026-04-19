@@ -492,6 +492,8 @@
         font-style: italic;
         margin-top: 2px;
     }
+
+    
 </style>
 @endsection
 

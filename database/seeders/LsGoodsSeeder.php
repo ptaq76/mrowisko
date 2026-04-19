@@ -13,35 +13,28 @@ class LsGoodsSeeder extends Seeder
         DB::table('ls_goods')->truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
-        $goods = [
-            ['id' => 1,  'name' => '2.06'],
-            ['id' => 2,  'name' => '1.04'],
-            ['id' => 3,  'name' => 'Gilza'],
-            ['id' => 4,  'name' => '1.06'],
-            ['id' => 5,  'name' => '3.02'],
-            ['id' => 6,  'name' => 'Tworzywa'],
-            ['id' => 7,  'name' => '3.18'],
-            ['id' => 8,  'name' => '1.11'],
-            ['id' => 9,  'name' => 'Bibuła'],
-            ['id' => 10, 'name' => '3.12'],
-            ['id' => 11, 'name' => '2.03'],
-            ['id' => 12, 'name' => '2.06 BELKA'],
-            ['id' => 13, 'name' => '3.05'],
-            ['id' => 14, 'name' => 'Papier silikonowy'],
-            ['id' => 15, 'name' => 'Trociny A1'],
-        ];
+        // Pobierz towary ze starej bazy
+        $oldGoods = DB::connection('mrowisko')
+            ->table('towary_wysylki')
+            ->orderBy('id')
+            ->get();
 
-        foreach ($goods as $g) {
+        $count = 0;
+        $maxId = 0;
+
+        foreach ($oldGoods as $g) {
             DB::table('ls_goods')->insert([
-                'id' => $g['id'],
-                'name' => $g['name'],
+                'id' => $g->id,
+                'name' => $g->nazwa,
                 'is_active' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'created_at' => $g->created_at ?? now(),
+                'updated_at' => $g->updated_at ?? now(),
             ]);
+            $count++;
+            $maxId = max($maxId, $g->id);
         }
 
-        DB::statement('ALTER TABLE ls_goods AUTO_INCREMENT = 16');
-        $this->command->info('Towary wysyłkowe (ls_goods) dodane.');
+        DB::statement('ALTER TABLE ls_goods AUTO_INCREMENT = ' . ($maxId + 1));
+        $this->command->info("Towary wysyłkowe (ls_goods) dodane: {$count} rekordów.");
     }
 }

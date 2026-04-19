@@ -7,6 +7,25 @@ use Illuminate\Support\Facades\DB;
 
 class ClientSeeder extends Seeder
 {
+    // Klienci z kraju DE (dopasowanie po nazwie - case insensitive)
+    private array $germanClients = [
+        'DETTELBACH',
+        'EILENBURG',
+        'EISEN',
+        'GLÜCKSTADT',
+        'GREIZ',
+        'HOHENWESTEDT',
+        'KIMBERLY-CLARK',
+        'KROSTITZ',
+        'LEHNICE',
+        'LEIPA',
+        'LILLA EDET',
+        'SANDERSDORF',
+        'SONAE ARAUCO',
+        'SPREMBERG',
+        'TREBSEN',
+    ];
+
     public function run(): void
     {
         // 1. Wyłączenie kluczy i czyszczenie tabel
@@ -29,13 +48,16 @@ class ClientSeeder extends Seeder
                 $type = 'sale';
             }
 
+            // Sprawdź czy klient jest z Niemiec
+            $country = $this->isGermanClient($k->nazwa) ? 'DE' : 'PL';
+
             DB::table('clients')->insert([
                 'id' => $k->id,
                 'name' => $k->nazwa,
                 'short_name' => $k->skrot,
                 'nip' => $k->nip,
                 'bdo' => null, // brak w starej bazie
-                'country' => 'PL',
+                'country' => $country,
                 'type' => $type,
                 'street' => $k->adres,
                 'postal_code' => $k->kod,
@@ -107,6 +129,22 @@ class ClientSeeder extends Seeder
 
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
         $this->command->info('✅ Migracja klientów zakończona pomyślnie.');
+    }
+
+    /**
+     * Sprawdza czy nazwa klienta pasuje do listy niemieckich klientów
+     */
+    private function isGermanClient(string $name): bool
+    {
+        $nameUpper = mb_strtoupper(trim($name));
+        
+        foreach ($this->germanClients as $germanName) {
+            if (str_contains($nameUpper, $germanName)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     private function resetAutoIncrement($table)

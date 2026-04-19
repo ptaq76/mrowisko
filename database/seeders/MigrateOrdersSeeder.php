@@ -174,12 +174,13 @@ class MigrateOrdersSeeder extends Seeder
                     'updated_at' => $updatedAt,
                 ];
 
+                $isLoading = $planowanie->rodzaj !== 'O';
                 $warehouseItemsToInsert[] = [
                     '_planowanie_id' => $planowanie->id,
                     'date' => $planNaPlac->data,
                     'fraction_id' => $towar->towar_id,
-                    'bales' => $towar->belki,
-                    'weight_kg' => $towar->waga,
+                    'bales' => $isLoading ? -$towar->belki : $towar->belki,
+                    'weight_kg' => $isLoading ? -$towar->waga : $towar->waga,
                     'origin' => $warehouseOrigin,
                     'origin_order_id' => '[NEW]', // będzie uzupełnione po insercie
                     'operator_id' => $operatorId,

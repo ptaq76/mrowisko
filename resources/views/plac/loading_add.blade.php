@@ -88,7 +88,7 @@
 .i-avg  { text-align: center; font-size: 13px; color: #888; margin-top: 8px; }
 
 .btn-save {
-    width: 100%; padding: 18px; background: #f39c12; color: #fff;
+    width: 100%; padding: 18px; background: #f39c12; color: #1a1a1a;
     border: none; border-radius: 12px;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 22px; font-weight: 900;
@@ -109,7 +109,7 @@
 </button>
 
 <div style="background:#f39c12;border-radius:14px;padding:16px 18px;margin-bottom:14px">
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;line-height:1">{{ $order->client?->short_name }}</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#1a1a1a;line-height:1">{{ $order->client?->short_name }}</div>
 </div>
 
 {{-- Waga kierowcy --}}
@@ -207,7 +207,7 @@
             <span style="font-size:11px;color:#aaa;font-weight:600">podaj w kg</span>
         </div>
         <button type="button" onclick="calcFromAvg()"
-                style="background:#f39c12;border:none;border-radius:8px;padding:8px 16px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">
+                style="background:#f39c12;border:none;border-radius:8px;padding:8px 16px;color:#1a1a1a;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">
             <i class="fas fa-calculator"></i> PRZELICZ
         </button>
     </div>

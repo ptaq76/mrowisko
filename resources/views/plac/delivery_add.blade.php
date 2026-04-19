@@ -82,7 +82,7 @@
 .i-avg  { text-align: center; font-size: 13px; color: #888; margin-top: 8px; }
 
 .btn-save {
-    width: 100%; padding: 18px; background: #27ae60; color: #fff;
+    width: 100%; padding: 18px; background: #27ae60; color: #1a1a1a;
     border: none; border-radius: 12px;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 22px; font-weight: 900;
@@ -114,7 +114,7 @@
 </button>
 
 <div style="background:#27ae60;border-radius:14px;padding:16px 18px;margin-bottom:14px">
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#fff;line-height:1">{{ $order->client?->short_name }}</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#1a1a1a;line-height:1">{{ $order->client?->short_name }}</div>
 </div>
 
 {{-- Waga kierowcy --}}
@@ -122,6 +122,21 @@
 <div style="background:#fff;border-radius:12px;padding:12px 16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;gap:8px">
     <span style="font-size:12px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.06em">Waga kierowcy:</span>
     <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</span>
+</div>
+@endif
+
+{{-- Suma dodanych pozycji --}}
+@if($order->loadingItems->isNotEmpty())
+<div style="background:#d4efdf;border-radius:12px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+    <span style="font-size:11px;font-weight:700;color:#1a7a3c;text-transform:uppercase;letter-spacing:.06em">Już dodano</span>
+    <div style="display:flex;align-items:baseline;gap:12px">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#1a1a1a">
+            {{ $order->loadingItems->sum('bales') }} <span style="font-size:11px;font-weight:700;color:#888">szt.</span>
+        </span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#1a1a1a">
+            {{ number_format($order->loadingItems->sum('weight_kg') / 1000, 3, ',', ' ') }} <span style="font-size:11px;font-weight:700;color:#888">t</span>
+        </span>
+    </div>
 </div>
 @endif
 
@@ -160,7 +175,7 @@
     <select id="fracSel" class="f-select" onchange="onFracChange()">
         <option value="">– wybierz –</option>
         @foreach($fractions as $f)
-            <option value="{{ $f->id }}" data-avg="{{ $stockData[$f->id]['avg'] ?? 0 }}">
+            <option value="{{ $f->id }}" data-avg="{{ $stockData[$f->id]['avg'] ?? 0 }}" data-bale="{{ stripos($f->name, 'BELKA') !== false ? '1' : '0' }}">
                 {{ $f->name }}
             </option>
         @endforeach
@@ -168,7 +183,7 @@
 </div>
 
 {{-- Belki --}}
-<div class="form-card">
+<div class="form-card" id="balesCard" style="display:none">
     <label class="f-label">Ilość belek</label>
     <input type="number" id="balesInput" class="inv-input"
            min="0" step="1" inputmode="numeric"
@@ -206,27 +221,35 @@ const CSRF      = document.querySelector('meta[name="csrf-token"]').content;
 // Ustaw frakcję przy edycji
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('fracSel').value = '{{ $editItem->fraction_id }}';
+    onFracChange();
 });
 @endif
 
-function onFracChange() {
-    calcAvg();
+function isBale() {
+    const sel = document.getElementById('fracSel');
+    const opt = sel.options[sel.selectedIndex];
+    return opt && opt.dataset.bale === '1';
 }
 
-function calcAvg() {
-    const b = parseInt(document.getElementById('balesInput').value);
-    const w = parseInt(document.getElementById('weightInput').value);
-    const el = document.getElementById('avgDisplay');
-    // avg removed
+function onFracChange() {
+    const card = document.getElementById('balesCard');
+    if (isBale()) {
+        card.style.display = '';
+    } else {
+        card.style.display = 'none';
+        document.getElementById('balesInput').value = 0;
+    }
 }
+
+function calcAvg() { /* unused */ }
 
 async function save() {
     const fracId = document.getElementById('fracSel').value;
-    const bales  = parseInt(document.getElementById('balesInput').value);
+    const bales  = isBale() ? parseInt(document.getElementById('balesInput').value) : 0;
     const weight = parseInt(document.getElementById('weightInput').value);
 
     if (!fracId) { Swal.fire({ icon: 'warning', title: 'Wybierz towar', timer: 1500, showConfirmButton: false }); return; }
-    if (bales === '' || isNaN(bales) || bales < 0) { Swal.fire({ icon: 'warning', title: 'Podaj ilość belek (min. 0)', timer: 1500, showConfirmButton: false }); return; }
+    if (isBale() && (isNaN(bales) || bales < 1)) { Swal.fire({ icon: 'warning', title: 'Podaj ilość belek', timer: 1500, showConfirmButton: false }); return; }
     if (isNaN(weight) || weight < 0) { Swal.fire({ icon: 'warning', title: 'Podaj wagę', timer: 1500, showConfirmButton: false }); return; }
 
     // Jeśli edycja – najpierw usuń stary wpis

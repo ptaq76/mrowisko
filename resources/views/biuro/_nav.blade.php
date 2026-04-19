@@ -94,6 +94,14 @@
                href="{{ route('biuro.reports.pickup-requests') }}">
             <i class="fa-solid fa-handshake"></i> Zlecenia handlowców
         </a></li>
+        <li><a class="dropdown-item {{ request()->routeIs('biuro.reports.planning') ? 'active' : '' }}"
+               href="{{ route('biuro.reports.planning') }}">
+            <i class="fa-solid fa-calendar-check"></i> Raport planowania
+        </a></li>
+        <li><a class="dropdown-item {{ request()->routeIs('biuro.reports.foreign-shipments') ? 'active' : '' }}"
+               href="{{ route('biuro.reports.foreign-shipments') }}">
+            <i class="fa-solid fa-globe"></i> Wysyłki – wagi
+        </a></li>
     </ul>
 </div>
 <a href="{{ route('biuro.ustawienia') }}"

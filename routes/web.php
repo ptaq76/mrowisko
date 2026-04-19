@@ -157,10 +157,13 @@ Route::prefix('biuro')
         Route::post('reports/deliveries/{order}/unarchive', [ReportController::class, 'unarchiveDelivery'])->name('reports.deliveries.unarchive');
         Route::get('reports/warehouse', [WarehouseController::class, 'index'])->name('reports.warehouse');
         Route::get('reports/warehouse/{fractionId}/history', [WarehouseController::class, 'history'])->name('reports.warehouse.history');
+        Route::post('reports/warehouse/{fraction}/fav', [WarehouseController::class, 'toggleFav'])->name('reports.warehouse.fav');
         Route::get('reports/weighings', [ReportController::class, 'weighings'])->name('reports.weighings');
         Route::post('reports/weighings/{order}/revert', [ReportController::class, 'revertWeighing'])->name('reports.weighings.revert');
         Route::post('reports/weighings/{order}/delete', [ReportController::class, 'deleteWeighing'])->name('reports.weighings.delete');
         Route::get('reports/pickup-requests', [ReportController::class, 'pickupRequests'])->name('reports.pickup-requests');
+        Route::get('reports/planning', [ReportController::class, 'planning'])->name('reports.planning');
+        Route::get('reports/foreign-shipments', [ReportController::class, 'foreignShipments'])->name('reports.foreign-shipments');
 
         // Pojazdy
         Route::resource('vehicles', VehicleController::class)->only(['index', 'store', 'update', 'destroy']);

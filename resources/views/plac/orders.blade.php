@@ -55,19 +55,22 @@
 <div class="page-title">Plan dnia</div>
 
 @php
-    $today = isset($date) ? $date->format('Y-m-d') : now()->format('Y-m-d');
+    $realToday   = now()->format('Y-m-d');
+    $selectedDay = $date->format('Y-m-d');
+    $isToday     = $selectedDay === $realToday;
 
     $activeOrders  = $orders->filter(fn($o) => $o->status !== 'loaded');
     $closedOrders  = $orders->filter(fn($o) => $o->status === 'loaded');
-    $todayOrders   = $activeOrders->filter(fn($o) => $o->planned_date->format('Y-m-d') === $today);
-    $overdueOrders = $activeOrders->filter(fn($o) => $o->planned_date->format('Y-m-d') < $today);
+    $selectedOrders = $activeOrders->filter(fn($o) => optional($o->plac_date)->format('Y-m-d') === $selectedDay);
+    $overdueOrders  = $isToday
+        ? $activeOrders->filter(fn($o) => optional($o->plac_date)->format('Y-m-d') < $realToday)
+        : collect();
 
     $placStatus = function($order) {
         // Wysyłka
         if ($order->type === 'sale') {
             if ($order->status === 'loaded') return ['label' => 'Załadowane', 'done' => true];
             if ($order->status === 'weighed') {
-                // Zważone – załadunek może być w trakcie lub nie
                 if ($order->loadingItems->isNotEmpty()) return ['label' => 'W trakcie', 'done' => false];
                 return ['label' => 'Zważone', 'done' => false];
             }
@@ -88,15 +91,15 @@
 @endforeach
 @endif
 
-@if($todayOrders->isNotEmpty())
+@if($selectedOrders->isNotEmpty())
 @if($overdueOrders->isNotEmpty())<div class="section-sep">Dziś</div>@endif
-@foreach($todayOrders as $order)
+@foreach($selectedOrders as $order)
     @include('plac._plan_card', ['order' => $order, 'placStatus' => $placStatus])
 @endforeach
 @elseif($overdueOrders->isEmpty())
 <div class="empty-state">
     <i class="fas fa-calendar-check"></i>
-    <p style="font-size:15px;font-weight:600">Brak zleceń na dziś</p>
+    <p style="font-size:15px;font-weight:600">Brak zleceń na ten dzień</p>
 </div>
 @endif
 

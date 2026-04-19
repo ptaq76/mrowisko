@@ -11,6 +11,11 @@ use App\Models\User;
 use App\Models\WarehouseItem;
 use App\Models\WasteFraction;
 use Illuminate\Http\Request;
+use App\Models\Importer;
+use App\Models\LsGoods;
+use App\Models\WasteCode;
+use App\Models\Reklamacja;
+
 
 class ReportController extends Controller
 {
@@ -361,6 +366,133 @@ class ReportController extends Controller
 
         return view('biuro.reports.pickup_requests', compact(
             'zlecenia', 'clients', 'handlowcy', 'statuses'
+        ));
+    }
+
+
+    public function planning(Request $request)
+    {
+        $dateFrom = $request->filled('date_from')
+            ? $request->date_from
+            : now()->startOfMonth()->format('Y-m-d');
+        $dateTo = $request->filled('date_to')
+            ? $request->date_to
+            : now()->format('Y-m-d');
+
+        $query = Order::with([
+            'client', 'tractor', 'trailer', 'driver',
+            'loadingItems.fraction',
+        ])
+            ->whereDate('planned_date', '>=', $dateFrom)
+            ->whereDate('planned_date', '<=', $dateTo);
+
+        if ($request->filled('client_id')) {
+            $query->where('client_id', $request->client_id);
+        }
+
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        if ($request->filled('driver_id')) {
+            $query->where('driver_id', $request->driver_id);
+        }
+
+        $orders = $query->orderByDesc('planned_date')->orderByDesc('id')->get();
+
+        $clients = Client::whereHas('orders')
+            ->orderBy('short_name')
+            ->get(['id', 'short_name']);
+
+        $drivers = Driver::orderBy('name')->get(['id', 'name']);
+
+        $types = [
+            'sale'   => 'Załadunek',
+            'pickup' => 'Dostawa',
+        ];
+
+        $statuses = [
+            'planned'   => 'Zaplanowane',
+            'loaded'    => 'Załadowane',
+            'weighed'   => 'Zważone',
+            'delivered' => 'Dostarczone',
+            'closed'    => 'Zamknięte',
+        ];
+
+        return view('biuro.reports.planning', compact(
+            'orders', 'clients', 'drivers', 'types', 'statuses', 'dateFrom', 'dateTo'
+        ));
+    }
+
+
+    public function foreignShipments(Request $request)
+    {
+        $dateFrom = $request->filled('date_from')
+            ? $request->date_from
+            : now()->startOfMonth()->format('Y-m-d');
+        $dateTo = $request->filled('date_to')
+            ? $request->date_to
+            : now()->format('Y-m-d');
+
+        $query = Order::with([
+            'lieferschein.importer',
+            'lieferschein.client',
+            'lieferschein.goods',
+            'lieferschein.wasteCode',
+            'driver',
+            'tractor',
+            'trailer',
+            'warehouseLoadingItems',
+        ])
+            ->where('type', 'sale')
+            ->whereNotNull('lieferschein_id')
+            ->whereHas('lieferschein', fn ($q) => $q->whereNotNull('importer_id'))
+            ->whereDate('planned_date', '>=', $dateFrom)
+            ->whereDate('planned_date', '<=', $dateTo);
+
+        if ($request->filled('importer_id')) {
+            $query->whereHas('lieferschein', fn ($q) => $q->where('importer_id', $request->importer_id));
+        }
+
+        if ($request->filled('client_id')) {
+            $query->whereHas('lieferschein', fn ($q) => $q->where('client_id', $request->client_id));
+        }
+
+        if ($request->filled('goods_id')) {
+            $query->whereHas('lieferschein', fn ($q) => $q->where('goods_id', $request->goods_id));
+        }
+
+        if ($request->filled('waste_code_id')) {
+            $query->whereHas('lieferschein', fn ($q) => $q->where('waste_code_id', $request->waste_code_id));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        $wysylki = $query->orderByDesc('planned_date')->orderByDesc('id')->get();
+
+        // Dokumenty (reklamacje / gewichtsmeldung) pogrupowane po lieferschein_id
+        $lsIds = $wysylki->pluck('lieferschein_id')->filter()->unique();
+        $dokumenty = \App\Models\Reklamacja::whereIn('lieferschein_id', $lsIds)
+            ->orderBy('mail_date')
+            ->get()
+            ->groupBy('lieferschein_id');
+
+        // Słowniki do filtrów
+        $importerzy  = \App\Models\Importer::where('is_active', true)->orderBy('name')->get();
+        $klienci     = \App\Models\Client::whereIn('id', \App\Models\Lieferschein::whereNotNull('client_id')->pluck('client_id')->unique())->orderBy('short_name')->get(['id', 'short_name']);
+        $towary      = \App\Models\LsGoods::where('is_active', true)->orderBy('name')->get();
+        $kodyOdpadow = \App\Models\WasteCode::where('is_active', true)->orderBy('code')->get();
+
+        return view('biuro.reports.foreign_shipments', compact(
+            'wysylki', 'dokumenty',
+            'importerzy', 'klienci', 'towary', 'kodyOdpadow',
+            'dateFrom', 'dateTo'
         ));
     }
 }

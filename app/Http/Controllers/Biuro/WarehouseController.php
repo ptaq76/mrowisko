@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Biuro;
 use App\Http\Controllers\Controller;
 use App\Models\WarehouseItem;
 use App\Models\WasteFraction;
+use Illuminate\Http\Request;
 
 class WarehouseController extends Controller
 {
@@ -12,6 +13,8 @@ class WarehouseController extends Controller
     {
         $fractions = WasteFraction::where('allows_belka', true)
             ->where('is_active', true)
+            ->where('name', 'not like', '%KARCHEM%')
+            ->orderByDesc('fav_biuro')
             ->orderBy('name')
             ->get();
 
@@ -24,9 +27,9 @@ class WarehouseController extends Controller
             $s = $stockMap->get($f->id);
 
             return (object) [
-                'fraction_id' => $f->id,
-                'fraction' => $f,
-                'total_bales' => $s ? (int) $s->total_bales : 0,
+                'fraction_id'  => $f->id,
+                'fraction'     => $f,
+                'total_bales'  => $s ? (int)   $s->total_bales  : 0,
                 'total_weight' => $s ? (float) $s->total_weight : 0,
             ];
         });
@@ -54,5 +57,20 @@ class WarehouseController extends Controller
                 'operator' => $i->operator?->name ?? $i->operator?->login ?? '–',
             ]),
         ]);
+    }
+
+    public function toggleFav(Request $request, WasteFraction $fraction)
+    {
+        $module = $request->input('module', 'biuro');
+        $column = match ($module) {
+            'plac'     => 'fav_plac',
+            'kierowca' => 'fav_kierowca',
+            default    => 'fav_biuro',
+        };
+
+        $newVal = ! $fraction->$column;
+        $fraction->update([$column => $newVal]);
+
+        return response()->json(['success' => true, 'fav' => $newVal]);
     }
 }

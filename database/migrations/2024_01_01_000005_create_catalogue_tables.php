@@ -52,6 +52,9 @@ return new class extends Migration
                 ->constrained('waste_fraction_groups')
                 ->nullOnDelete();
             $table->boolean('is_active')->default(true);
+            $table->boolean('fav_biuro')->default(false);
+            $table->boolean('fav_plac')->default(false);
+            $table->boolean('fav_kierowca')->default(false);
             $table->timestamps();
         });
 

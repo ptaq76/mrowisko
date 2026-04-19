@@ -18,6 +18,9 @@ class WasteFraction extends Model
         'show_in_production',
         'client_id',
         'is_active',
+        'fav_biuro',
+        'fav_plac',
+        'fav_kierowca',
     ];
 
     protected $casts = [
@@ -29,6 +32,9 @@ class WasteFraction extends Model
         'show_in_loadings' => 'boolean',
         'show_in_production' => 'boolean',
         'is_active' => 'boolean',
+        'fav_biuro' => 'boolean',
+        'fav_plac' => 'boolean',
+        'fav_kierowca' => 'boolean',
     ];
 
     public function group()
