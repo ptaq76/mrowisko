@@ -141,9 +141,23 @@
         @if($order->trailer)<span class="nr-rej-y">{{ $order->trailer->plate }}</span>@endif
     </div>
     @if($order->weight_netto)
-    <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
-        <span style="font-size:11px;font-weight:700;color:rgba(0,0,0,.5);text-transform:uppercase;letter-spacing:.06em">Waga:</span>
-        <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</span>
+    @php
+        $totalItemsT = $order->loadingItems->sum('weight_kg') / 1000;
+        $diff = $order->weight_netto - $totalItemsT;
+    @endphp
+    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;font-weight:700;color:rgba(0,0,0,.5);text-transform:uppercase;letter-spacing:.06em">Waga:</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</span>
+        </div>
+        @if($order->loadingItems->isNotEmpty())
+        <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:11px;font-weight:700;color:rgba(0,0,0,.5);text-transform:uppercase;letter-spacing:.06em">Pozostało:</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:{{ $diff >= 0 ? '#1a1a1a' : '#e74c3c' }}">
+                {{ number_format($diff, 3, ',', ' ') }} t
+            </span>
+        </div>
+        @endif
     </div>
     @endif
 </div>
@@ -180,6 +194,7 @@
 
     @if($order->loadingItems->isNotEmpty())
     <div class="press-hint"><i class="fas fa-hand-pointer"></i> Przytrzymaj wiersz aby edytować</div>
+    @if($order->loadingItems->count() > 1)
     <div class="summary-row">
         <span class="sum-label">Razem</span>
         <span class="sum-val">
@@ -188,6 +203,7 @@
             {{ number_format($order->loadingItems->sum('weight_kg'), 0, ',', ' ') }} kg
         </span>
     </div>
+    @endif
     @endif
 </div>
 
@@ -223,7 +239,7 @@ function startPress(row) {
     _pressTimer = setTimeout(() => {
         row.classList.remove('pressing');
         window.location.href = row.dataset.edit;
-    }, 600);
+    }, 1200);
 }
 
 function endPress() {

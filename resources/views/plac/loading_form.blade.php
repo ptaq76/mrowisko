@@ -32,7 +32,7 @@
 }
 .load-client {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 32px; font-weight: 900; color: #fff; line-height: 1;
+    font-size: 32px; font-weight: 900; color: #1a1a1a; line-height: 1;
 }
 .load-sub { font-size: 13px; color: #888; margin-top: 3px; }
 .load-weight {
@@ -57,17 +57,17 @@
 .items-table { width: 100%; border-collapse: collapse; }
 .items-table thead tr { background: #fdebd0; }
 .items-table th {
-    padding: 10px 10px;
+    padding: 6px 5px;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 11px; font-weight: 700; letter-spacing: .1em;
     text-transform: uppercase; color: #935810; text-align: left;
 }
-.items-table td { padding: 12px 10px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+.items-table td { padding: 7px 5px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
 .items-table tr:last-child td { border-bottom: none; }
 
-.it-name  { font-weight: 700; font-size: 14px; color: #1a1a1a; }
-.it-bales { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: #1a1a1a; }
-.it-weight{ font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: #1a1a1a; display:block; text-align:right; }
+.it-name  { font-weight: 700; font-size: 16px; color: #1a1a1a; }
+.it-bales { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 900; color: #1a1a1a; }
+.it-weight{ font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 900; color: #1a1a1a; display:block; text-align:right; white-space:nowrap; }
 
 .act-btns { display: flex; gap: 6px; }
 .edit-btn {
@@ -90,7 +90,7 @@
 
 /* Przyciski */
 .btn-add {
-    width: 100%; padding: 18px; background: #f39c12; color: #fff;
+    width: 100%; padding: 18px; background: #f39c12; color: #1a1a1a;
     border: none; border-radius: 12px;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 22px; font-weight: 900;
@@ -157,7 +157,7 @@
                 <th>Towar</th>
                 <th>Bel.</th>
                 <th style="text-align:right">Waga</th>
-                <th style="width:76px">Akcje</th>
+                <th style="text-align:right">A</th>
             </tr>
         </thead>
         <tbody id="itemsBody">
@@ -166,7 +166,7 @@
                 <td><span class="it-name">{{ $item->fraction?->name ?? '?' }}</span></td>
                 <td><span class="it-bales">{{ $item->bales }}</span></td>
                 <td><span class="it-weight">{{ number_format($item->weight_kg, 0, ',', ' ') }}</span></td>
-                <td>
+                <td style="text-align:right;white-space:nowrap">
                         <button class="del-btn" onclick="deleteItem({{ $item->id }})" title="Usuń">
                             <i class="fas fa-trash-alt"></i>
                         </button>
@@ -180,6 +180,7 @@
 
     @if($order->loadingItems->isNotEmpty())
     <div class="press-hint"><i class="fas fa-hand-pointer"></i> Przytrzymaj wiersz aby edytować</div>
+    @if($order->loadingItems->count() > 1)
     <div class="summary-row">
         <span class="sum-label">Razem</span>
         <span class="sum-val">
@@ -188,6 +189,7 @@
             {{ number_format($order->loadingItems->sum('weight_kg'), 0, ',', ' ') }} kg
         </span>
     </div>
+    @endif
     @endif
 </div>
 
@@ -223,7 +225,7 @@ function startPress(row) {
     _pressTimer = setTimeout(() => {
         row.classList.remove('pressing');
         window.location.href = row.dataset.edit;
-    }, 600);
+    }, 1200);
 }
 
 function endPress() {

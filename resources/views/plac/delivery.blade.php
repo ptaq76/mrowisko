@@ -29,7 +29,7 @@
 .order-card { background:#fff;border-radius:12px;margin-bottom:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.08); }
 .order-bar { display:flex;align-items:center;padding:11px 14px;gap:10px; }
 .bar-planned  { background:#27ae60; }
-.bar-progress { background:#16a085; }
+.bar-progress { background:#1a5c3a; }
 .bar-done     { background:#b2bec3; }
 .bar-client { font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:900;color:#fff;line-height:1;flex:1; }
 .bar-status { font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,.25);color:#fff;padding:3px 10px;border-radius:20px;white-space:nowrap; }
@@ -109,10 +109,12 @@
         </div>
         @endforeach
     </div>
+    @if($order->loadingItems->count() > 1)
     <div class="summary">
         <span>Razem</span>
         <span class="summary-val">{{ $order->loadingItems->sum('bales') }} bel. · {{ number_format($order->loadingItems->sum('weight_kg')/1000, 3, ',', ' ') }} t</span>
     </div>
+    @endif
     @endif
 </div>
 @endforeach
@@ -130,7 +132,7 @@
         @if($order->tractor)<span class="nr-rej">{{ $order->tractor->plate }}</span>@endif
         @if($order->trailer)<span class="nr-rej">{{ $order->trailer->plate }}</span>@endif
     </div>
-    @if($order->loadingItems->isNotEmpty())
+    @if($order->loadingItems->count() > 1)
     <div class="summary" style="padding:10px 16px">
         <span>Razem</span>
         <span class="summary-val">{{ $order->loadingItems->sum('bales') }} bel. · {{ number_format($order->loadingItems->sum('weight_kg')/1000, 3, ',', ' ') }} t</span>
