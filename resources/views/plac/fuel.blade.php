@@ -80,12 +80,15 @@
 .btn-undo  { background: none; border: none; color: #ccc; cursor: pointer; padding: 6px; font-size: 16px; }
 
 /* Modal */
-.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 1000; align-items: flex-end; justify-content: center; }
-.modal-overlay.open { display: flex; }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 1000; }
+.modal-overlay.open { display: block; }
 .modal-sheet {
-    background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-width: 480px;
+    background: #fff; border-radius: 20px 20px 0 0; width: 100%;
     padding: 24px 20px 40px;
     animation: slideUp .25s ease;
+    position: fixed; bottom: 0; left: 0; right: 0;
+    max-height: 85vh; overflow-y: auto;
+    box-sizing: border-box;
 }
 @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
 .sheet-title {

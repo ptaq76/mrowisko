@@ -54,7 +54,7 @@
 }
 
 .stock-table th {
-    padding: 10px 12px;
+    padding: 7px 6px;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 11px;
     font-weight: 700;
@@ -64,7 +64,7 @@
 }
 
 .stock-table td {
-    padding: 10px 12px;
+    padding: 7px 6px;
     border-bottom: 1px solid #f0f2f5;
     vertical-align: middle;
 }
@@ -74,7 +74,7 @@
 
 .fraction-name { font-weight: 700; color: #1a1a1a; font-size: 13px; }
 .bales-val { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #1a1a1a; }
-.weight-val { font-size: 12px; color: #555; font-weight: 600; }
+.weight-val { font-size: 12px; color: #555; font-weight: 600; white-space: nowrap; }
 
 .info-btn {
     background: #eaf4fb;
@@ -202,16 +202,16 @@
         <thead>
             <tr>
                 <th>Towar</th>
-                <th>Belki</th>
+                <th style="text-align:right">Belki</th>
                 <th>Waga</th>
                 <th style="width:40px"></th>
             </tr>
         </thead>
         <tbody>
-            @foreach($stock as $row)
+            @foreach($stock->filter(fn($r) => stripos($r->fraction?->name ?? '', 'KARCHEM') === false) as $row)
             <tr>
                 <td><span class="fraction-name">{{ $row->fraction?->name ?? '?' }}</span></td>
-                <td><span class="bales-val">{{ $row->total_bales }}</span></td>
+                <td style="text-align:right"><span class="bales-val">{{ $row->total_bales }}</span></td>
                 <td><span class="weight-val">{{ number_format($row->total_weight / 1000, 3, ',', ' ') }} t</span></td>
                 <td>
                     <button class="info-btn"
@@ -248,7 +248,7 @@
                 <thead>
                     <tr>
                         <th>Data</th>
-                        <th>Belki</th>
+                        <th style="text-align:right">Belki</th>
                         <th>Waga kg</th>
                         <th>Typ</th>
                         <th>Operator</th>

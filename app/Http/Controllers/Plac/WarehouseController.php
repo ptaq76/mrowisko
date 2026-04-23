@@ -13,6 +13,7 @@ class WarehouseController extends Controller
         // Wszystkie aktywne frakcje z belkami
         $fractions = WasteFraction::where('allows_belka', true)
             ->where('is_active', true)
+            ->where('name', 'not like', '%KARCHEM%')
             ->orderBy('name')
             ->get();
 
