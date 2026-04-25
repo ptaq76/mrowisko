@@ -4,99 +4,144 @@
 
 @section('styles')
 <style>
-.back-btn {
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    gap:10px !important;
-    background:#1a1a1a !important;
-    color:#fff !important;
-    font-family:'Barlow Condensed',sans-serif !important;
-    font-size:20px !important;
-    font-weight:800 !important;
-    letter-spacing:.06em !important;
-    text-transform:uppercase !important;
-    width:80% !important;
-    margin:0 auto 14px auto !important;
-    padding:16px !important;
-    border-radius:12px !important;
-    border:none !important;
-    cursor:pointer !important;
-    text-decoration:none !important;
+/* ── NAGŁÓWEK ── */
+.add-header {
+    background: var(--yellow);
+    border-radius: var(--radius-card);
+    padding: 16px 18px;
+    margin-bottom: 12px;
 }
-.back-btn:hover,.back-btn:active { background:#333 !important;color:#fff !important; }
-
-.order-bar {
-    background: #f9d38c; border-radius: 12px;
-    padding: 12px 16px; margin-bottom: 14px;
-}
-.order-client {
+.ah-client {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 26px; font-weight: 900; color: #1a1a1a;
+    font-size: 36px; font-weight: 900; color: #111; line-height: 1;
+    text-transform: uppercase;
 }
-.order-sub { font-size: 12px; color: #888; margin-top: 2px; }
 
+/* Waga kierowcy */
+.driver-weight {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    padding: 11px 16px;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 10px;
+}
+.dw-label { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+.dw-val   { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900; color: #111; }
+
+/* Istniejące towary */
+.existing-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
+}
+.existing-table { width: 100%; border-collapse: collapse; }
+.existing-table thead tr { background: #fdebd0; }
+.existing-table th {
+    padding: 8px 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: .1em;
+    text-transform: uppercase; color: #935810; text-align: left;
+}
+.existing-table th.r { text-align: right; }
+.existing-table td { padding: 9px 10px; border-bottom: 1px solid #f0f2f5; font-size: 16px; font-weight: 700; color: #111; }
+.existing-table tr:last-child td { border-bottom: none; }
+.existing-table .total-row td { background: #f8f9fa; font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; color: #555; }
+.existing-table .total-row td:first-child { font-size: 11px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .06em; }
+
+/* ── KARTY FORMULARZA ── */
 .form-card {
-    background: #fff; border-radius: 12px;
-    padding: 18px; margin-bottom: 12px;
-    box-shadow: 0 2px 6px rgba(0,0,0,.07);
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.05);
 }
 .f-label {
-    display: block; font-size: 11px; font-weight: 700;
-    letter-spacing: .1em; text-transform: uppercase;
-    color: #888; margin-bottom: 8px;
+    display: block;
+    font-size: 13px; font-weight: 900; letter-spacing: .06em;
+    text-transform: uppercase; color: #111;
+    margin-bottom: 10px;
 }
+.f-label-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+/* Wybór frakcji */
 .f-select {
     width: 100%; padding: 14px 12px;
-    border: 2px solid #e2e5e9; border-radius: 10px;
-    font-family: 'Barlow', sans-serif; font-size: 15px;
-    color: #1a1a1a; outline: none;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-family: 'Barlow', sans-serif; font-size: 16px;
+    color: #111; outline: none; background: #fff;
 }
-.f-select:focus { border-color: #f39c12; }
-.inv-input {
-    width: 100%; padding: 14px;
-    border: 3px solid #e2e5e9; border-radius: 10px;
+.f-select:focus { border-color: var(--yellow); }
+
+.btn-quick {
+    background: #2980b9; border: none; border-radius: 8px;
+    padding: 6px 13px; color: #fff;
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 42px; font-weight: 900; text-align: center;
-    color: #1a1a1a; outline: none;
-    -moz-appearance: textfield;
+    font-size: 13px; font-weight: 900; letter-spacing: .04em;
+    text-transform: uppercase; cursor: pointer;
+    white-space: nowrap;
 }
-.inv-input::-webkit-outer-spin-button,
-.inv-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-.inv-input:focus { border-color: #f39c12; }
+.btn-quick:active { background: #1f6799; }
 
-/* Stan magazynu po wyborze frakcji */
-.stock-info { display: none; margin-top: 8px; }
-.stock-info.show { display: flex; flex-direction: column; border-top: 2px solid #16a085; margin-top: 10px; padding-top: 10px; }
-.si-group { text-align: center; }
-.si-label { font-size: 10px; font-weight: 700; color: #2d7a1a; text-transform: uppercase; letter-spacing: .06em; }
-.si-val   { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; color: #2d7a1a; }
+/* Stan magazynu */
+.stock-strip {
+    display: none; margin-top: 10px; padding-top: 10px;
+    border-top: 1.5px solid #16a085;
+}
+.stock-strip.show { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.stock-vals { display: flex; gap: 10px; align-items: center; }
+.sv-item { display: flex; align-items: center; gap: 4px; }
+.sv-ico  { color: #111; font-size: 13px; }
+.sv-bales  { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: #111; }
+.sv-weight { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: #aaa; }
+.btn-load-all {
+    background: var(--yellow); border: none; border-radius: 8px;
+    height: 38px; padding: 0 12px;
+    display: flex; align-items: center; gap: 6px;
+    cursor: pointer; flex-shrink: 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; font-weight: 900; color: #111;
+    text-transform: uppercase; letter-spacing: .04em;
+}
+.btn-load-all i { color: #111; font-size: 14px; }
+.btn-load-all:active { filter: brightness(.92); }
 
-/* Belki i waga */
+/* Duże inputy liczbowe */
 .big-input {
     width: 100%; padding: 16px;
-    border: 3px solid #e2e5e9; border-radius: 10px;
+    border: 2px solid var(--border); border-radius: 10px;
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 42px; font-weight: 900; text-align: center;
-    color: #1a1a1a; outline: none;
+    font-size: 48px; font-weight: 900; text-align: center;
+    color: #111; outline: none;
     -moz-appearance: textfield;
 }
 .big-input::-webkit-outer-spin-button,
 .big-input::-webkit-inner-spin-button { -webkit-appearance: none; }
-.big-input:focus { border-color: #3498db; }
-.i-unit { text-align: center; font-size: 11px; color: #aaa; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin-top: 6px; }
-.i-avg  { text-align: center; font-size: 13px; color: #888; margin-top: 8px; }
-
-.btn-save {
-    width: 100%; padding: 18px; background: #f39c12; color: #1a1a1a;
-    border: none; border-radius: 12px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 22px; font-weight: 900;
-    letter-spacing: .06em; text-transform: uppercase;
-    cursor: pointer; margin-bottom: 10px;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
+.big-input:focus { border-color: var(--yellow); }
+.i-unit {
+    text-align: center; font-size: 11px; color: #aaa;
+    font-weight: 700; text-transform: uppercase;
+    letter-spacing: .08em; margin-top: 7px;
 }
-.btn-save:active { filter: brightness(.9); }
+
+/* Przycisk przelicz */
+.btn-calc {
+    background: var(--yellow); border: none; border-radius: 8px;
+    padding: 9px 16px; color: #111;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px; font-weight: 900; letter-spacing: .06em;
+    text-transform: uppercase; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+}
+.btn-calc:active { filter: brightness(.92); }
 </style>
 @endsection
 
@@ -104,46 +149,49 @@
 
 <button type="button"
         onclick="window.location.href='{{ route('plac.orders.loading', $order) }}'"
-        style="display:flex;align-items:center;justify-content:center;gap:10px;background:#1a1a1a;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;width:80%;margin:0 auto 14px;padding:16px;border-radius:12px;border:none;cursor:pointer">
-    <i class="fas fa-home"></i> Powrót
+        class="btn-back">
+    <i class="fas fa-arrow-left"></i> Powrót
 </button>
 
-<div style="background:#f39c12;border-radius:14px;padding:16px 18px;margin-bottom:14px">
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:#1a1a1a;line-height:1">{{ $order->client?->short_name }}</div>
+{{-- Nagłówek klienta --}}
+<div class="add-header">
+    <div class="ah-client">{{ $order->client?->short_name }}</div>
 </div>
 
 {{-- Waga kierowcy --}}
 @if($order->weight_netto)
-<div style="background:#fff;border-radius:12px;padding:12px 16px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.07);display:flex;align-items:center;gap:8px">
-    <span style="font-size:12px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.06em">Waga kierowcy:</span>
-    <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</span>
+<div class="driver-weight">
+    <span class="dw-label">Waga kierowcy</span>
+    <span class="dw-val">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</span>
 </div>
 @endif
 
 {{-- Istniejące towary --}}
 @if($order->loadingItems->isNotEmpty())
-<div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:14px">
-    <table style="width:100%;border-collapse:collapse;font-size:13px">
+<div class="existing-card">
+    <table class="existing-table">
         <thead>
-            <tr style="background:#fdebd0">
-                <th style="padding:8px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#935810;text-align:left">Towar</th>
-                <th style="padding:8px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#935810;text-align:right">Bel.</th>
-                <th style="padding:8px 10px;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#935810;text-align:right">Waga</th>
+            <tr>
+                <th>Towar</th>
+                <th class="r">Bel.</th>
+                <th class="r">Waga</th>
             </tr>
         </thead>
         <tbody>
             @foreach($order->loadingItems as $li)
-            <tr style="border-bottom:1px solid #f0f2f5">
-                <td style="padding:8px 10px;color:#555">{{ $li->fraction?->name }}</td>
-                <td style="padding:8px 10px;text-align:right;color:#555;font-size:14px">{{ $li->bales }}</td>
-                <td style="padding:8px 10px;text-align:right;color:#555;font-size:14px">{{ number_format($li->weight_kg, 0, ',', ' ') }}</td>
+            <tr>
+                <td>{{ $li->fraction?->name }}</td>
+                <td style="text-align:right">{{ $li->bales }}</td>
+                <td style="text-align:right">{{ number_format($li->weight_kg, 0, ',', ' ') }}</td>
             </tr>
             @endforeach
-            <tr style="background:#f0f2f5">
-                <td style="padding:8px 10px;font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.06em">RAZEM</td>
-                <td style="padding:8px 10px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#555">{{ $order->loadingItems->sum('bales') }}</td>
-                <td style="padding:8px 10px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#555">{{ number_format($order->loadingItems->sum('weight_kg'), 0, ',', ' ') }}</td>
+            @if($order->loadingItems->count() > 1)
+            <tr class="total-row">
+                <td>RAZEM</td>
+                <td style="text-align:right">{{ $order->loadingItems->sum('bales') }}</td>
+                <td style="text-align:right">{{ number_format($order->loadingItems->sum('weight_kg'), 0, ',', ' ') }}</td>
             </tr>
+            @endif
         </tbody>
     </table>
 </div>
@@ -151,10 +199,9 @@
 
 {{-- Wybór towaru --}}
 <div class="form-card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-        <label class="f-label" style="margin-bottom:0">Towar</label>
-        <button type="button" onclick="selectFraction(46)"
-                style="background:#2980b9;border:none;border-radius:8px;padding:5px 12px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer">KARTON CZYSTY</button>
+    <div class="f-label-row">
+        <span class="f-label" style="margin:0">Towar</span>
+        <button type="button" onclick="selectFraction(46)" class="btn-quick">KARTON CZYSTY</button>
     </div>
     <select id="fracSel" class="f-select" onchange="onFracChange()">
         <option value="">– wybierz –</option>
@@ -168,31 +215,27 @@
         @endforeach
     </select>
 
-    {{-- Stan magazynu --}}
-    <div class="stock-info" id="stockInfo">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:8px;border-top:1.5px solid #16a085;gap:10px">
-            <div style="display:flex;gap:16px;align-items:center">
-                <div style="display:flex;align-items:center;gap:5px">
-                    <i class="fas fa-layer-group" style="color:#16a085;font-size:13px"></i>
-                    <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a" id="stockBales">–</span>
-                </div>
-                <div style="display:flex;align-items:center;gap:5px">
-                    <i class="fas fa-weight-hanging" style="color:#16a085;font-size:13px"></i>
-                    <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a" id="stockWeight">–</span>
-                </div>
+    <div class="stock-strip" id="stockInfo">
+        <div class="stock-vals">
+            <div class="sv-item">
+                <i class="fas fa-boxes sv-ico"></i>
+                <span class="sv-bales" id="stockBales">–</span>
             </div>
-            <button type="button" onclick="zaladujWszystko()"
-                    style="background:#16a085;border:none;border-radius:8px;padding:7px 12px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;white-space:nowrap;flex-shrink:0">
-                <i class="fas fa-arrow-down"></i> ZAŁADUJ WSZYSTKO
-            </button>
+            <div class="sv-item">
+                <i class="fas fa-balance-scale sv-ico"></i>
+                <span class="sv-weight" id="stockWeight">–</span>
+            </div>
         </div>
+        <button type="button" onclick="zaladujWszystko()" class="btn-load-all" title="Załaduj wszystko">
+            <i class="fas fa-download"></i> Wszystko
+        </button>
     </div>
 </div>
 
 {{-- Belki --}}
 <div class="form-card">
     <label class="f-label">Ilość belek</label>
-    <input type="number" id="balesInput" class="inv-input"
+    <input type="number" id="balesInput" class="big-input"
            min="0" step="1" inputmode="numeric" placeholder="0"
            value="{{ $editItem ? $editItem->bales : '' }}"
            oninput="calcAvg()">
@@ -201,37 +244,36 @@
 
 {{-- Waga --}}
 <div class="form-card">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+    <div class="f-label-row">
         <div style="display:flex;align-items:baseline;gap:8px">
-            <label class="f-label" style="margin-bottom:0">Waga</label>
-            <span style="font-size:11px;color:#aaa;font-weight:600">podaj w kg</span>
+            <span class="f-label" style="margin:0">Waga</span>
+            <span style="font-size:11px;color:#bbb;font-weight:600">podaj w kg</span>
         </div>
-        <button type="button" onclick="calcFromAvg()"
-                style="background:#f39c12;border:none;border-radius:8px;padding:8px 16px;color:#1a1a1a;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">
+        <button type="button" onclick="calcFromAvg()" class="btn-calc">
             <i class="fas fa-calculator"></i> PRZELICZ
         </button>
     </div>
-    <input type="number" id="weightInput" class="inv-input"
+    <input type="number" id="weightInput" class="big-input"
            min="0" step="1" inputmode="numeric" placeholder="0"
            value="{{ $editItem ? round($editItem->weight_kg) : '' }}"
            oninput="calcAvg()">
     <div class="i-unit">kg</div>
 </div>
 
-<button class="btn-save" onclick="save()">
-    <i class="fas fa-check-circle"></i> {{ $editItem ? 'ZAPISZ ZMIANY' : 'DODAJ' }}
+<button class="btn-yellow" onclick="save()">
+    <i class="fas fa-check-circle"></i>
+    {{ $editItem ? 'ZAPISZ ZMIANY' : 'DODAJ' }}
 </button>
 
 @endsection
 
 @section('scripts')
 <script>
-const ORDER_ID  = {{ $order->id }};
-const EDIT_ID   = {{ $editItem ? $editItem->id : 'null' }};
-const CSRF      = document.querySelector('meta[name="csrf-token"]').content;
+const ORDER_ID = {{ $order->id }};
+const EDIT_ID  = {{ $editItem ? $editItem->id : 'null' }};
+const CSRF     = document.querySelector('meta[name="csrf-token"]').content;
 
 @if($editItem)
-// Ustaw frakcję przy edycji
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('fracSel').value = '{{ $editItem->fraction_id }}';
     onFracChange();
@@ -263,12 +305,10 @@ function onFracChange() {
 
     const bales  = parseInt(opt.dataset.bales)  || 0;
     const weight = parseInt(opt.dataset.weight) || 0;
-    const avg    = parseInt(opt.dataset.avg)    || 0;
 
     document.getElementById('stockBales').textContent  = bales;
     document.getElementById('stockWeight').textContent = weight.toLocaleString('pl-PL');
     info.classList.add('show');
-    calcAvg();
 }
 
 function calcFromAvg() {
@@ -298,11 +338,16 @@ async function save() {
     const bales  = parseInt(document.getElementById('balesInput').value);
     const weight = parseInt(document.getElementById('weightInput').value);
 
-    if (!fracId) { Swal.fire({ icon: 'warning', title: 'Wybierz towar', timer: 1500, showConfirmButton: false }); return; }
-    if (bales === '' || bales < 0) { Swal.fire({ icon: 'warning', title: 'Podaj ilość belek', timer: 1500, showConfirmButton: false }); return; }
-    if (isNaN(weight) || weight < 0) { Swal.fire({ icon: 'warning', title: 'Podaj wagę', timer: 1500, showConfirmButton: false }); return; }
+    if (!fracId) {
+        Swal.fire({ icon: 'warning', title: 'Wybierz towar', timer: 1500, showConfirmButton: false }); return;
+    }
+    if (isNaN(bales) || bales < 0) {
+        Swal.fire({ icon: 'warning', title: 'Podaj ilość belek', timer: 1500, showConfirmButton: false }); return;
+    }
+    if (isNaN(weight) || weight < 0) {
+        Swal.fire({ icon: 'warning', title: 'Podaj wagę', timer: 1500, showConfirmButton: false }); return;
+    }
 
-    // Jeśli edycja – najpierw usuń stary wpis
     if (EDIT_ID) {
         await fetch(`/plac/orders/${ORDER_ID}/loading/${EDIT_ID}`, {
             method: 'DELETE',

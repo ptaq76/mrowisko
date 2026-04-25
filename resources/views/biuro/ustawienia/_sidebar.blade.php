@@ -86,6 +86,10 @@
        class="sidebar-link {{ request()->routeIs('biuro.koszty-transportu.*') ? 'active' : '' }}">
         <i class="fa-solid fa-route"></i> Koszty transportu
     </a>
+    <a href="{{ route('biuro.opakowania.index') }}"
+       class="sidebar-link {{ request()->routeIs('biuro.opakowania.*') ? 'active' : '' }}">
+        <i class="fa-solid fa-box"></i> Opakowania
+    </a>
     <a href="{{ route('biuro.vehicles.index') }}"
        class="sidebar-link {{ request()->routeIs('biuro.vehicles.*') ? 'active' : '' }}">
         <i class="fa-solid fa-truck-moving"></i> Pojazdy

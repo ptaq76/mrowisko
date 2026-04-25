@@ -66,6 +66,15 @@ return new class extends Migration
             $table->timestamps();
         });
 
+        // Opakowania
+        Schema::create('opakowania', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->decimal('waga', 8, 2)->default(0);
+            $table->boolean('is_active')->default(true);
+            $table->timestamps();
+        });
+
         // Lieferscheiny
         Schema::create('lieferscheins', function (Blueprint $table) {
             $table->id();
@@ -100,6 +109,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('lieferscheins');
+        Schema::dropIfExists('opakowania');
         Schema::dropIfExists('ls_goods');
         Schema::dropIfExists('waste_fractions');
         Schema::dropIfExists('waste_fraction_groups');

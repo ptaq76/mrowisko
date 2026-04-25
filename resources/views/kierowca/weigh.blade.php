@@ -38,12 +38,6 @@
     color: #1a1a1a;
     letter-spacing: .04em;
 }
-.weigh-set {
-    font-size: 12px;
-    margin-top: 6px;
-    font-weight: 700;
-}
-
 .tare-info {
     background: #fff;
     border-radius: 12px;
@@ -93,7 +87,6 @@
 .brutto-input:focus { border-color: #3498db; }
 .unit { font-size: 16px; color: #aaa; font-weight: 700; margin-top: 8px; letter-spacing: .1em; text-transform: uppercase; }
 
-/* Wynik */
 .result-card {
     background: #e8f7e4;
     border: 2px solid #6EBF58;
@@ -124,7 +117,6 @@
 }
 .netto-unit { text-align: center; font-size: 13px; color: #2d7a1a; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
 
-/* Przyciski */
 .btn-calc {
     width: 100%;
     padding: 18px;
@@ -177,12 +169,45 @@
     font-weight: 600;
     cursor: pointer;
 }
+
+/* Opakowania w SweetAlert */
+.pkg-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.pkg-row:last-child { border-bottom: none; }
+.pkg-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #1a1a1a;
+    text-align: left;
+}
+.pkg-sub { font-size: 11px; color: #aaa; font-weight: 600; }
+.pkg-input {
+    width: 80px;
+    padding: 10px 8px;
+    border: 2px solid #e2e5e9;
+    border-radius: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 26px;
+    font-weight: 900;
+    text-align: center;
+    color: #1a1a1a;
+    outline: none;
+    -moz-appearance: textfield;
+}
+.pkg-input::-webkit-outer-spin-button,
+.pkg-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.pkg-input:focus { border-color: #27ae60; }
 </style>
 @endsection
 
 @section('content')
 
-{{-- Nagłówek --}}
 @php $isSale = $order->type === 'sale'; @endphp
 <div class="weigh-header" style="background:{{ $isSale ? '#f39c12' : '#27ae60' }};padding:20px 20px 16px;border-radius:16px">
     <div class="weigh-client" style="color:#fff">{{ $order->client?->short_name }}</div>
@@ -212,13 +237,11 @@
 </button>
 @else
 
-{{-- Tara --}}
 <div class="tare-info">
     <span class="label">Tara zestawu</span>
     <span class="value">{{ number_format($vehicleSet->tare_kg * 1000, 0, ',', ' ') }} kg</span>
 </div>
 
-{{-- Wskazanie wagi w KG --}}
 <div class="input-card">
     <label>Wskazanie wagi</label>
     <input type="number" id="bruttoInput" class="brutto-input"
@@ -230,7 +253,6 @@
     <i class="fas fa-calculator"></i> OBLICZ
 </button>
 
-{{-- Wynik w tonach --}}
 <div class="result-card" id="resultCard" style="{{ $isSale ? 'background:#fef9e7;border-color:#f39c12' : '' }}">
     <div class="result-row">
         <span class="rl">Brutto</span>
@@ -258,16 +280,18 @@
 
 @section('scripts')
 <script>
-const TARE_KG  = {{ $vehicleSet ? $vehicleSet->tare_kg * 1000 : 0 }}; // tara w kg
-const TARE_T   = {{ $vehicleSet ? $vehicleSet->tare_kg : 0 }};         // tara w tonach
-const SET_ID   = {{ $vehicleSet ? $vehicleSet->id : 'null' }};
-const ORDER_ID = {{ $order->id }};
+const TARE_KG   = {{ $vehicleSet ? $vehicleSet->tare_kg * 1000 : 0 }};
+const TARE_T    = {{ $vehicleSet ? $vehicleSet->tare_kg : 0 }};
+const SET_ID    = {{ $vehicleSet ? $vehicleSet->id : 'null' }};
+const ORDER_ID  = {{ $order->id }};
+const IS_PICKUP = {{ $order->type === 'pickup' ? 'true' : 'false' }};
+const BTN_COLOR = IS_PICKUP ? '#27ae60' : '#f39c12';
+const OPAKOWANIA = @json($opakowania->map(fn($o) => ['id' => $o->id, 'name' => $o->name, 'waga' => $o->waga]));
+const RETURN_URL = '{{ route('kierowca.dashboard') }}?data={{ $order->planned_date->format('Y-m-d') }}';
+
 let _netto  = null;
 let _brutto = null;
 
-function fmtKg(kg) {
-    return kg.toLocaleString('pl-PL') + ' kg';
-}
 function fmtT(t) {
     return t.toFixed(3).replace('.', ',') + ' t';
 }
@@ -279,12 +303,8 @@ function calculate() {
         return;
     }
 
-    const bruttoKg = kg;
-    const nettoKg  = bruttoKg - TARE_KG;
-
-    // Konwersja na tony dla kontrolera
-    _brutto = bruttoKg / 1000;
-    _netto  = Math.round(nettoKg) / 1000;
+    _brutto = kg / 1000;
+    _netto  = Math.round(kg - TARE_KG) / 1000;
 
     document.getElementById('resBrutto').textContent = fmtT(_brutto);
     document.getElementById('resTare').textContent   = fmtT(TARE_T);
@@ -297,6 +317,7 @@ function calculate() {
 }
 
 async function doConfirm() {
+    // 1. Zapisz wagę
     const res  = await fetch(`/kierowca/orders/${ORDER_ID}/weigh-confirm`, {
         method: 'POST',
         headers: {
@@ -305,26 +326,86 @@ async function doConfirm() {
             'Accept': 'application/json',
         },
         body: JSON.stringify({
-            weight_brutto:  _brutto,   // tony
-            weight_netto:   _netto,    // tony
+            weight_brutto:  _brutto,
+            weight_netto:   _netto,
             vehicle_set_id: SET_ID,
         }),
     });
     const data = await res.json();
 
-    if (data.success) {
-        const btnColor = {{ $isSale ? 'true' : 'false' }} ? '#f39c12' : '#27ae60';
+    if (!data.success) {
+        Swal.fire({ icon: 'error', title: 'Błąd', text: data.message ?? 'Spróbuj ponownie.' });
+        return;
+    }
+
+    // 2. Dla pickup — pytaj o opakowania; dla sale — od razu wróć
+    if (!IS_PICKUP) {
         await Swal.fire({
             icon: 'success',
             title: 'Zapisano!',
-            html: `Masa netto:<br><strong style="font-size:32px;color:${btnColor}">${fmtT(_netto)}</strong>`,
+            html: `Masa netto:<br><strong style="font-size:32px;color:${BTN_COLOR}">${fmtT(_netto)}</strong>`,
             confirmButtonText: 'OK',
-            confirmButtonColor: btnColor,
+            confirmButtonColor: BTN_COLOR,
         });
-        window.location.href = '{{ route('kierowca.dashboard') }}?data={{ $order->planned_date->format('Y-m-d') }}';
-    } else {
-        Swal.fire({ icon: 'error', title: 'Błąd', text: data.message ?? 'Spróbuj ponownie.' });
+        window.location.href = RETURN_URL;
+        return;
     }
+
+    // 3. Pickup — SweetAlert z opakowaniami
+    const pkgHtml = `
+        <div style="text-align:left;margin-top:8px">
+            ${OPAKOWANIA.map(o => `
+            <div class="pkg-row">
+                <div>
+                    <div class="pkg-name">${o.name}</div>
+                    <div class="pkg-sub">${parseFloat(o.waga).toFixed(0)} kg/szt.</div>
+                </div>
+                <input type="number" class="pkg-input" id="pkg_${o.id}"
+                       min="0" step="1" inputmode="numeric" value="0">
+            </div>`).join('')}
+        </div>`;
+
+    const pkgResult = await Swal.fire({
+        icon: 'success',
+        title: 'Zapisano!',
+        html: `
+            <div style="margin-bottom:16px">
+                Masa netto:<br>
+                <strong style="font-size:32px;color:${BTN_COLOR}">${fmtT(_netto)}</strong>
+            </div>
+            <div style="font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">
+                Ilość opakowań zwrotnych
+            </div>
+            ${pkgHtml}`,
+        showCancelButton: true,
+        confirmButtonText: 'Zapisz opakowania',
+        cancelButtonText: 'Pomiń',
+        confirmButtonColor: BTN_COLOR,
+        cancelButtonColor: '#aaa',
+        reverseButtons: true,
+        allowOutsideClick: false,
+        preConfirm: () => {
+            return OPAKOWANIA.map(o => ({
+                opakowanie_id: o.id,
+                quantity: parseInt(document.getElementById(`pkg_${o.id}`)?.value) || 0,
+            })).filter(p => p.quantity > 0);
+        },
+    });
+
+    // 4. Wyślij opakowania jeśli coś wpisano
+    if (pkgResult.isConfirmed && pkgResult.value && pkgResult.value.length > 0) {
+        await fetch(`/kierowca/orders/${ORDER_ID}/packaging`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({ packaging: pkgResult.value }),
+        });
+    }
+
+    window.location.href = RETURN_URL;
 }
 </script>
 @endsection

@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Kierowca;
 
 use App\Http\Controllers\Controller;
 use App\Models\Driver;
+use App\Models\Opakowanie;
 use App\Models\Order;
+use App\Models\OrderPackaging;
 use App\Models\Vehicle;
 use App\Models\VehicleSet;
 use Carbon\Carbon;
@@ -77,7 +79,9 @@ class DashboardController extends Controller
         $trailerId = $trailer?->id;
         $vehicleSet = VehicleSet::findForVehicles($tractorId, $trailerId);
 
-        return view('kierowca.weigh', compact('order', 'driver', 'vehicleSet'));
+        $opakowania = Opakowanie::active()->orderBy('name')->get();
+
+        return view('kierowca.weigh', compact('order', 'driver', 'vehicleSet', 'opakowania'));
     }
 
     // Formularz ważenia dla hakowca
@@ -231,6 +235,43 @@ class DashboardController extends Controller
             'netto' => $totalNetto,
             'driver_notes' => $driverNotes,
         ]);
+    }
+
+    // Zapisz opakowania dla zlecenia
+    public function savePackaging(Request $request, Order $order)
+    {
+        $driver = $this->getDriver();
+
+        if (! $driver || $order->driver_id !== $driver->id) {
+            return response()->json(['success' => false, 'message' => 'Brak dostępu.'], 403);
+        }
+
+        $request->validate([
+            'packaging' => ['required', 'array'],
+            'packaging.*.opakowanie_id' => ['required', 'exists:opakowania,id'],
+            'packaging.*.quantity' => ['required', 'integer', 'min:0'],
+        ]);
+
+        foreach ($request->packaging as $item) {
+            $qty = (int) $item['quantity'];
+
+            if ($qty > 0) {
+                OrderPackaging::updateOrCreate(
+                    [
+                        'order_id' => $order->id,
+                        'opakowanie_id' => $item['opakowanie_id'],
+                    ],
+                    ['quantity' => $qty]
+                );
+            } else {
+                // Jeśli 0 — usuń wpis jeśli istnieje
+                OrderPackaging::where('order_id', $order->id)
+                    ->where('opakowanie_id', $item['opakowanie_id'])
+                    ->delete();
+            }
+        }
+
+        return response()->json(['success' => true]);
     }
 
     // Waga odbiorcy

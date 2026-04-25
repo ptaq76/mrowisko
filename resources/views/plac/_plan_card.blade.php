@@ -21,21 +21,21 @@
     <div class="order-bar" style="background:{{ $barBg }}">
         <div class="bar-days">{{ $daysLabel }}</div>
 
-        <div class="bar-type">
-            <i class="fas {{ $order->type === 'pickup' ? 'fa-arrow-down' : 'fa-arrow-up' }}"></i>
-            {{ $order->type === 'pickup' ? 'ODBIÓR' : 'ZAŁADUNEK' }}
-            <span style="font-size:10px;font-weight:700;background:rgba(255,255,255,.25);padding:2px 8px;border-radius:10px;margin-left:6px;letter-spacing:.06em">
-                {{ $st['label'] }}
-            </span>
+        <div style="flex:1;min-width:0;overflow:hidden">
+            <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#fff;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ $order->client?->short_name ?? '?' }}</div>
         </div>
+
+        <span style="font-size:10px;font-weight:700;background:rgba(255,255,255,.25);padding:2px 8px;border-radius:10px;letter-spacing:.06em;color:#fff;white-space:nowrap;flex-shrink:0">
+            {{ $st['label'] }}
+        </span>
 
         @if(!$isDone)
         <a href="{{ $order->type === 'sale' ? route('plac.orders.loading', $order) : route('plac.delivery.form', $order) }}"
-           class="bar-action" title="Realizuj">
+           class="bar-action" title="Realizuj" style="flex-shrink:0">
             <i class="fas fa-arrow-right"></i>
         </a>
         @else
-        <span class="bar-action" style="opacity:.4">
+        <span class="bar-action" style="opacity:.4;flex-shrink:0">
             <i class="fas fa-check"></i>
         </span>
         @endif
@@ -44,14 +44,16 @@
     {{-- Szczegóły --}}
     <div class="order-details">
 
+        @if($order->planned_time)
         <div class="detail-row">
-            <i class="fas fa-building detail-icon"></i>
-            <div>
-                <span class="detail-text">{{ $order->client?->short_name ?? '?' }}</span>
-                @if($order->planned_time)
-                    <span class="detail-sub"> · {{ substr($order->planned_time, 0, 5) }}</span>
-                @endif
-            </div>
+            <i class="fas fa-clock detail-icon"></i>
+            <span class="detail-text">{{ substr($order->planned_time, 0, 5) }}</span>
+        </div>
+        @endif
+
+        <div class="detail-row">
+            <i class="fas fa-user detail-icon"></i>
+            <span class="detail-text">{{ $order->driver?->name ?? '?' }}</span>
         </div>
 
         @if($order->loadingItems->isNotEmpty())

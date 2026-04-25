@@ -1,126 +1,110 @@
 @extends('layouts.plac')
 
-@section('title', 'Załadunek')
+@section('title', 'Przyjęcie towaru')
 
 @section('styles')
 <style>
-.back-btn {
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    gap:10px !important;
-    background:#1a1a1a !important;
-    color:#fff !important;
-    font-family:'Barlow Condensed',sans-serif !important;
-    font-size:20px !important;
-    font-weight:800 !important;
-    letter-spacing:.06em !important;
-    text-transform:uppercase !important;
-    width:80% !important;
-    margin:0 auto 14px auto !important;
-    padding:16px !important;
-    border-radius:12px !important;
-    border:none !important;
-    cursor:pointer !important;
-    text-decoration:none !important;
+:root {
+    --green: #27ae60;
+    --green-dark: #1e8449;
+    --green-light: #e8f7e4;
+    --green-border: #d4edda;
 }
-.back-btn:hover,.back-btn:active { background:#333 !important;color:#fff !important; }
 
 .load-header {
-    background: #27ae60; border-radius: 12px;
-    padding: 14px 18px; margin-bottom: 12px;
+    background: var(--green);
+    border-radius: var(--radius-card);
+    padding: 16px 18px;
+    margin-bottom: 12px;
 }
-.load-client {
+.lh-client {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 32px; font-weight: 900; color: #1a1a1a; line-height: 1;
+    font-size: 36px; font-weight: 900; color: #fff; line-height: 1;
+    text-transform: uppercase;
 }
-.load-sub { font-size: 13px; color: #888; margin-top: 3px; }
-.load-weight {
-    margin-top: 10px; background: #fff; border-radius: 8px;
-    padding: 8px 14px; display: flex; align-items: center; gap: 10px;
+.lh-meta {
+    margin-top: 8px;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
-.lw-label { font-size: 11px; font-weight: 700; color: rgba(0,0,0,.5); text-transform: uppercase; letter-spacing: .06em; }
-.nr-rej-y { display:inline-block;background:#fff;border:2px solid rgba(0,0,0,.3);padding:1px 7px;border-radius:4px;font-weight:900;font-size:13px;color:#1a1a1a;letter-spacing:.04em; }
-.lw-val   { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; color: #2d7a1a; }
+.lh-driver { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.75); }
+.lh-weight {
+    margin-top: 10px;
+    background: rgba(0,0,0,.15);
+    border-radius: 8px; padding: 8px 14px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.lhw-block { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; }
+.lhw-label { font-size: 10px; font-weight: 700; color: rgba(255,255,255,.65); text-transform: uppercase; letter-spacing: .06em; }
+.lhw-val   { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #fff; }
+.lhw-val.negative { color: #ff8a80; }
 
-.order-notes {
-    background: #fff3cd; border-left: 4px solid #f39c12;
-    border-radius: 8px; padding: 10px 14px;
-    font-size: 13px; color: #856404; margin-bottom: 12px; font-weight: 600;
-}
-
-/* Tabela */
 .items-card {
-    background: #fff; border-radius: 12px;
-    overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,.07); margin-bottom: 12px;
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 6px rgba(0,0,0,.06);
+    margin-bottom: 12px;
 }
 .items-table { width: 100%; border-collapse: collapse; }
-.items-table thead tr { background: #fdebd0; }
+.items-table thead tr { background: var(--green-light); }
 .items-table th {
-    padding: 6px 5px;
+    padding: 9px 8px;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 11px; font-weight: 700; letter-spacing: .1em;
-    text-transform: uppercase; color: #935810; text-align: left;
+    text-transform: uppercase; color: #1a7a3c; text-align: left;
 }
-.items-table td { padding: 7px 5px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+.items-table th.r { text-align: right; }
+.items-table td { padding: 11px 8px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
 .items-table tr:last-child td { border-bottom: none; }
-
-.it-name  { font-weight: 700; font-size: 16px; color: #1a1a1a; }
-.it-bales { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 900; color: #1a1a1a; }
-.it-weight{ font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 900; color: #1a1a1a; display:block; text-align:right; white-space:nowrap; }
-
-.act-btns { display: flex; gap: 6px; }
-.edit-btn {
-    background: #eaf4fb; border: none; border-radius: 6px;
-    padding: 8px 10px; color: #2980b9; cursor: pointer; font-size: 14px;
-    text-decoration: none; display: flex; align-items: center;
+.it-name   { font-weight: 700; font-size: 16px; color: #111; }
+.it-bales  { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 900; color: #111; }
+.it-weight { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 900; color: #444; display: block; text-align: right; white-space: nowrap; }
+.del-btn {
+    background: #fdecea; border: none; border-radius: 7px;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    color: #e74c3c; cursor: pointer; font-size: 15px; margin-left: auto;
 }
-.del-btn  {
-    background: #fdecea; border: none; border-radius: 6px;
-    padding: 8px 10px; color: #e74c3c; cursor: pointer; font-size: 14px;
+.del-btn:active { background: #e74c3c; color: #fff; }
+.summary-row {
+    background: #f8f9fa; padding: 10px 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    border-top: 2px solid var(--green);
 }
-.edit-btn:active { background: #2980b9; color: #fff; }
-.del-btn:active  { background: #e74c3c; color: #fff; }
+.sum-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .06em; }
+.sum-val   { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 900; color: #111; }
+.press-hint { text-align: center; font-size: 11px; color: #bbb; padding: 7px; font-style: italic; }
+.empty-items { text-align: center; padding: 28px; color: #ccc; font-size: 14px; }
+.item-row { touch-action: none; user-select: none; transition: background .1s; }
+.item-row.pressing { background: var(--green-light) !important; }
 
-.summary-row { background:#f0f2f5;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-top:1px solid #e2e5e9; }
-.sum-label { font-size:11px;font-weight:700;color:#aaa;text-transform:uppercase;letter-spacing:.06em; }
-.sum-val   { font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;color:#555; }
-
-.empty-items { text-align: center; padding: 24px; color: #ccc; font-size: 14px; }
-
-/* Przyciski */
-.btn-add {
-    width: 100%; padding: 18px; background: #27ae60; color: #1a1a1a;
-    border: none; border-radius: 12px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 22px; font-weight: 900;
-    letter-spacing: .06em; text-transform: uppercase;
-    cursor: pointer; margin-bottom: 10px;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    text-decoration: none; box-shadow: 0 3px 8px rgba(39,174,96,.3);
+/* ── OPAKOWANIA read-only ── */
+.pkg-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    margin-bottom: 12px;
 }
-.btn-add:active { filter: brightness(.9); }
-
-.btn-close {
-    width: 100%; padding: 18px; background: #e74c3c; color: #fff;
-    border: none; border-radius: 12px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 22px; font-weight: 900;
-    letter-spacing: .06em; text-transform: uppercase;
-    cursor: pointer; margin-bottom: 10px;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    box-shadow: 0 3px 8px rgba(231,76,60,.3);
+.pkg-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 14px; background: #f4f6f8;
+    border-bottom: 1px solid var(--border);
 }
-.btn-close:active { filter: brightness(.9); }
-
-.btn-back2 {
-    width: 100%; padding: 14px; background: #7f8c8d; color: #fff;
-    border: none; border-radius: 12px;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 18px; font-weight: 800; letter-spacing: .06em;
-    text-transform: uppercase; cursor: pointer;
+.pkg-head-title { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #777; }
+.pkg-source      { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: #aaa; }
+.pkg-source.driver { color: #d68910; }
+.pkg-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 14px; border-bottom: 1px solid #f4f5f7;
 }
-.btn-back2:active { filter: brightness(.9); }
+.pkg-row:last-child { border-bottom: none; }
+.pkg-name  { font-weight: 700; font-size: 14px; color: #111; }
+.pkg-right { display: flex; gap: 12px; align-items: baseline; }
+.pkg-qty   { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #111; }
+.pkg-kg    { font-size: 12px; font-weight: 700; color: #aaa; }
+.pkg-empty { padding: 14px; text-align: center; font-size: 13px; color: #ccc; }
 </style>
 @endsection
 
@@ -128,40 +112,74 @@
 
 <button type="button"
         onclick="window.location.href='{{ route('plac.delivery.index') }}'"
-        style="display:flex;align-items:center;justify-content:center;gap:10px;background:#1a1a1a;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;width:80%;margin:0 auto 14px;padding:16px;border-radius:12px;border:none;cursor:pointer">
+        class="btn-back">
     <i class="fas fa-home"></i> Powrót
 </button>
 
 {{-- Nagłówek --}}
 <div class="load-header">
-    <div class="load-client">{{ $order->client?->short_name ?? '?' }}</div>
-    <div class="load-sub" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:6px">
-        @if($order->driver)<span style="color:rgba(0,0,0,.6);font-size:13px">{{ $order->driver->name }}</span>@endif
-        @if($order->tractor)<span class="nr-rej-y">{{ $order->tractor->plate }}</span>@endif
-        @if($order->trailer)<span class="nr-rej-y">{{ $order->trailer->plate }}</span>@endif
+    <div class="lh-client">{{ $order->client?->short_name ?? '?' }}</div>
+    <div class="lh-meta">
+        @if($order->driver)<span class="lh-driver">{{ $order->driver->name }}</span>@endif
+        @if($order->tractor)<span class="plate-badge" style="border-color:rgba(255,255,255,.5);color:#fff;background:rgba(255,255,255,.15)">{{ $order->tractor->plate }}</span>@endif
+        @if($order->trailer)<span class="plate-badge" style="border-color:rgba(255,255,255,.5);color:#fff;background:rgba(255,255,255,.15)">{{ $order->trailer->plate }}</span>@endif
     </div>
     @if($order->weight_netto)
     @php
         $totalItemsT = $order->loadingItems->sum('weight_kg') / 1000;
         $diff = $order->weight_netto - $totalItemsT;
     @endphp
-    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:8px">
-        <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:rgba(0,0,0,.5);text-transform:uppercase;letter-spacing:.06em">Waga:</span>
-            <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</span>
+    <div class="lh-weight">
+        <div class="lhw-block">
+            <span class="lhw-label">Waga kierowcy brutto</span>
+            <span class="lhw-val">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</span>
         </div>
-        @if($order->loadingItems->isNotEmpty())
-        <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:11px;font-weight:700;color:rgba(0,0,0,.5);text-transform:uppercase;letter-spacing:.06em">Pozostało:</span>
-            <span style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:{{ $diff >= 0 ? '#1a1a1a' : '#e74c3c' }}">
-                {{ number_format($diff, 3, ',', ' ') }} t
-            </span>
+        <div class="lhw-block" style="align-items:flex-end">
+            <span class="lhw-label">Pozostało</span>
+            <span class="lhw-val {{ $diff < 0 ? 'negative' : '' }}">{{ number_format($diff, 3, ',', ' ') }} t</span>
         </div>
-        @endif
     </div>
     @endif
 </div>
 
+{{-- ── OPAKOWANIA – tylko podsumowanie ── --}}
+@php
+    $pkgItems      = $order->packaging;
+    $hasPkg        = $pkgItems->isNotEmpty();
+    $placConfirmed = $hasPkg && $pkgItems->some(fn($p) => $p->confirmed_at !== null);
+    $onlyDriver    = $hasPkg && !$placConfirmed;
+@endphp
+<div class="pkg-card">
+    <div class="pkg-head">
+        <span class="pkg-head-title"><i class="fas fa-box"></i> Opakowania</span>
+        @if(!$hasPkg)
+            <span class="pkg-source">Brak informacji</span>
+        @elseif($onlyDriver)
+            <span class="pkg-source driver">Od kierowcy</span>
+        @endif
+        {{-- plac potwierdził → bez komentarza --}}
+    </div>
+    @if($hasPkg)
+        @foreach($pkgItems as $pkg)
+        @php
+            $qty     = $pkg->qty_plac ?? $pkg->quantity ?? 0;
+            $wagaJed = (float)($pkg->opakowanie?->waga ?? 0);
+            $totalKg = $qty * $wagaJed;
+        @endphp
+        <div class="pkg-row">
+            <span class="pkg-name">{{ $pkg->opakowanie?->name }}</span>
+            <div class="pkg-right">
+                <span class="pkg-qty">{{ $qty }} szt.</span>
+                @if($totalKg > 0)
+                <span class="pkg-kg">{{ number_format($totalKg, 0, ',', ' ') }} kg</span>
+                @endif
+            </div>
+        </div>
+        @endforeach
+    @else
+        <div class="pkg-empty">–</div>
+    @endif
+</div>
 
 {{-- Tabela towarów --}}
 <div class="items-card">
@@ -170,20 +188,25 @@
             <tr>
                 <th>Towar</th>
                 <th>Bel.</th>
-                <th style="text-align:right">Waga</th>
-                <th style="text-align:right">A</th>
+                <th class="r">Waga&nbsp;kg</th>
+                <th></th>
             </tr>
         </thead>
         <tbody id="itemsBody">
             @forelse($order->loadingItems as $item)
-            <tr id="ir-{{ $item->id }}" class="item-row" data-edit="{{ route('plac.delivery.edit', [$order, $item]) }}" onpointerdown="startPress(this)" onpointerup="endPress()" onpointerleave="endPress()">
+            <tr id="ir-{{ $item->id }}"
+                class="item-row"
+                data-edit="{{ route('plac.delivery.edit', [$order, $item]) }}"
+                onpointerdown="startPress(this)"
+                onpointerup="endPress()"
+                onpointerleave="endPress()">
                 <td><span class="it-name">{{ $item->fraction?->name ?? '?' }}</span></td>
                 <td><span class="it-bales">{{ $item->bales }}</span></td>
                 <td><span class="it-weight">{{ number_format($item->weight_kg, 0, ',', ' ') }}</span></td>
-                <td style="text-align:right;white-space:nowrap">
-                        <button class="del-btn" onclick="deleteItem({{ $item->id }})" title="Usuń">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                <td>
+                    <button class="del-btn" onclick="deleteItem({{ $item->id }})" title="Usuń">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
                 </td>
             </tr>
             @empty
@@ -208,26 +231,35 @@
 </div>
 
 {{-- Akcje --}}
-<a href="{{ route('plac.delivery.add', $order) }}" class="btn-add">
+<a href="{{ route('plac.delivery.add', $order) }}" class="btn-green">
     <i class="fas fa-plus-circle"></i> DODAJ TOWAR
 </a>
 
-<button class="btn-close" onclick="closeLoading()">
-    <i class="fas fa-check-double"></i> ZAMKNIJ ZAŁADUNEK
+<button class="btn-red" onclick="closeDelivery()">
+    <i class="fas fa-check-double"></i> ZAMKNIJ DOSTAWĘ
 </button>
 
-<button class="btn-back2" onclick="history.back()"><i class="fas fa-home"></i> Powrót</button>
+<button class="btn-gray" onclick="history.back()">
+    <i class="fas fa-arrow-left"></i> Wstecz
+</button>
 
 @endsection
 
 @section('scripts')
 <style>
-.item-row { touch-action: none; user-select: none; transition: background .1s; }
-.item-row.pressing { background: #eaf4fb !important; }
-.press-hint {
-    text-align: center; font-size: 11px; color: #aaa;
-    padding: 6px; font-style: italic;
+.btn-green {
+    width: 100%; padding: 20px;
+    background: var(--green); color: #fff;
+    border: none; border-radius: var(--radius-btn);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px; font-weight: 900;
+    letter-spacing: .06em; text-transform: uppercase;
+    cursor: pointer; margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    text-decoration: none;
 }
+.btn-green:hover { background: var(--green-dark); color: #fff; }
+.btn-green:active { filter: brightness(.9); }
 </style>
 <script>
 const ORDER_ID = {{ $order->id }};
@@ -241,7 +273,6 @@ function startPress(row) {
         window.location.href = row.dataset.edit;
     }, 1200);
 }
-
 function endPress() {
     clearTimeout(_pressTimer);
     document.querySelectorAll('.item-row.pressing').forEach(r => r.classList.remove('pressing'));
@@ -255,7 +286,7 @@ async function deleteItem(id) {
     });
     if (!result.isConfirmed) return;
 
-    const res  = await fetch(`/plac/orders/${ORDER_ID}/loading/${id}`, {
+    const res  = await fetch(`/plac/delivery/${ORDER_ID}/items/${id}`, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
     });
@@ -266,28 +297,28 @@ async function deleteItem(id) {
     }
 }
 
-async function closeLoading() {
+async function closeDelivery() {
     const rows = document.querySelectorAll('#itemsBody tr[id^="ir-"]').length;
     if (rows === 0) {
         Swal.fire({ icon: 'warning', title: 'Brak towarów', text: 'Dodaj przynajmniej jeden towar.', timer: 2000, showConfirmButton: false });
         return;
     }
     const result = await Swal.fire({
-        title: 'Zamknąć załadunek?',
-        text: 'Status zlecenia zmieni się na: Załadowane.',
+        title: 'Zamknąć dostawę?',
+        text: 'Status zlecenia zmieni się na: Dostarczone.',
         icon: 'question', showCancelButton: true,
         confirmButtonColor: '#e74c3c',
         confirmButtonText: 'Zamknij', cancelButtonText: 'Anuluj',
     });
     if (!result.isConfirmed) return;
 
-    const res  = await fetch(`/plac/orders/${ORDER_ID}/close`, {
+    const res  = await fetch(`/plac/delivery/${ORDER_ID}/close`, {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
     });
     const data = await res.json();
     if (data.success) {
-        await Swal.fire({ icon: 'success', title: 'Załadunek zamknięty!', timer: 1800, showConfirmButton: false });
+        await Swal.fire({ icon: 'success', title: 'Dostawa zamknięta!', timer: 1800, showConfirmButton: false });
         window.location.href = '{{ route('plac.delivery.index') }}';
     }
 }

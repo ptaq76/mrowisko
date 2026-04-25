@@ -33,6 +33,7 @@ use App\Http\Controllers\Plac\InventoryController;
 use App\Http\Controllers\Plac\LoadingController;
 use App\Http\Controllers\Plac\ProductionController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Biuro\OpakowaniaController;
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 
@@ -126,6 +127,17 @@ Route::prefix('biuro')
         Route::post('waste-codes', [WasteCodeController::class, 'store'])->name('waste-codes.store');
         Route::put('waste-codes/{wasteCode}', [WasteCodeController::class, 'update'])->name('waste-codes.update');
         Route::delete('waste-codes/{wasteCode}', [WasteCodeController::class, 'destroy'])->name('waste-codes.destroy');
+
+          // Opakowania
+        Route::resource('opakowania', OpakowaniaController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['opakowania' => 'opakowanie'])
+            ->names([
+                'index'   => 'opakowania.index',
+                'store'   => 'opakowania.store',
+                'update'  => 'opakowania.update',
+                'destroy' => 'opakowania.destroy',
+            ]);
 
         // Woźacy
         Route::get('haulers', [HaulerController::class, 'index'])->name('haulers.index');
@@ -264,6 +276,7 @@ Route::prefix('kierowca')
         Route::post('orders/{order}/weigh-confirm', [DashboardController::class, 'weighConfirm'])->name('orders.weighConfirm');
         Route::post('orders/{order}/weigh-confirm-hakowiec', [DashboardController::class, 'weighConfirmHakowiec'])->name('orders.weighConfirmHakowiec');
         Route::post('orders/{order}/receiver-weight', [DashboardController::class, 'saveReceiverWeight'])->name('orders.receiverWeight');
+        Route::post('orders/{order}/packaging', [DashboardController::class, 'savePackaging'])->name('orders.packaging');
         Route::get('/kursy', [DashboardController::class, 'kursy'])->name('kursy');
     });
 
@@ -319,7 +332,12 @@ Route::prefix('plac')
         Route::post('inventory/{fraction}/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
 
         Route::get('stock', [App\Http\Controllers\Plac\DashboardController::class, 'stock'])->name('stock');
-    });
+            
+        Route::post('delivery/{order}/close', [DeliveryController::class, 'close'])->name('delivery.close');
+        Route::post('delivery/{order}/packaging/confirm', [DeliveryController::class, 'packagingConfirm'])->name('delivery.packaging.confirm');
+        Route::post('delivery/{order}/packaging', [DeliveryController::class, 'packagingStore'])->name('delivery.packaging.store');
+        Route::get('stock', [App\Http\Controllers\Plac\DashboardController::class, 'stock'])->name('stock');
+        });
 
 // ── HANDLOWIEC ────────────────────────────────────────────────────────────────
 

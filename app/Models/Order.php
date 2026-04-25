@@ -139,4 +139,8 @@ class Order extends Model
 
         return $statuses[$this->status] ?? $this->status;
     }
+
+    public function packaging() {
+    return $this->hasMany(OrderPackaging::class);
+}
 }

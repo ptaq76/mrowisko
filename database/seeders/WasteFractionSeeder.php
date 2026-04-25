@@ -82,6 +82,15 @@ class WasteFractionSeeder extends Seeder
         if (! $karchemId) {
             $this->command->warn("⚠️  Nie znaleziono klienta 'Karchem' w tabeli clients. Pole client_id pozostało puste.");
         }
+
+        // 5. Opakowania
+        $this->command->info('Seedowanie opakowań...');
+        DB::table('opakowania')->truncate();
+        DB::table('opakowania')->insert([
+            ['name' => 'Paleta',  'waga' => 30.00, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()],
+            ['name' => 'BigBox',  'waga' => 50.00, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()],
+        ]);
+        $this->command->info('✅ Opakowania dodane.');
     }
 
     private function resetAutoIncrement($table)
