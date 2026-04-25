@@ -9,7 +9,7 @@ class BdoMapperService
     /**
      * Mapuje dane z API BDO do formatu tabeli bdo_karty / bdo_karty_przekazujacy
      */
-    public function mapToBdoKartyDetale(array $listItem, array $detail): array
+    public function mapToBdoKarta(array $listItem, array $detail): array
     {
         return [
             'kpo_id' => $listItem['kpoId'] ?? null,

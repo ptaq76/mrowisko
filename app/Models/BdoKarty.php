@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class BdoKarty extends Model
 {
@@ -68,9 +67,4 @@ class BdoKarty extends Model
         'waste_mass' => 'decimal:4',
         'corrected_waste_mass' => 'decimal:4',
     ];
-
-    public function detale(): HasMany
-    {
-        return $this->hasMany(BdoKartyDetale::class, 'kpo_id', 'kpo_id');
-    }
 }

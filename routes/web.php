@@ -34,6 +34,10 @@ use App\Http\Controllers\Plac\LoadingController;
 use App\Http\Controllers\Plac\ProductionController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Biuro\OpakowaniaController;
+use App\Http\Controllers\Karchem\KarchemController;
+use App\Http\Controllers\Karchem\StanyPoczatkoweController;
+use App\Http\Controllers\Karchem\KarchemWysylkiController;
+use App\Http\Controllers\Karchem\KarchemMagazynController;
 
 // ── AUTH ──────────────────────────────────────────────────────────────────────
 
@@ -368,3 +372,57 @@ Route::prefix('handlowiec')
         Route::post('/klienci/{client}/contacts', [App\Http\Controllers\Handlowiec\DashboardController::class, 'storeContact'])->name('klient-contact-store');
         Route::post('/klienci/{client}/contacts/{contact}/delete', [App\Http\Controllers\Handlowiec\DashboardController::class, 'destroyContact'])->name('klient-contact-destroy');
     });
+
+Route::prefix('karchem')
+    ->name('karchem.')
+    ->middleware(['auth', 'module:karchem'])
+    ->group(function () {
+
+        Route::get('/', [KarchemController::class, 'index'])->name('index');
+
+        // Klienci
+        Route::get('/klienci', [KarchemController::class, 'klienci'])->name('klienci');
+        Route::delete('/destroy/{id}', [KarchemController::class, 'destroy'])->name('destroy');
+        Route::post('/klienci/add-nip', [KarchemController::class, 'addNip'])->name('addNip');
+
+        // Plac
+        Route::get('/plac', [KarchemController::class, 'plac'])->name('plac');
+        Route::get('/placDrukuj', [KarchemController::class, 'placDrukuj'])->name('placDrukuj');
+
+        // BDO / Archiwum
+        Route::get('/bdo', [KarchemController::class, 'bdo'])->name('bdo');
+        Route::get('/archiwum', [KarchemController::class, 'archiwum'])->name('archiwum');
+        Route::get('/c/{kpoId}', [KarchemController::class, 'preview_card'])->name('preview_card');
+
+        // Magazyn
+        Route::get('/magazyn', [KarchemMagazynController::class, 'index'])->name('magazyn');
+
+        // Stany początkowe
+        Route::get('/stany-poczatkowe', [StanyPoczatkoweController::class, 'index'])->name('stanyPoczatkowe');
+        Route::post('/magazyn/stany-poczatkowe/store', [StanyPoczatkoweController::class, 'store'])->name('stanyPoczatkowe.store');
+        Route::put('/stany-poczatkowe/{id}', [StanyPoczatkoweController::class, 'update'])->name('stanyPoczatkowe.update');
+
+        // Wysyłki
+        Route::get('/wysylki', [KarchemWysylkiController::class, 'index'])->name('wysylki');
+        Route::post('/magazyn/wysylki/store', [KarchemWysylkiController::class, 'store'])->name('wysylki.store');
+        Route::put('/wysylki/{id}', [KarchemWysylkiController::class, 'update'])->name('wysylki.update');
+
+        // PDF / Ewrant
+        Route::get('/generatePdf', [KarchemController::class, 'generatePdf'])->name('generatePdf');
+        Route::post('/generuj-pdf', [KarchemController::class, 'generujPdfZDanymi'])->name('generujPdf');
+        Route::post('/doEwrant', [KarchemController::class, 'doEwrant'])->name('doEwrant');
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+

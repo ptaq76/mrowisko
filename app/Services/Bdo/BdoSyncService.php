@@ -180,7 +180,7 @@ class BdoSyncService
                     break;
                 }
 
-                $mapped = $mapper->mapToBdoKartyDetale($item, $detailData);
+                $mapped = $mapper->mapToBdoKarta($item, $detailData);
 
                 if (empty($mapped['kpo_id'])) {
                     BdoLogger::warning('BDO: Pominięto kartę - brak kpo_id po mapowaniu', [
@@ -399,7 +399,7 @@ class BdoSyncService
                     break;
                 }
 
-                $mapped = $mapper->mapToBdoKartyDetale($item, $detailData);
+                $mapped = $mapper->mapToBdoKarta($item, $detailData);
 
                 if (empty($mapped['kpo_id'])) {
                     $errors++;
@@ -520,7 +520,7 @@ class BdoSyncService
                 'kpoLastModifiedAt' => $detailData['kpoLastModifiedAt'] ?? null,
             ];
 
-            $mapped = $mapper->mapToBdoKartyDetale($listItem, $detailData);
+            $mapped = $mapper->mapToBdoKarta($listItem, $detailData);
 
             if (empty($mapped['kpo_id'])) {
                 BdoLogger::error('fetchAndUpdateSingleCard: Brak kpo_id po mapowaniu', ['kpo_id' => $kpoId]);

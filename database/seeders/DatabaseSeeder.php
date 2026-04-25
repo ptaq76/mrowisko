@@ -41,6 +41,12 @@ class DatabaseSeeder extends Seeder
 
             MigrateOrdersSeeder::class,
 
+            // Produkcja (wpisy magazynowe origin=production)
+            ProductionSeeder::class,
+
+            // Karchem
+            KarchemSeeder::class,
+            BdoSeeder::class,
 
             // Szybkie przyciski do zleceń
             OrderQuickButtonSeeder::class,

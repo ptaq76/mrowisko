@@ -98,79 +98,10 @@ return new class extends Migration
 
             $table->timestamps();
         });
-
-        // ══════════════════════════════════════════════════════════════════════
-        // TABELA SZCZEGÓŁÓW: bdo_karty_detale_przekazujacy
-        // ══════════════════════════════════════════════════════════════════════
-        Schema::create('bdo_karty_detale_przekazujacy', function (Blueprint $table) {
-            $table->id();
-            $table->string('kpo_id')->index();
-
-            // Dane karty
-            $table->string('card_number')->nullable();
-            $table->string('card_status')->nullable();
-            $table->integer('calendar_year')->nullable();
-
-            // Masa odpadu
-            $table->decimal('waste_mass', 12, 4)->nullable();
-            $table->decimal('corrected_waste_mass', 12, 4)->nullable();
-
-            // Daty i czasy
-            $table->date('planned_transport_date')->nullable();
-            $table->datetime('planned_transport_time')->nullable();
-            $table->date('real_transport_date')->nullable();
-            $table->datetime('real_transport_time')->nullable();
-            $table->date('receive_confirmation_date')->nullable();
-            $table->datetime('receive_confirmation_time')->nullable();
-            $table->date('approval_date')->nullable();
-            $table->datetime('approval_time')->nullable();
-            $table->date('transport_confirmation_date')->nullable();
-            $table->datetime('transport_confirmation_time')->nullable();
-
-            // Użytkownicy
-            $table->string('approved_by_user')->nullable();
-            $table->string('transport_confirmed_by_user')->nullable();
-            $table->string('receive_confirmed_by_user')->nullable();
-
-            // Dane przekazującego
-            $table->string('sender_name_or_first_name_and_last_name')->nullable();
-            $table->text('sender_address')->nullable();
-            $table->string('sender_eup_number')->nullable();
-            $table->string('sender_eup_name')->nullable();
-            $table->text('sender_eup_address')->nullable();
-            $table->string('sender_identification_number')->nullable();
-            $table->string('sender_nip')->nullable();
-
-            // Dane przewoźnika
-            $table->string('carrier_name_or_first_name_and_last_name')->nullable();
-            $table->text('carrier_address')->nullable();
-            $table->string('carrier_identification_number')->nullable();
-            $table->string('carrier_nip')->nullable();
-
-            // Dane przejmującego
-            $table->string('receiver_name_or_first_name_and_last_name')->nullable();
-            $table->text('receiver_address')->nullable();
-            $table->string('receiver_identification_number')->nullable();
-            $table->string('receiver_nip')->nullable();
-
-            // Pozostałe
-            $table->string('waste_code_and_description')->nullable();
-            $table->string('vehicle_reg_number')->nullable();
-            $table->text('remarks')->nullable();
-            $table->text('additional_info')->nullable();
-
-            $table->timestamps();
-
-            $table->foreign('kpo_id')
-                ->references('kpo_id')
-                ->on('bdo_karty_przekazujacy')
-                ->onDelete('cascade');
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('bdo_karty_detale_przekazujacy');
         Schema::dropIfExists('bdo_karty_przekazujacy');
         Schema::dropIfExists('karchem_klienci');
     }

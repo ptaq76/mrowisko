@@ -14,6 +14,7 @@ class AuthController extends Controller
         'hakowiec' => '/hakowiec/dashboard',
         'plac' => '/plac/dashboard',
         'handlowiec' => '/handlowiec/dashboard',
+        'karchem' => '/karchem',
     ];
 
     public function showLogin()
