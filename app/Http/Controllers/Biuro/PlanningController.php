@@ -8,6 +8,7 @@ use App\Models\Driver;
 use App\Models\Lieferschein;
 use App\Models\Order;
 use App\Models\PickupRequest;
+use App\Models\Zadanie;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -83,10 +84,20 @@ class PlanningController extends Controller
             ->orderBy('requested_date')
             ->get();
 
+        // Zadania na wybrany dzień dla aktywnego kierowcy
+        $zadania = $driver
+            ? Zadanie::with('creator')
+                ->forDriver($driver->id)
+                ->onDate($date)
+                ->orderBy('status')
+                ->orderBy('id')
+                ->get()
+            : collect();
+
         return view('biuro.planning.index', compact(
             'date', 'drivers', 'driver', 'orders',
             'weekDays', 'topPickup', 'topSale', 'freeLs',
-            'pickupRequests'
+            'pickupRequests', 'zadania'
         ));
     }
 
@@ -109,6 +120,12 @@ class PlanningController extends Controller
         // Grupuj po kierowcach jak w module plac
         $drivers = $orders->groupBy('driver_id');
 
-        return view('biuro.reports.plan_na_plac', compact('orders', 'drivers', 'date'));
+        $zadania = Zadanie::forPlac()
+            ->onDate($date)
+            ->orderBy('status')
+            ->orderBy('id')
+            ->get();
+
+        return view('biuro.reports.plan_na_plac', compact('orders', 'drivers', 'date', 'zadania'));
     }
 }

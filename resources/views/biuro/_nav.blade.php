@@ -102,6 +102,10 @@
                href="{{ route('biuro.reports.foreign-shipments') }}">
             <i class="fa-solid fa-globe"></i> Wysyłki – wagi
         </a></li>
+        <li><a class="dropdown-item {{ request()->routeIs('biuro.raporty.zadania') ? 'active' : '' }}"
+               href="{{ route('biuro.raporty.zadania') }}">
+            <i class="fa-solid fa-tasks"></i> Zadania
+        </a></li>
     </ul>
 </div>
 <a href="{{ route('biuro.ustawienia') }}"

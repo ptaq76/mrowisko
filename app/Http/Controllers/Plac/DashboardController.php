@@ -7,6 +7,7 @@ use App\Models\LoadingItem;
 use App\Models\Order;
 use App\Models\WarehouseItem;
 use App\Models\WasteFraction;
+use App\Models\Zadanie;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,13 @@ class DashboardController extends Controller
         ->orderBy('planned_time')
         ->get();
 
-    return view('plac.orders', compact('orders', 'date'));
+    $zadania = Zadanie::forPlac()
+        ->onDate($date)
+        ->orderBy('status')
+        ->orderBy('id')
+        ->get();
+
+    return view('plac.orders', compact('orders', 'date', 'zadania'));
 }
 
     public function _old_index(Request $request)

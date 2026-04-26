@@ -26,6 +26,7 @@ use App\Http\Controllers\Biuro\WarehouseController;
 use App\Http\Controllers\Biuro\WasteCodeController;
 use App\Http\Controllers\Biuro\WasteFractionController;
 use App\Http\Controllers\Biuro\WeighingController;
+use App\Http\Controllers\Biuro\ZadanieController;
 use App\Http\Controllers\Kierowca\DashboardController;
 use App\Http\Controllers\Plac\DeliveryController;
 use App\Http\Controllers\Plac\FuelController;
@@ -264,6 +265,13 @@ Route::prefix('biuro')
 
         // Zlecenia handlowców – odrzucenie
         Route::post('pickup-requests/{pickupRequest}/odrzuc', [OrderController::class, 'odrzucPickupRequest'])->name('pickup-requests.odrzuc');
+
+        // Zadania
+        Route::post('zadania', [ZadanieController::class, 'store'])->name('zadania.store');
+        Route::put('zadania/{zadanie}', [ZadanieController::class, 'update'])->name('zadania.update');
+        Route::delete('zadania/{zadanie}', [ZadanieController::class, 'destroy'])->name('zadania.destroy');
+        Route::post('zadania/{zadanie}/wykonaj', [ZadanieController::class, 'complete'])->name('zadania.complete');
+        Route::get('raporty/zadania', [ZadanieController::class, 'raporty'])->name('raporty.zadania');
     });
 
 // ── KIEROWCA ──────────────────────────────────────────────────────────────────
@@ -282,6 +290,7 @@ Route::prefix('kierowca')
         Route::post('orders/{order}/receiver-weight', [DashboardController::class, 'saveReceiverWeight'])->name('orders.receiverWeight');
         Route::post('orders/{order}/packaging', [DashboardController::class, 'savePackaging'])->name('orders.packaging');
         Route::get('/kursy', [DashboardController::class, 'kursy'])->name('kursy');
+        Route::post('zadania/{zadanie}/wykonaj', [ZadanieController::class, 'complete'])->name('zadania.complete');
     });
 
 // ── HAKOWIEC ──────────────────────────────────────────────────────────────────
@@ -290,7 +299,8 @@ Route::prefix('hakowiec')
     ->middleware(['auth', 'module:hakowiec'])
     ->name('hakowiec.')
     ->group(function () {
-        Route::get('/dashboard', fn () => view('hakowiec.dashboard'))->name('dashboard');
+        Route::get('/dashboard', [App\Http\Controllers\Hakowiec\DashboardController::class, 'index'])->name('dashboard');
+        Route::post('zadania/{zadanie}/wykonaj', [ZadanieController::class, 'complete'])->name('zadania.complete');
     });
 
 // ── PLAC ──────────────────────────────────────────────────────────────────────
@@ -336,7 +346,9 @@ Route::prefix('plac')
         Route::post('inventory/{fraction}/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
 
         Route::get('stock', [App\Http\Controllers\Plac\DashboardController::class, 'stock'])->name('stock');
-            
+
+        Route::post('zadania/{zadanie}/wykonaj', [ZadanieController::class, 'complete'])->name('zadania.complete');
+
         Route::post('delivery/{order}/close', [DeliveryController::class, 'close'])->name('delivery.close');
         Route::post('delivery/{order}/packaging/confirm', [DeliveryController::class, 'packagingConfirm'])->name('delivery.packaging.confirm');
         Route::post('delivery/{order}/packaging', [DeliveryController::class, 'packagingStore'])->name('delivery.packaging.store');

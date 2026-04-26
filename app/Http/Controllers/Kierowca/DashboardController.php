@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderPackaging;
 use App\Models\Vehicle;
 use App\Models\VehicleSet;
+use App\Models\Zadanie;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
@@ -45,7 +46,13 @@ class DashboardController extends Controller
             ->orderBy('planned_time')
             ->get();
 
-        return view('kierowca.dashboard', compact('driver', 'orders', 'date'));
+        $zadania = Zadanie::forDriver($driver->id)
+            ->onDate($date)
+            ->orderBy('status')
+            ->orderBy('id')
+            ->get();
+
+        return view('kierowca.dashboard', compact('driver', 'orders', 'date', 'zadania'));
     }
 
     // Formularz ważenia - sprawdza czy hakowiec i przekierowuje

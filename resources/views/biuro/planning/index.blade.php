@@ -502,7 +502,9 @@
 
     {{-- ══ LEWA KOLUMNA: tydzień ══ --}}
     <div class="col-left">
-        <div id="datepicker" style="border:none;background:transparent;margin-top:0"></div>
+        <div style="position:sticky;top:0;z-index:5;background:var(--gray-1);padding-bottom:6px;margin:-10px -8px 6px;padding:10px 8px 6px">
+            <div id="datepicker" style="border:none;margin-top:0"></div>
+        </div>
         <input type="hidden" id="selectedDate" value="{{ $date->format('Y-m-d') }}">
 
         @foreach($weekDays as $dateStr => $dayData)
@@ -560,7 +562,7 @@
 
             <div class="d-flex align-items-center gap-2">
                 <button class="btn btn-sm" style="background:rgba(0,0,0,.15);border:none"
-                        onclick="openOrderModal(null)" title="Nowe zlecenie">
+                        onclick="openZadanieModal()" title="Nowe zadanie">
                     <i class="mdi mdi-tooltip-plus" style="font-size:1.8em"></i>
                 </button>
                 @if($driver->avatar)
@@ -580,6 +582,44 @@
         @endif
 
         <div class="orders-list" style="border: 3px solid {{ $driver?->color ?? '#eee' }}; border-top: none; background: #fff; border-radius: 0 0 12px 12px; overflow: hidden">
+
+            {{-- ══ ZADANIA ══ --}}
+            @if($driver && $zadania->isNotEmpty())
+            <div style="margin-bottom:10px;padding:8px;background:#fff8e1;border:2px dashed #f9d38c;border-radius:6px">
+                <div class="mb-2">
+                    <strong style="font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#6d4c00">
+                        <i class="fas fa-tasks"></i> Zadania
+                    </strong>
+                </div>
+                @foreach($zadania as $z)
+                <div class="d-flex align-items-center gap-2 py-1" style="border-top:1px solid #f0e0a0;{{ $z->status === 'done' ? 'opacity:.5' : '' }}">
+                    @if($z->status === 'done')
+                        <i class="fas fa-check-circle text-success"></i>
+                    @else
+                        <i class="far fa-circle text-muted"></i>
+                    @endif
+                    <span style="flex:1;font-size:13px;{{ $z->status === 'done' ? 'text-decoration:line-through' : '' }}">
+                        {{ $z->tresc }}
+                    </span>
+                    @if($z->status === 'pending')
+                        <button class="btn btn-sm btn-success" style="font-size:11px;padding:2px 6px"
+                                onclick="wykonajZadanie({{ $z->id }}, '/biuro/zadania/{{ $z->id }}/wykonaj')" title="Wykonaj">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary" style="font-size:11px;padding:2px 6px"
+                                onclick='openZadanieModal(@json($z))' title="Edytuj">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" style="font-size:11px;padding:2px 6px"
+                                onclick="deleteZadanie({{ $z->id }})" title="Anuluj">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+            @endif
+
             @forelse($orders as $order)
             <div class="order-card">
                 <div class="order-card-body">
@@ -875,6 +915,7 @@
 
 @include('biuro.planning.order_modal')
 @include('biuro.planning.order_modal_edit')
+@include('biuro.planning.zadanie_modal')
 
 @endsection
 

@@ -156,6 +156,33 @@
 
 @section('content')
 
+{{-- ══ ZADANIA ══ --}}
+@if(isset($zadania) && $zadania->isNotEmpty())
+<div style="background:#fff8e1;border:2px solid #f9d38c;border-radius:12px;margin-bottom:20px;overflow:hidden">
+    <div style="padding:10px 14px;background:#f9d38c;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#6d4c00">
+        <i class="fas fa-tasks"></i> Zadania na dziś
+    </div>
+    @foreach($zadania as $z)
+    <div style="padding:12px 14px;border-top:1px solid #f0e0a0;display:flex;align-items:center;gap:10px;{{ $z->status === 'done' ? 'opacity:.5' : '' }}">
+        @if($z->status === 'done')
+            <i class="fas fa-check-circle text-success" style="font-size:20px"></i>
+        @else
+            <i class="far fa-circle text-muted" style="font-size:20px"></i>
+        @endif
+        <span style="flex:1;font-size:14px;font-weight:600;{{ $z->status === 'done' ? 'text-decoration:line-through;color:#888' : 'color:#1a1a1a' }}">
+            {{ $z->tresc }}
+        </span>
+        @if($z->status === 'pending')
+        <button onclick="wykonajZadanie({{ $z->id }})"
+                style="background:#27ae60;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">
+            <i class="fas fa-check"></i> Wykonaj
+        </button>
+        @endif
+    </div>
+    @endforeach
+</div>
+@endif
+
 @if($orders->isEmpty())
     <div class="no-orders">
         <i class="fas fa-calendar-check"></i>
@@ -353,6 +380,22 @@ function openReceiverWeight(orderId, currentVal) {
 
 function closeRW() {
     document.getElementById('rwOverlay').style.display = 'none';
+}
+
+async function wykonajZadanie(id) {
+    const result = await Swal.fire({
+        title: 'Czy zapisać wykonanie zadania?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Tak',
+        cancelButtonText: 'Nie',
+        confirmButtonColor: '#27ae60',
+    });
+    if (!result.isConfirmed) return;
+    const fd = new FormData();
+    fd.append('_token', '{{ csrf_token() }}');
+    await fetch(`/kierowca/zadania/${id}/wykonaj`, { method: 'POST', body: fd });
+    location.reload();
 }
 
 async function saveRW() {

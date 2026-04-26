@@ -175,6 +175,30 @@
             {{ mb_strtoupper($date->locale('pl')->translatedFormat('l, d F')) }}
         </div>
 
+        {{-- ══ ZADANIA ══ --}}
+        @if($zadania->isNotEmpty())
+        <div style="background:#fff8e1;border:2px solid #f9d38c;border-radius:10px;margin-bottom:14px;overflow:hidden">
+            <div style="padding:8px 12px;background:#f9d38c;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#6d4c00">
+                <i class="fas fa-tasks"></i> Zadania na placu
+            </div>
+            @foreach($zadania as $z)
+            <div style="padding:8px 12px;border-top:1px solid #f0e0a0;display:flex;align-items:center;gap:10px;{{ $z->status === 'done' ? 'opacity:.5' : '' }}">
+                @if($z->status === 'done')
+                    <i class="fas fa-check-circle text-success"></i>
+                @else
+                    <i class="far fa-circle text-muted"></i>
+                @endif
+                <span style="flex:1;font-size:13px;font-weight:600;{{ $z->status === 'done' ? 'text-decoration:line-through;color:#888' : 'color:#1a1a1a' }}">
+                    {{ $z->tresc }}
+                </span>
+                @if($z->status === 'done' && $z->completer)
+                    <span style="font-size:11px;color:#888">{{ $z->completer->name }} • {{ $z->completed_at?->format('H:i') }}</span>
+                @endif
+            </div>
+            @endforeach
+        </div>
+        @endif
+
         @if($orders->isEmpty())
         <div class="empty-state">
             <i class="fas fa-calendar-check"></i>
