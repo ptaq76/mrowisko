@@ -118,6 +118,43 @@
     border-radius: 12px; font-size: 15px; font-weight: 600;
     cursor: pointer; margin-top: 8px; color: #555;
 }
+
+/* Toggle pill */
+.toggle-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 4px; margin-bottom: 16px; user-select: none;
+}
+.toggle-row .tg-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 800;
+    letter-spacing: .04em; text-transform: uppercase; color: #1a1a1a;
+}
+.toggle-pill {
+    display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+}
+.toggle-pill .tg-state {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 900;
+    letter-spacing: .04em; text-transform: uppercase;
+    color: #aaa;
+    min-width: 32px; text-align: left;
+}
+.toggle-pill.on .tg-state { color: #1a1a1a; }
+.tg-switch {
+    position: relative; width: 64px; height: 36px;
+    background: #ccc; border-radius: 999px;
+    transition: background .2s;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,.15);
+}
+.tg-switch::after {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 30px; height: 30px; background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0,0,0,.25);
+    transition: transform .2s;
+}
+.toggle-pill.on .tg-switch { background: #1ee36a; }
+.toggle-pill.on .tg-switch::after { transform: translateX(28px); }
 </style>
 @endsection
 
@@ -224,13 +261,15 @@
         {{-- Wybór pojazdu --}}
         <div id="vehicleRow">
             <label class="s-label">Pojazd</label>
-            <select id="vehicleSelect" class="s-select" onchange="selectedVehicleId = this.value">
+            <select id="vehicleSelect" class="s-select" onchange="onVehicleChange(this)">
                 <option value="">– wybierz pojazd –</option>
                 @foreach($groups as $group)
                 @if($group->vehicles->isNotEmpty())
                 <optgroup label="{{ $group->nazwa }}">
                     @foreach($group->vehicles as $v)
-                    <option value="{{ $v->id }}">{{ $v->nazwa }}</option>
+                    <option value="{{ $v->id }}"
+                            data-mileage="{{ $v->tracks_mileage ? '1' : '0' }}"
+                            data-mileage-last="{{ $lastMileage[$v->id] ?? '' }}">{{ $v->nazwa }}</option>
                     @endforeach
                 </optgroup>
                 @endif
@@ -243,6 +282,22 @@
                placeholder="0"
                data-keypad-label="Liczba litrów [L]"
                data-min="0" data-max="2000">
+
+        <div id="mileageRow" style="display:none">
+            <label class="s-label">Przebieg (km)</label>
+            <input type="text" id="mileageInput" class="s-input js-numkey"
+                   placeholder="0"
+                   data-keypad-label="Przebieg [km]"
+                   data-min="0" data-max="9999999">
+
+            <div class="toggle-row">
+                <span class="tg-label">Zatankowano do pełna?</span>
+                <span class="toggle-pill" id="fullTankPill" onclick="toggleFullTank()">
+                    <span class="tg-switch"></span>
+                    <span class="tg-state" id="fullTankState">Nie</span>
+                </span>
+            </div>
+        </div>
 
         <div id="inventarInfo" style="display:none;background:#fef9e7;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#7d6608">
             <i class="fas fa-info-circle"></i>
@@ -262,10 +317,35 @@ const CSRF     = document.querySelector('meta[name="csrf-token"]').content;
 const CAPACITY = {{ $capacity }};
 let currentType      = null;
 let selectedVehicleId = null;
+let selectedTracksMileage = false;
+let fullTank = false;
+
+let selectedLastMileage = null;
+
+function toggleFullTank() {
+    fullTank = !fullTank;
+    const pill = document.getElementById('fullTankPill');
+    pill.classList.toggle('on', fullTank);
+    document.getElementById('fullTankState').textContent = fullTank ? 'Tak' : 'Nie';
+}
+
+function onVehicleChange(sel) {
+    selectedVehicleId = sel.value;
+    const opt = sel.options[sel.selectedIndex];
+    selectedTracksMileage = opt && opt.dataset.mileage === '1';
+    selectedLastMileage = (opt && opt.dataset.mileageLast) ? parseInt(opt.dataset.mileageLast) : null;
+    const row = document.getElementById('mileageRow');
+    row.style.display = (currentType === 'tankowanie' && selectedTracksMileage) ? 'block' : 'none';
+    const mInput = document.getElementById('mileageInput');
+    if (!selectedTracksMileage) {
+        mInput.value = '';
+    }
+}
 
 function openSheet(type) {
     currentType = type;
     selectedVehicleId = null;
+    selectedTracksMileage = false;
     const vs = document.getElementById('vehicleSelect'); if(vs) vs.value = '';
 
     const titles = { tankowanie:'⛽ Tankowanie', dostawa:'🚛 Dostawa', inwentaryzacja:'⚖ Korekta stanu' };
@@ -274,6 +354,12 @@ function openSheet(type) {
     document.getElementById('sheetTitle').textContent      = titles[type];
     document.getElementById('confirmBtn').style.background = colors[type];
     document.getElementById('vehicleRow').style.display    = type === 'tankowanie' ? 'block' : 'none';
+    document.getElementById('mileageRow').style.display    = 'none';
+    document.getElementById('mileageInput').value          = '';
+    fullTank = false;
+    document.getElementById('fullTankPill').classList.remove('on');
+    document.getElementById('fullTankState').textContent = 'Nie';
+    selectedLastMileage = null;
     document.getElementById('inventarInfo').style.display  = type === 'inwentaryzacja' ? 'block' : 'none';
     document.getElementById('litersLabel').textContent     = type === 'inwentaryzacja'
         ? 'Aktualny stan zbiornika (litry)' : 'Liczba litrów';
@@ -298,10 +384,27 @@ async function confirmAction() {
         return;
     }
 
+    let mileage = null;
+    if (currentType === 'tankowanie' && selectedTracksMileage) {
+        mileage = parseInt(document.getElementById('mileageInput').value);
+        if (!mileage || mileage < 1) {
+            Swal.fire({ icon:'warning', title:'Podaj przebieg pojazdu', timer:1800, showConfirmButton:false });
+            return;
+        }
+        if (selectedLastMileage && mileage < selectedLastMileage) {
+            Swal.fire({
+                icon:'error',
+                title:'Przebieg za niski',
+                html:`Podany przebieg <b>${mileage.toLocaleString('pl')} km</b> jest mniejszy od ostatnio zapisanego <b>${selectedLastMileage.toLocaleString('pl')} km</b>.`,
+            });
+            return;
+        }
+    }
+
     const res  = await fetch('/plac/fuel', {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': CSRF, 'Content-Type':'application/json', 'Accept':'application/json' },
-        body: JSON.stringify({ type: currentType, liters, fuel_vehicle_id: selectedVehicleId || null }),
+        body: JSON.stringify({ type: currentType, liters, fuel_vehicle_id: selectedVehicleId || null, mileage, full_tank: selectedTracksMileage ? fullTank : null }),
     });
     const data = await res.json();
 

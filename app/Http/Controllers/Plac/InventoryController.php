@@ -11,16 +11,27 @@ class InventoryController extends Controller
 {
     public function index()
     {
-        $stock = WarehouseItem::selectRaw('
-                fraction_id,
-                SUM(bales) as total_bales,
-                ROUND(SUM(weight_kg), 2) as total_weight
-            ')
-            ->groupBy('fraction_id')
-            ->having('total_bales', '>', 0)
-            ->with('fraction')
-            ->orderBy('fraction_id')
+        $fractions = WasteFraction::where('is_warehouse_tracked', true)
+            ->where('is_active', true)
+            ->where('name', 'not like', '%KARCHEM%')
+            ->orderBy('name')
             ->get();
+
+        $stockMap = WarehouseItem::selectRaw('fraction_id, SUM(bales) as total_bales, ROUND(SUM(weight_kg), 2) as total_weight')
+            ->groupBy('fraction_id')
+            ->get()
+            ->keyBy('fraction_id');
+
+        $stock = $fractions->map(function ($f) use ($stockMap) {
+            $s = $stockMap->get($f->id);
+
+            return (object) [
+                'fraction_id'  => $f->id,
+                'fraction'     => $f,
+                'total_bales'  => $s ? (int)   $s->total_bales  : 0,
+                'total_weight' => $s ? (float) $s->total_weight : 0,
+            ];
+        });
 
         return view('plac.inventory', compact('stock'));
     }

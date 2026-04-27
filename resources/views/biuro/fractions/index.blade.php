@@ -211,6 +211,7 @@
                     <th title="Widoczny przy dostawach">Dostawy</th>
                     <th title="Widoczny przy załadunkach">Załadunki</th>
                     <th title="Widoczny w produkcji">Produkcja</th>
+                    <th title="Śledzony w magazynie i inwentaryzacji">Magazyn</th>
                     <th title="Aktywny">Aktywny</th>
                     <th></th>
                 </tr>
@@ -226,8 +227,9 @@
                         'show_in_sales'      => 'Handlowcy',
                         'show_in_deliveries' => 'Dostawy',
                         'show_in_loadings'   => 'Załadunki',
-                        'show_in_production' => 'Produkcja',
-                        'is_active'          => 'Aktywny',
+                        'show_in_production'   => 'Produkcja',
+                        'is_warehouse_tracked' => 'Magazyn',
+                        'is_active'            => 'Aktywny',
                     ] as $field => $label)
                     <td>
                         <button class="toggle-btn"

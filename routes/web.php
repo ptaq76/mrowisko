@@ -130,6 +130,7 @@ Route::prefix('biuro')
         Route::put('fuel-vehicles/{fuelVehicle}', [FuelVehicleController::class, 'update'])->name('fuel-vehicles.update');
         Route::delete('fuel-vehicles/{fuelVehicle}', [FuelVehicleController::class, 'destroy'])->name('fuel-vehicles.destroy');
         Route::post('fuel-vehicles/{fuelVehicle}/toggle', [FuelVehicleController::class, 'toggle'])->name('fuel-vehicles.toggle');
+        Route::post('fuel-vehicles/{fuelVehicle}/toggle-mileage', [FuelVehicleController::class, 'toggleMileage'])->name('fuel-vehicles.toggleMileage');
 
         // Kody odpadów
         Route::get('waste-codes', [WasteCodeController::class, 'index'])->name('waste-codes.index');

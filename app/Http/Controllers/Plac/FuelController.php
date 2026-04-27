@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Plac;
 
 use App\Http\Controllers\Controller;
 use App\Models\FuelTransaction;
+use App\Models\FuelVehicle;
 use App\Models\FuelVehicleGroup;
 use Illuminate\Http\Request;
 
@@ -22,7 +23,14 @@ class FuelController extends Controller
             $q->where('active', true)->orderBy('nazwa');
         }])->where('active', true)->orderBy('id')->get();
 
-        return view('plac.fuel', compact('level', 'transactions', 'groups'));
+        // Ostatni przebieg per pojazd (dla pojazdów z tracks_mileage)
+        $lastMileage = FuelTransaction::whereNotNull('mileage')
+            ->whereNotNull('fuel_vehicle_id')
+            ->selectRaw('fuel_vehicle_id, MAX(mileage) as max_mileage')
+            ->groupBy('fuel_vehicle_id')
+            ->pluck('max_mileage', 'fuel_vehicle_id');
+
+        return view('plac.fuel', compact('level', 'transactions', 'groups', 'lastMileage'));
     }
 
     public function store(Request $request)
@@ -31,6 +39,8 @@ class FuelController extends Controller
             'type' => ['required', 'in:tankowanie,dostawa,inwentaryzacja'],
             'liters' => ['required', 'integer', 'min:1'],
             'fuel_vehicle_id' => ['nullable', 'exists:fuel_vehicles,id'],
+            'mileage' => ['nullable', 'integer', 'min:1'],
+            'full_tank' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string', 'max:255'],
         ], [
             'liters.required' => 'Podaj liczbę litrów.',
@@ -40,12 +50,38 @@ class FuelController extends Controller
         $current = FuelTransaction::currentLevel();
         $liters = (int) $request->liters;
         $type = $request->type;
+        $mileage = null;
+        $fullTank = null;
 
         if ($type === 'tankowanie' && $liters > $current) {
             return response()->json([
                 'success' => false,
                 'error' => "Niewystarczająca ilość paliwa. Stan: {$current} L, żądano: {$liters} L.",
             ], 422);
+        }
+
+        if ($type === 'tankowanie' && $request->fuel_vehicle_id) {
+            $vehicle = FuelVehicle::find($request->fuel_vehicle_id);
+            if ($vehicle && $vehicle->tracks_mileage) {
+                if (! $request->filled('mileage')) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => "Pojazd {$vehicle->nazwa} wymaga podania przebiegu.",
+                    ], 422);
+                }
+                $mileage = (int) $request->mileage;
+                $fullTank = (bool) $request->boolean('full_tank');
+
+                $lastMileage = FuelTransaction::where('fuel_vehicle_id', $vehicle->id)
+                    ->whereNotNull('mileage')
+                    ->max('mileage');
+                if ($lastMileage !== null && $mileage < $lastMileage) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => "Podany przebieg ({$mileage} km) jest mniejszy od ostatnio zapisanego ({$lastMileage} km) dla pojazdu {$vehicle->nazwa}.",
+                    ], 422);
+                }
+            }
         }
 
         $tankAfter = match ($type) {
@@ -58,6 +94,8 @@ class FuelController extends Controller
             'type' => $type,
             'liters' => $liters,
             'tank_after' => $tankAfter,
+            'mileage' => $mileage,
+            'full_tank' => $fullTank,
             'fuel_vehicle_id' => $type === 'tankowanie' ? $request->fuel_vehicle_id : null,
             'operator' => auth()->user()->name ?? auth()->id(),
             'notes' => $request->notes,

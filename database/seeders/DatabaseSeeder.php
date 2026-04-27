@@ -33,11 +33,11 @@ class DatabaseSeeder extends Seeder
             DriverSeeder::class,
             VehicleSetSeeder::class,
             FuelVehicleSeeder::class,
+            FuelTransactionSeeder::class,
             PojazdyTerminySeeder::class,
             TerminyAkcjeSeeder::class,
 
             // Importerzy i towary LS
-            WasteFractionSeeder::class,
             ImporterSeeder::class,
             LsGoodsSeeder::class,
             LsSeeder::class,

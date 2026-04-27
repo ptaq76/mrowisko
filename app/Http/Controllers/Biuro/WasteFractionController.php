@@ -89,7 +89,7 @@ class WasteFractionController extends Controller
     public function toggle(Request $request, WasteFraction $fraction)
     {
         $request->validate([
-            'field' => ['required', 'in:show_in_sales,show_in_deliveries,show_in_loadings,show_in_production,is_active'],
+            'field' => ['required', 'in:show_in_sales,show_in_deliveries,show_in_loadings,show_in_production,is_warehouse_tracked,is_active'],
         ]);
 
         $field = $request->field;

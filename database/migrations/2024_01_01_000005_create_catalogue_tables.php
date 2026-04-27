@@ -42,6 +42,7 @@ return new class extends Migration
             $table->boolean('show_in_deliveries')->default(true);
             $table->boolean('show_in_loadings')->default(true);
             $table->boolean('show_in_production')->default(true);
+            $table->boolean('is_warehouse_tracked')->default(false);
             $table->boolean('show_in_sales')->default(true);
             $table->foreignId('client_id')
                 ->nullable()

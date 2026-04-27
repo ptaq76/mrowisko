@@ -10,8 +10,8 @@ class WarehouseController extends Controller
 {
     public function index()
     {
-        // Wszystkie aktywne frakcje z belkami
-        $fractions = WasteFraction::where('allows_belka', true)
+        // Wszystkie aktywne frakcje śledzone w magazynie
+        $fractions = WasteFraction::where('is_warehouse_tracked', true)
             ->where('is_active', true)
             ->where('name', 'not like', '%KARCHEM%')
             ->orderBy('name')

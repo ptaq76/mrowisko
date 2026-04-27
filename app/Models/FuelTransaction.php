@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class FuelTransaction extends Model
 {
     protected $fillable = [
-        'type', 'liters', 'tank_after',
+        'type', 'liters', 'tank_after', 'mileage', 'full_tank',
         'fuel_vehicle_id', 'operator', 'notes',
     ];
+
+    protected $casts = ['full_tank' => 'boolean'];
 
     public function vehicle()
     {

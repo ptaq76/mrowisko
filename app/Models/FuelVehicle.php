@@ -8,9 +8,9 @@ class FuelVehicle extends Model
 {
     protected $table = 'fuel_vehicles';
 
-    protected $fillable = ['nazwa', 'grupa_id', 'active'];
+    protected $fillable = ['nazwa', 'grupa_id', 'active', 'tracks_mileage'];
 
-    protected $casts = ['active' => 'boolean'];
+    protected $casts = ['active' => 'boolean', 'tracks_mileage' => 'boolean'];
 
     public function group()
     {

@@ -23,6 +23,7 @@ return new class extends Migration
                 ->constrained('fuel_vehicle_groups')
                 ->nullOnDelete();
             $table->boolean('active')->default(true);
+            $table->boolean('tracks_mileage')->default(false);
             $table->timestamps();
         });
 
@@ -35,6 +36,8 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->decimal('liters', 8, 2);
             $table->decimal('tank_after', 8, 2)->nullable();
+            $table->unsignedInteger('mileage')->nullable();
+            $table->boolean('full_tank')->nullable();
             $table->string('operator')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();

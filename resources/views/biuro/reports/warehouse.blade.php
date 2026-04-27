@@ -101,17 +101,17 @@
                     </td>
                     <td class="fraction-name">{{ $row->fraction->name }}</td>
                     <td style="text-align:right">
-                        @if($row->total_bales > 0)
-                            <span class="bales-val">{{ $row->total_bales }}</span>
-                        @else
+                        @if($row->total_bales == 0)
                             <span class="zero">0</span>
+                        @else
+                            <span class="bales-val" style="{{ $row->total_bales < 0 ? 'color:#c0392b' : '' }}">{{ $row->total_bales }}</span>
                         @endif
                     </td>
                     <td style="text-align:right">
-                        @if($row->total_weight > 0)
-                            <span class="weight-val">{{ number_format($row->total_weight / 1000, 3, ',', ' ') }} t</span>
-                        @else
+                        @if($row->total_weight == 0)
                             <span class="zero">–</span>
+                        @else
+                            <span class="weight-val" style="{{ $row->total_weight < 0 ? 'color:#c0392b' : '' }}">{{ number_format($row->total_weight / 1000, 3, ',', ' ') }} t</span>
                         @endif
                     </td>
                     <td>

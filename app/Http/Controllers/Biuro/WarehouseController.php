@@ -11,7 +11,7 @@ class WarehouseController extends Controller
 {
     public function index()
     {
-        $fractions = WasteFraction::where('allows_belka', true)
+        $fractions = WasteFraction::where('is_warehouse_tracked', true)
             ->where('is_active', true)
             ->where('name', 'not like', '%KARCHEM%')
             ->orderByDesc('fav_biuro')

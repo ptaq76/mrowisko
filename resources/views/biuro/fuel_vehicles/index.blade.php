@@ -57,13 +57,19 @@ tr.inactive td { opacity:.4; }
                             {{ $v->active ? '✅' : '⬜' }}
                         </button>
                     </td>
+                    <td style="width:120px;text-align:center">
+                        <span style="font-size:11px;color:#888;letter-spacing:.06em;text-transform:uppercase;margin-right:6px">Przebieg</span>
+                        <button class="toggle-btn" onclick="toggleMileage({{ $v->id }})" id="vmlg-{{ $v->id }}" title="Wymagany przebieg przy tankowaniu">
+                            {{ $v->tracks_mileage ? '✅' : '⬜' }}
+                        </button>
+                    </td>
                     <td style="width:100px;text-align:right">
                         <button class="btn-edit" onclick="openEdit({{ $v->id }}, {{ json_encode($v->nazwa) }}, {{ $v->grupa_id }})"><i class="fas fa-pen"></i></button>
                         <button class="btn-del"  onclick="del({{ $v->id }})"><i class="fas fa-trash-alt"></i></button>
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="3" style="color:#ccc;text-align:center;padding:12px">Brak pojazdów</td></tr>
+                <tr><td colspan="4" style="color:#ccc;text-align:center;padding:12px">Brak pojazdów</td></tr>
                 @endforelse
                 </tbody>
             </table>
@@ -131,6 +137,13 @@ async function toggle(id) {
     if(data.success){
         document.getElementById('vtgl-'+id).textContent=data.active?'✅':'⬜';
         document.getElementById('vr-'+id).className=data.active?'':'inactive';
+    }
+}
+async function toggleMileage(id) {
+    const res=await fetch(`/biuro/fuel-vehicles/${id}/toggle-mileage`,{method:'POST',headers:{'X-CSRF-TOKEN':CSRF,'Accept':'application/json'}});
+    const data=await res.json();
+    if(data.success){
+        document.getElementById('vmlg-'+id).textContent=data.tracks_mileage?'✅':'⬜';
     }
 }
 async function del(id) {

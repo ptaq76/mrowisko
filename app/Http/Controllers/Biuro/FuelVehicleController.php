@@ -58,4 +58,11 @@ class FuelVehicleController extends Controller
 
         return response()->json(['success' => true, 'active' => $fuelVehicle->active]);
     }
+
+    public function toggleMileage(FuelVehicle $fuelVehicle)
+    {
+        $fuelVehicle->update(['tracks_mileage' => ! $fuelVehicle->tracks_mileage]);
+
+        return response()->json(['success' => true, 'tracks_mileage' => $fuelVehicle->tracks_mileage]);
+    }
 }
