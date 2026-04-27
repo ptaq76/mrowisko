@@ -318,9 +318,12 @@
 {{-- Belki --}}
 <div class="form-card" id="balesCard" style="display:none">
     <label class="f-label">Ilość belek</label>
-    <input type="number" id="balesInput" class="big-input"
-           min="0" step="1" inputmode="numeric" placeholder="0"
-           value="{{ $editItem ? $editItem->bales : '' }}">
+    <input type="text" id="balesInput" class="big-input js-numkey"
+           placeholder="0"
+           value="{{ $editItem ? $editItem->bales : '' }}"
+           data-keypad-label="Ilość belek [szt.]"
+           data-decimal="false"
+           data-min="0" data-max="500">
     <div class="i-unit">szt.</div>
 </div>
 
@@ -332,9 +335,12 @@
             <span style="font-size:11px;color:#bbb;font-weight:600">podaj w kg</span>
         </div>
     </div>
-    <input type="number" id="weightInput" class="big-input"
-           min="0" step="1" inputmode="numeric" placeholder="0"
-           value="{{ $editItem ? round($editItem->weight_kg) : '' }}">
+    <input type="text" id="weightInput" class="big-input js-numkey"
+           placeholder="0"
+           value="{{ $editItem ? round($editItem->weight_kg) : '' }}"
+           data-keypad-label="Waga [kg]"
+           data-decimal="false"
+           data-min="0" data-max="50000">
     <div class="i-unit">kg</div>
 </div>
 
@@ -422,11 +428,13 @@ async function openPackagingForm() {
                     ${driverInfo}
                 </div>
             </div>
-            <input type="number" id="spkg_${p.id}"
+            <input type="text" id="spkg_${p.id}"
                    data-id="${p.id}" data-waga="${p.waga}"
-                   class="sw-pkg-input"
-                   min="0" step="1" inputmode="numeric"
+                   class="sw-pkg-input js-numkey"
                    value="${defaultQty}"
+                   data-keypad-label="${p.name} [szt.]"
+                   data-decimal="false"
+                   data-min="0" data-max="9999"
                    oninput="swUpdateTotal()">
         </div>`;
     }).join('');

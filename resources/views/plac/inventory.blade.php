@@ -191,13 +191,18 @@
         <div class="inv-inputs">
             <div class="inv-input-wrap">
                 <label>Belki (szt.)</label>
-                <input type="number" id="invBales" class="inv-input"
-                       min="0" step="1" inputmode="numeric">
+                <input type="text" id="invBales" class="inv-input js-numkey"
+                       data-keypad-label="Belki [szt.]"
+                       data-decimal="false"
+                       data-min="0" data-max="99999">
             </div>
             <div class="inv-input-wrap">
                 <label>Waga (kg)</label>
-                <input type="number" id="invWeight" class="inv-input"
-                       min="0" step="1" inputmode="numeric" placeholder="0">
+                <input type="text" id="invWeight" class="inv-input js-numkey"
+                       placeholder="0"
+                       data-keypad-label="Waga [kg]"
+                       data-decimal="false"
+                       data-min="0" data-max="9999999">
             </div>
         </div>
 

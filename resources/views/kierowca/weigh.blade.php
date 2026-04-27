@@ -244,8 +244,11 @@
 
 <div class="input-card">
     <label>Wskazanie wagi</label>
-    <input type="number" id="bruttoInput" class="brutto-input"
-           step="1" min="0" inputmode="numeric" autofocus placeholder="0">
+    <input type="text" id="bruttoInput" class="brutto-input js-numkey"
+           placeholder="0"
+           data-keypad-label="Wskazanie wagi [kg]"
+           data-decimal="false"
+           data-min="0" data-max="50000">
     <div class="unit">kilogramy [kg]</div>
 </div>
 
@@ -371,8 +374,11 @@ async function doConfirm() {
                     <div class="pkg-name">${o.name}</div>
                     <div class="pkg-sub">${parseFloat(o.waga).toFixed(0)} kg/szt.</div>
                 </div>
-                <input type="number" class="pkg-input" id="pkg_${o.id}"
-                       min="0" step="1" inputmode="numeric" value="0">
+                <input type="text" class="pkg-input js-numkey" id="pkg_${o.id}"
+                       value="0"
+                       data-keypad-label="${o.name} [szt.]"
+                       data-decimal="false"
+                       data-min="0" data-max="9999">
             </div>`).join('')}
         </div>`;
 

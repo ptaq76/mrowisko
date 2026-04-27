@@ -342,8 +342,11 @@
 
         <div class="weight-input-wrap">
             <label>Waga z wagi samochodowej (kg)</label>
-            <input type="number" id="tractorBruttoInput" class="weight-input"
-                   step="1" min="0" inputmode="numeric" placeholder="0">
+            <input type="text" id="tractorBruttoInput" class="weight-input js-numkey"
+                   placeholder="0"
+                   data-keypad-label="Waga brutto samochód [kg]"
+                   data-decimal="false"
+                   data-min="0" data-max="50000">
             <div class="unit-hint">KILOGRAMY [kg]</div>
         </div>
 
@@ -380,8 +383,11 @@
 
         <div class="weight-input-wrap">
             <label>Waga z wagi samochodowej (kg)</label>
-            <input type="number" id="trailerBruttoInput" class="weight-input"
-                   step="1" min="0" inputmode="numeric" placeholder="0">
+            <input type="text" id="trailerBruttoInput" class="weight-input js-numkey"
+                   placeholder="0"
+                   data-keypad-label="Waga brutto naczepa [kg]"
+                   data-decimal="false"
+                   data-min="0" data-max="50000">
             <div class="unit-hint">KILOGRAMY [kg]</div>
         </div>
 

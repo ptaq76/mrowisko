@@ -261,23 +261,40 @@
                     </div>
                 </div>
 
-                {{-- Przyciski woźaców --}}
-                @if($haulers->isNotEmpty())
-                <div style="margin-bottom:8px">
-                    <div class="active-orders-label">Woźacy</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:5px">
-                        @foreach($haulers as $h)
-                        <button type="button"
-                                style="padding:5px 14px;border:1.5px solid #e67e22;border-radius:20px;background:#fef5ec;color:#c0392b;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s"
-                                onmouseover="this.style.background='#e67e22';this.style.color='#fff'"
-                                onmouseout="this.style.background='#fef5ec';this.style.color='#c0392b'"
-                                onclick="document.getElementById('wClient').value='{{ $h->client_id }}'">
-                            {{ $h->client?->short_name }}
-                        </button>
-                        @endforeach
+                {{-- Wozacy + Skróty (dwie kolumny) --}}
+                <div style="display:flex;gap:12px;margin-bottom:8px;align-items:flex-start">
+                    {{-- Przyciski woźaców --}}
+                    @if($haulers->isNotEmpty())
+                    <div style="flex:1;min-width:0">
+                        <div class="active-orders-label">Woźacy</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:5px">
+                            @foreach($haulers as $h)
+                            <button type="button"
+                                    style="padding:5px 14px;border:1.5px solid #e67e22;border-radius:20px;background:#fef5ec;color:#c0392b;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s"
+                                    onmouseover="this.style.background='#e67e22';this.style.color='#fff'"
+                                    onmouseout="this.style.background='#fef5ec';this.style.color='#c0392b'"
+                                    onclick="document.getElementById('wClient').value='{{ $h->client_id }}'">
+                                {{ $h->client?->short_name }}
+                            </button>
+                            @endforeach
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Skróty --}}
+                    <div style="flex:1;min-width:0">
+                        <div class="active-orders-label">Skróty</div>
+                        <div style="display:flex;flex-wrap:wrap;gap:5px">
+                            <button type="button"
+                                    style="padding:5px 14px;border:1.5px solid #27ae60;border-radius:20px;background:#e8f7e4;color:#1a7a3a;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s"
+                                    onmouseover="this.style.background='#27ae60';this.style.color='#fff'"
+                                    onmouseout="this.style.background='#e8f7e4';this.style.color='#1a7a3a'"
+                                    onclick="WeighingShortcuts.recykler()">
+                                Recykler
+                            </button>
+                        </div>
                     </div>
                 </div>
-                @endif
 
                 <div class="m-row-2" style="margin-bottom:8px">
                     <div>
@@ -379,6 +396,7 @@
 @endsection
 
 @section('scripts')
+<script src="{{ asset('js/weighings_shortcuts.js') }}?v={{ filemtime(public_path('js/weighings_shortcuts.js')) }}"></script>
 <script>
 const CSRF = '{{ csrf_token() }}';
 let _editId = null;

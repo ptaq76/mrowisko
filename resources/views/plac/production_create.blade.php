@@ -153,18 +153,24 @@
 {{-- Belki --}}
 <div class="form-card">
     <label class="f-label">Ilość belek</label>
-    <input type="number" id="balesInput" class="big-input"
-           min="1" step="1" inputmode="numeric" placeholder="0"
-           oninput="onBalesChange()">
+    <input type="text" id="balesInput" class="big-input js-numkey"
+           placeholder="0"
+           oninput="onBalesChange()"
+           data-keypad-label="Ilość belek [szt.]"
+           data-decimal="false"
+           data-min="1" data-max="500">
     <div class="i-unit">szt.</div>
 </div>
 
 {{-- Waga --}}
 <div class="form-card">
     <label class="f-label">Waga</label>
-    <input type="number" id="weightInput" class="big-input"
-           min="0" step="1" inputmode="numeric" placeholder="0"
-           oninput="updateAvg()">
+    <input type="text" id="weightInput" class="big-input js-numkey"
+           placeholder="0"
+           oninput="updateAvg()"
+           data-keypad-label="Waga [kg]"
+           data-decimal="false"
+           data-min="0" data-max="50000">
     <div class="i-unit">kg</div>
     <div class="avg-info" id="avgInfo"></div>
 </div>

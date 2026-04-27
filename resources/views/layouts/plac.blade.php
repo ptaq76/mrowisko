@@ -304,6 +304,7 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+@include('partials._keypad')
 @include('partials._session_guard')
 @yield('scripts')
 </body>

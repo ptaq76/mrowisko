@@ -145,6 +145,7 @@
                     <th>Towary</th>
                     <th class="th-right">Waga kierowcy</th>
                     <th style="width:120px">Akcje</th>
+                    <th>Operator</th>
                 </tr>
             </thead>
             <tbody>
@@ -204,6 +205,9 @@
                                 <i class="fas fa-archive"></i>
                             </button>
                         </div>
+                    </td>
+                    <td style="font-size:12px;color:#666">
+                        {{ $order->loadingItems->pluck('operator.name')->filter()->unique()->implode(', ') ?: '–' }}
                     </td>
                 </tr>
                 @endforeach

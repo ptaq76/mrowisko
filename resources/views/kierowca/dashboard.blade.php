@@ -412,9 +412,11 @@
             <span style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900">Waga odbiorcy</span>
             <button onclick="closeRW()" style="background:#f0f2f5;border:none;border-radius:50%;width:32px;height:32px;font-size:16px;cursor:pointer">×</button>
         </div>
-        <input type="number" id="rwInput" step="0.001" min="0" inputmode="decimal"
+        <input type="text" id="rwInput" class="js-numkey"
                style="width:100%;padding:16px;border:3px solid #e2e5e9;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:42px;font-weight:900;text-align:center;outline:none;-moz-appearance:textfield;margin-bottom:14px"
-               placeholder="0.000">
+               placeholder="0.000"
+               data-keypad-label="Waga odbiorcy [t]"
+               data-min="0" data-max="50">
         <div style="text-align:center;font-size:11px;color:#aaa;margin-bottom:14px;text-transform:uppercase;letter-spacing:.08em">tony netto [t]</div>
         <button onclick="saveRW()" style="width:100%;padding:16px;background:#922b21;color:#fff;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">
             <i class="fas fa-check"></i> ZAPISZ

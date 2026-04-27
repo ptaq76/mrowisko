@@ -239,8 +239,10 @@
         </div>
 
         <label class="s-label" id="litersLabel">Liczba litrów</label>
-        <input type="number" id="litersInput" class="s-input"
-               min="1" inputmode="numeric" placeholder="0">
+        <input type="text" id="litersInput" class="s-input js-numkey"
+               placeholder="0"
+               data-keypad-label="Liczba litrów [L]"
+               data-min="0" data-max="2000">
 
         <div id="inventarInfo" style="display:none;background:#fef9e7;border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#7d6608">
             <i class="fas fa-info-circle"></i>

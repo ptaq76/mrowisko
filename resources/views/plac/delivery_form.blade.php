@@ -105,6 +105,18 @@
 .pkg-qty   { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: #111; }
 .pkg-kg    { font-size: 12px; font-weight: 700; color: #aaa; }
 .pkg-empty { padding: 14px; text-align: center; font-size: 13px; color: #ccc; }
+
+/* ── SweetAlert formularz opakowań ── */
+.sw-pkg-input {
+    width: 72px; padding: 8px 6px;
+    border: 2px solid #e2e5e9; border-radius: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 900; text-align: center; color: #111;
+    outline: none; -moz-appearance: textfield; flex-shrink: 0;
+}
+.sw-pkg-input::-webkit-outer-spin-button,
+.sw-pkg-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.sw-pkg-input:focus { border-color: #3498db; }
 </style>
 @endsection
 
@@ -124,15 +136,31 @@
         @if($order->tractor)<span class="plate-badge" style="border-color:rgba(255,255,255,.5);color:#fff;background:rgba(255,255,255,.15)">{{ $order->tractor->plate }}</span>@endif
         @if($order->trailer)<span class="plate-badge" style="border-color:rgba(255,255,255,.5);color:#fff;background:rgba(255,255,255,.15)">{{ $order->trailer->plate }}</span>@endif
     </div>
-    @if($order->weight_netto)
     @php
-        $totalItemsT = $order->loadingItems->sum('weight_kg') / 1000;
-        $diff = $order->weight_netto - $totalItemsT;
+        $pkgItems       = $order->packaging;
+        $hasPkg         = $pkgItems->isNotEmpty();
+        $allConfirmed   = $hasPkg && $pkgItems->every(fn($p) => $p->confirmed_at !== null);
+        $placConfirmed  = $hasPkg && $pkgItems->some(fn($p)  => $p->confirmed_at !== null);
+        $onlyDriver     = $hasPkg && !$placConfirmed;
+        $totalPkgSzt    = $allConfirmed ? $pkgItems->sum(fn($p) => $p->qty_plac ?? $p->quantity ?? 0) : 0;
+        $totalPkgKg     = $allConfirmed ? $pkgItems->sum(fn($p) => ($p->qty_plac ?? $p->quantity ?? 0) * (float)($p->opakowanie?->waga ?? 0)) : 0;
+        $totalItemsT    = $order->loadingItems->sum('weight_kg') / 1000;
+        $weightNetto    = $order->weight_netto ?? 0;
+        $weightNettoPkg = $allConfirmed && $totalPkgKg > 0 ? round($weightNetto - $totalPkgKg / 1000, 3) : null;
+        $weightDisplay  = $weightNettoPkg ?? $weightNetto;
+        $diff           = $weightDisplay - $totalItemsT;
     @endphp
+
+    @if($order->weight_netto)
     <div class="lh-weight">
         <div class="lhw-block">
-            <span class="lhw-label">Waga kierowcy brutto</span>
-            <span class="lhw-val">{{ number_format($order->weight_netto, 3, ',', ' ') }} t</span>
+            <span class="lhw-label">Waga kierowcy</span>
+            <span class="lhw-val">{{ number_format($weightDisplay, 3, ',', ' ') }} t</span>
+            @if($weightNettoPkg !== null)
+            <span style="font-size:10px;color:rgba(255,255,255,.55);margin-top:1px">
+                brutto {{ number_format($weightNetto, 3, ',', ' ') }} t
+            </span>
+            @endif
         </div>
         <div class="lhw-block" style="align-items:flex-end">
             <span class="lhw-label">Pozostało</span>
@@ -142,22 +170,18 @@
     @endif
 </div>
 
-{{-- ── OPAKOWANIA – tylko podsumowanie ── --}}
-@php
-    $pkgItems      = $order->packaging;
-    $hasPkg        = $pkgItems->isNotEmpty();
-    $placConfirmed = $hasPkg && $pkgItems->some(fn($p) => $p->confirmed_at !== null);
-    $onlyDriver    = $hasPkg && !$placConfirmed;
-@endphp
-<div class="pkg-card">
+{{-- ── OPAKOWANIA – z edycją ── --}}
+<div class="pkg-card" onclick="openPackagingForm()" style="cursor:pointer">
     <div class="pkg-head">
         <span class="pkg-head-title"><i class="fas fa-box"></i> Opakowania</span>
-        @if(!$hasPkg)
-            <span class="pkg-source">Brak informacji</span>
-        @elseif($onlyDriver)
-            <span class="pkg-source driver">Od kierowcy</span>
-        @endif
-        {{-- plac potwierdził → bez komentarza --}}
+        <span style="display:flex;align-items:center;gap:8px">
+            @if(!$hasPkg)
+                <span class="pkg-source">Brak informacji</span>
+            @elseif($onlyDriver)
+                <span class="pkg-source driver">Od kierowcy – wymaga potwierdzenia</span>
+            @endif
+            <i class="fas fa-edit" style="color:#bbb;font-size:13px"></i>
+        </span>
     </div>
     @if($hasPkg)
         @foreach($pkgItems as $pkg)
@@ -176,8 +200,17 @@
             </div>
         </div>
         @endforeach
+        @if($totalPkgKg > 0)
+        <div class="pkg-row" style="background:#f8f9fa">
+            <span class="pkg-name" style="color:#888;font-size:11px;letter-spacing:.06em;text-transform:uppercase">Razem</span>
+            <div class="pkg-right">
+                <span class="pkg-qty" style="font-size:16px">{{ $totalPkgSzt }} szt.</span>
+                <span class="pkg-kg">{{ number_format($totalPkgKg, 0, ',', ' ') }} kg</span>
+            </div>
+        </div>
+        @endif
     @else
-        <div class="pkg-empty">–</div>
+        <div class="pkg-empty">– kliknij aby dodać –</div>
     @endif
 </div>
 
@@ -245,6 +278,19 @@
 
 @endsection
 
+@php
+$pkgDataForJs = $allOpakowania->map(function($o) use ($pkgItems) {
+    $fromDriver = $pkgItems->firstWhere('opakowanie_id', $o->id);
+    return [
+        'id'       => $o->id,
+        'name'     => $o->name,
+        'waga'     => (float)$o->waga,
+        'driver'   => $fromDriver?->quantity,
+        'qty_plac' => $fromDriver?->qty_plac,
+    ];
+})->values();
+@endphp
+
 @section('scripts')
 <style>
 .btn-green {
@@ -264,7 +310,99 @@
 <script>
 const ORDER_ID = {{ $order->id }};
 const CSRF     = document.querySelector('meta[name="csrf-token"]').content;
+const PKG_DATA = @json($pkgDataForJs);
 let _pressTimer = null;
+
+/* ── Formularz opakowań w SweetAlert ── */
+async function openPackagingForm() {
+    if (!PKG_DATA.length) {
+        Swal.fire({ icon: 'info', title: 'Brak opakowań', text: 'Nie zdefiniowano żadnych opakowań zwrotnych.' });
+        return;
+    }
+
+    const rows = PKG_DATA.map(p => {
+        const defaultQty = p.qty_plac ?? p.driver ?? 0;
+        const driverInfo = (p.driver !== null && p.driver !== undefined)
+            ? `<span style="font-size:10px;color:#d68910;font-weight:700">kier: ${p.driver}</span>`
+            : '';
+        return `
+        <div style="display:flex;align-items:center;justify-content:space-between;
+                    padding:10px 0;border-bottom:1px solid #f0f0f0">
+            <div style="text-align:left">
+                <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;
+                            font-weight:800;color:#1a1a1a">${p.name}</div>
+                <div style="font-size:11px;color:#aaa;display:flex;gap:6px;align-items:center">
+                    ${p.waga > 0 ? Math.round(p.waga) + ' kg/szt.' : ''}
+                    ${driverInfo}
+                </div>
+            </div>
+            <input type="text" id="spkg_${p.id}"
+                   data-id="${p.id}" data-waga="${p.waga}"
+                   class="sw-pkg-input js-numkey"
+                   value="${defaultQty}"
+                   data-keypad-label="${p.name} [szt.]"
+                   data-decimal="false"
+                   data-min="0" data-max="9999"
+                   oninput="swUpdateTotal()">
+        </div>`;
+    }).join('');
+
+    const html = `
+        <div style="text-align:left">
+            ${rows}
+            <div style="display:flex;justify-content:space-between;align-items:center;
+                        padding:10px 0;margin-top:2px">
+                <span style="font-size:11px;font-weight:700;color:#aaa;
+                             text-transform:uppercase;letter-spacing:.06em">Łączna waga</span>
+                <span id="swTotalKg" style="font-family:'Barlow Condensed',sans-serif;
+                                            font-size:20px;font-weight:900;color:#3498db">0 kg</span>
+            </div>
+        </div>`;
+
+    const result = await Swal.fire({
+        title: 'Palety / BigBoxy',
+        html,
+        showCancelButton: true,
+        confirmButtonText: 'Zapisz',
+        cancelButtonText: 'Anuluj',
+        confirmButtonColor: '#3498db',
+        cancelButtonColor: '#aaa',
+        reverseButtons: true,
+        didOpen: () => setTimeout(() => swUpdateTotal(), 50),
+        preConfirm: () => {
+            return PKG_DATA.map(p => ({
+                opakowanie_id: p.id,
+                qty_plac: parseInt(document.getElementById(`spkg_${p.id}`)?.value) || 0,
+            }));
+        },
+    });
+
+    if (!result.isConfirmed) return;
+
+    const res = await fetch(`/plac/delivery/${ORDER_ID}/packaging`, {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': CSRF, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ packaging: result.value }),
+    });
+    const data = await res.json();
+
+    if (data.success) {
+        await Swal.fire({ icon: 'success', title: 'Zapisano!', timer: 1200, showConfirmButton: false });
+        location.reload();
+    } else {
+        Swal.fire({ icon: 'error', title: 'Błąd', text: data.message ?? 'Spróbuj ponownie.' });
+    }
+}
+
+function swUpdateTotal() {
+    let total = 0;
+    PKG_DATA.forEach(p => {
+        const qty = parseInt(document.getElementById(`spkg_${p.id}`)?.value) || 0;
+        total += qty * p.waga;
+    });
+    const el = document.getElementById('swTotalKg');
+    if (el) el.textContent = Math.round(total) + ' kg';
+}
 
 function startPress(row) {
     row.classList.add('pressing');

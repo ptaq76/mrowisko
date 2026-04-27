@@ -22,6 +22,7 @@ use App\Http\Controllers\Biuro\PrasaController;
 use App\Http\Controllers\Biuro\RaportWysylekController;
 use App\Http\Controllers\Biuro\ReklamacjeController;
 use App\Http\Controllers\Biuro\ReportController;
+use App\Http\Controllers\Biuro\ShortcutController;
 use App\Http\Controllers\Biuro\VehicleController;
 use App\Http\Controllers\Biuro\VehicleSetController;
 use App\Http\Controllers\Biuro\WarehouseController;
@@ -175,6 +176,9 @@ Route::prefix('biuro')
         Route::delete('weighings/{weighing}', [WeighingController::class, 'destroy'])->name('weighings.destroy');
         Route::post('weighings/{weighing}/archive', [WeighingController::class, 'archive'])->name('weighings.archive');
         Route::post('weighings/{weighing}/unarchive', [WeighingController::class, 'unarchive'])->name('weighings.unarchive');
+
+        // Skróty (akcje 1-klikowe w modalu Dodaj ważenie)
+        Route::post('shortcuts/recykler', [ShortcutController::class, 'recykler'])->name('shortcuts.recykler');
 
         // Raporty
         Route::get('reports/loadings', [ReportController::class, 'loadings'])->name('reports.loadings');

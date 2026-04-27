@@ -26,7 +26,7 @@ class ReportController extends Controller
 
         $query = Order::with([
             'client', 'tractor', 'trailer', 'driver',
-            'loadingItems.fraction',
+            'loadingItems.fraction', 'loadingItems.operator',
         ])
             ->where('type', 'sale')
             ->whereIn('status', ['loaded', 'weighed', 'closed'])
@@ -80,7 +80,7 @@ class ReportController extends Controller
 
         $query = Order::with([
             'client', 'tractor', 'trailer', 'driver',
-            'loadingItems.fraction',
+            'loadingItems.fraction', 'loadingItems.operator',
         ])
             ->where('type', 'sale')
             ->where('is_archived', true)
@@ -214,7 +214,7 @@ class ReportController extends Controller
         $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subMonths(3)->startOfMonth()->format('Y-m-d');
         $dateTo = $request->filled('date_to') ? $request->date_to : now()->format('Y-m-d');
 
-        $query = Order::with(['client', 'tractor', 'trailer', 'driver', 'loadingItems.fraction'])
+        $query = Order::with(['client', 'tractor', 'trailer', 'driver', 'loadingItems.fraction', 'loadingItems.operator'])
             ->where('type', 'pickup')
             ->whereIn('status', ['delivered', 'closed'])
             ->where('is_archived', false)
@@ -271,7 +271,7 @@ class ReportController extends Controller
         $dateFrom = $request->filled('date_from') ? $request->date_from : now()->subMonths(3)->startOfMonth()->format('Y-m-d');
         $dateTo = $request->filled('date_to') ? $request->date_to : now()->format('Y-m-d');
 
-        $query = Order::with(['client', 'tractor', 'trailer', 'driver', 'loadingItems.fraction'])
+        $query = Order::with(['client', 'tractor', 'trailer', 'driver', 'loadingItems.fraction', 'loadingItems.operator'])
             ->where('type', 'pickup')
             ->where('is_archived', true)
             ->whereDate('planned_date', '>=', $dateFrom)
@@ -381,7 +381,7 @@ class ReportController extends Controller
 
         $query = Order::with([
             'client', 'tractor', 'trailer', 'driver',
-            'loadingItems.fraction',
+            'loadingItems.fraction', 'loadingItems.operator',
         ])
             ->whereDate('planned_date', '>=', $dateFrom)
             ->whereDate('planned_date', '<=', $dateTo);
