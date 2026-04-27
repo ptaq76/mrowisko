@@ -90,6 +90,14 @@
        class="sidebar-link {{ request()->routeIs('biuro.opakowania.*') ? 'active' : '' }}">
         <i class="fa-solid fa-box"></i> Opakowania
     </a>
+    <a href="{{ route('biuro.containers.index') }}"
+       class="sidebar-link {{ request()->routeIs('biuro.containers.*') ? 'active' : '' }}">
+        <i class="fa-solid fa-dumpster"></i> Kontenery
+    </a>
+    <a href="{{ route('biuro.prasy.index') }}"
+       class="sidebar-link {{ request()->routeIs('biuro.prasy.*') ? 'active' : '' }}">
+        <i class="fa-solid fa-compress"></i> Prasy
+    </a>
     <a href="{{ route('biuro.vehicles.index') }}"
        class="sidebar-link {{ request()->routeIs('biuro.vehicles.*') ? 'active' : '' }}">
         <i class="fa-solid fa-truck-moving"></i> Pojazdy

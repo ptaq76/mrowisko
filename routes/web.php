@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Biuro\Annex7Controller;
 use App\Http\Controllers\Biuro\BdoController;
 use App\Http\Controllers\Biuro\ClientController;
+use App\Http\Controllers\Biuro\ContainerController;
 use App\Http\Controllers\Biuro\FuelVehicleController;
 use App\Http\Controllers\Biuro\HaulerController;
 use App\Http\Controllers\Biuro\ImporterController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Biuro\LieferscheinController;
 use App\Http\Controllers\Biuro\OrderController;
 use App\Http\Controllers\Biuro\PlanningController;
 use App\Http\Controllers\Biuro\PojazdyTerminyController;
+use App\Http\Controllers\Biuro\PrasaController;
 use App\Http\Controllers\Biuro\RaportWysylekController;
 use App\Http\Controllers\Biuro\ReklamacjeController;
 use App\Http\Controllers\Biuro\ReportController;
@@ -33,6 +35,7 @@ use App\Http\Controllers\Plac\FuelController;
 use App\Http\Controllers\Plac\InventoryController;
 use App\Http\Controllers\Plac\LoadingController;
 use App\Http\Controllers\Plac\ProductionController;
+use App\Http\Controllers\Plac\ReportController as PlacReportController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Biuro\OpakowaniaController;
 use App\Http\Controllers\Karchem\KarchemController;
@@ -132,6 +135,18 @@ Route::prefix('biuro')
         Route::post('waste-codes', [WasteCodeController::class, 'store'])->name('waste-codes.store');
         Route::put('waste-codes/{wasteCode}', [WasteCodeController::class, 'update'])->name('waste-codes.update');
         Route::delete('waste-codes/{wasteCode}', [WasteCodeController::class, 'destroy'])->name('waste-codes.destroy');
+
+        // Kontenery
+        Route::get('containers/by-client', [ContainerController::class, 'byClient'])->name('containers.byClient');
+        Route::get('containers/{container}/history', [ContainerController::class, 'history'])->name('containers.history');
+        Route::post('containers/{container}/adjust-stock', [ContainerController::class, 'adjustStock'])->name('containers.adjustStock');
+        Route::resource('containers', ContainerController::class)
+            ->only(['index', 'store', 'update', 'destroy']);
+
+        // Prasy
+        Route::resource('prasy', PrasaController::class)
+            ->only(['index', 'store', 'update', 'destroy'])
+            ->parameters(['prasy' => 'prasa']);
 
           // Opakowania
         Route::resource('opakowania', OpakowaniaController::class)
@@ -287,6 +302,7 @@ Route::prefix('kierowca')
         Route::post('orders/{order}/weigh', [DashboardController::class, 'weighSave'])->name('orders.weighSave');
         Route::post('orders/{order}/weigh-confirm', [DashboardController::class, 'weighConfirm'])->name('orders.weighConfirm');
         Route::post('orders/{order}/weigh-confirm-hakowiec', [DashboardController::class, 'weighConfirmHakowiec'])->name('orders.weighConfirmHakowiec');
+        Route::post('orders/{order}/drop-containers', [DashboardController::class, 'dropContainers'])->name('orders.dropContainers');
         Route::post('orders/{order}/receiver-weight', [DashboardController::class, 'saveReceiverWeight'])->name('orders.receiverWeight');
         Route::post('orders/{order}/packaging', [DashboardController::class, 'savePackaging'])->name('orders.packaging');
         Route::get('/kursy', [DashboardController::class, 'kursy'])->name('kursy');
@@ -300,6 +316,7 @@ Route::prefix('hakowiec')
     ->name('hakowiec.')
     ->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\Hakowiec\DashboardController::class, 'index'])->name('dashboard');
+        Route::post('orders/{order}/status', [App\Http\Controllers\Hakowiec\DashboardController::class, 'setStatus'])->name('orders.status');
         Route::post('zadania/{zadanie}/wykonaj', [ZadanieController::class, 'complete'])->name('zadania.complete');
     });
 
@@ -344,6 +361,9 @@ Route::prefix('plac')
 
         Route::get('inventory', [InventoryController::class, 'index'])->name('inventory.index');
         Route::post('inventory/{fraction}/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
+
+        Route::get('reports/deliveries', [PlacReportController::class, 'deliveries'])->name('reports.deliveries');
+        Route::get('reports/loadings',   [PlacReportController::class, 'loadings'])->name('reports.loadings');
 
         Route::get('stock', [App\Http\Controllers\Plac\DashboardController::class, 'stock'])->name('stock');
 

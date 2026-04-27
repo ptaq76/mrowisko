@@ -263,5 +263,7 @@
             // Twój kod inicjalizacyjny
         });
     </script>
+
+    @include('partials._session_guard')
 </body>
 </html>

@@ -51,7 +51,7 @@
             <thead><tr>
                 <th>Data</th><th>Klient</th><th>Pojazdy</th>
                 <th>Waga 1</th><th>Waga 2</th><th>Wynik</th>
-                <th>Towar</th><th>Uwagi</th><th>Notatka kierowcy</th><th style="width:80px"></th>
+                <th>Towar</th><th>Uwagi</th><th style="width:80px"></th>
             </tr></thead>
             <tbody>
             @foreach($weighings as $w)
@@ -76,10 +76,6 @@
                 <td style="font-size:12px;color:#aaa;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
                     @if($w->notes) title="{{ $w->notes }}" @endif>
                     {{ $w->notes ?? '–' }}
-                </td>
-                <td style="font-size:12px;color:#888;max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
-                    @if($w->order?->driver_notes) title="{{ str_replace(['<br>', '<br/>', '<br />'], "\n", $w->order->driver_notes) }}" @endif>
-                    {{ str_replace(['<br>', '<br/>', '<br />'], ' ', $w->order?->driver_notes) ?? '–' }}
                 </td>
                 <td>
                     <button class="btn-unarch" onclick="unarchive({{ $w->id }})" title="Przywróć">

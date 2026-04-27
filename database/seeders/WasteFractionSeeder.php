@@ -85,7 +85,10 @@ class WasteFractionSeeder extends Seeder
 
         // 5. Opakowania
         $this->command->info('Seedowanie opakowań...');
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('order_packaging')->truncate();
         DB::table('opakowania')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
         DB::table('opakowania')->insert([
             ['name' => 'Paleta',  'waga' => 30.00, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()],
             ['name' => 'BigBox',  'waga' => 50.00, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()],

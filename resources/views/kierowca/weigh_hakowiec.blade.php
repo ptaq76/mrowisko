@@ -300,12 +300,17 @@
     </div>
 </div>
 
-@if($tractorSets->isEmpty())
-    {{-- Brak zestawów dla samochodu --}}
+@if($containers->isEmpty() || ! $tractor->tare_kg || ($trailer && ! $trailer->tare_kg))
+    {{-- Brak danych konfiguracyjnych --}}
     <div class="no-containers">
         <i class="fas fa-exclamation-triangle" style="display:block"></i>
-        <div class="title">Brak zestawów dla {{ $tractor->plate }}</div>
-        <div class="hint">Skontaktuj się z biurem, aby dodać kontenery.</div>
+        <div class="title">Brak konfiguracji</div>
+        <div class="hint">
+            @if($containers->isEmpty())Klient {{ $order->client?->short_name }} nie ma u siebie żadnych kontenerów do zabrania.@endif
+            @if(! $tractor->tare_kg) Brak tary dla {{ $tractor->plate }}.@endif
+            @if($trailer && ! $trailer->tare_kg) Brak tary dla {{ $trailer->plate }}.@endif
+            <br>Skontaktuj się z biurem.
+        </div>
     </div>
     <button class="btn-back" onclick="history.back()" style="margin-top:16px">
         <i class="fas fa-arrow-left"></i> Powrót
@@ -322,31 +327,24 @@
     <div class="vehicle-body">
         <label class="container-label">Wybierz kontener</label>
         <select id="tractorSetSelect" class="container-select" onchange="onTractorSetChange()">
-    <option value="">– wybierz kontener –</option>
-    @foreach($tractorSets as $set)
-        @php
-            // Rozdzielamy label po znaku "/"
-            $parts = explode('/', $set->label);
-            // Jeśli jest "/" bierzemy to co po nim i usuwamy zbędne spacje. 
-            // Jeśli nie ma "/", zostawiamy cały label.
-            $displayName = isset($parts[1]) ? trim($parts[1]) : $set->label;
-        @endphp
-        <option value="{{ $set->id }}" data-tare="{{ $set->tare_kg }}" data-label="{{ $set->label }}">
-            {{ $displayName }} ({{ number_format($set->tare_kg, 3, ',', ' ') }} t)
-        </option>
-    @endforeach
-</select>
+            <option value="">– wybierz kontener –</option>
+            @foreach($containers as $c)
+                <option value="{{ $c->id }}" data-tare="{{ $c->tare_kg }}" data-name="{{ $c->name }}" data-client-qty="{{ $c->client_qty }}">
+                    {{ $c->name }} ({{ $c->client_qty }} u klienta)
+                </option>
+            @endforeach
+        </select>
 
         <div class="tare-display" id="tractorTareDisplay" style="display:none">
-            <span class="label">Tara zestawu</span>
+            <span class="label">Tara samochód + kontener</span>
             <span class="value" id="tractorTareValue">–</span>
         </div>
 
         <div class="weight-input-wrap">
-            <label>Waga z wagi samochodowej (tony)</label>
+            <label>Waga z wagi samochodowej (kg)</label>
             <input type="number" id="tractorBruttoInput" class="weight-input"
-                   step="0.001" min="0" inputmode="decimal" placeholder="0,000">
-            <div class="unit-hint">TONY [t]</div>
+                   step="1" min="0" inputmode="numeric" placeholder="0">
+            <div class="unit-hint">KILOGRAMY [kg]</div>
         </div>
 
         <div class="partial-result" id="tractorResult">
@@ -356,7 +354,7 @@
     </div>
 </div>
 
-@if($trailer && $trailerSets->isNotEmpty())
+@if($trailer)
 {{-- SEKCJA: NACZEPA --}}
 <div class="vehicle-section">
     <div class="vehicle-header trailer">
@@ -367,27 +365,24 @@
     <div class="vehicle-body">
         <label class="container-label">Wybierz kontener</label>
         <select id="trailerSetSelect" class="container-select" onchange="onTrailerSetChange()">
-    <option value="">– wybierz kontener –</option>
-    @foreach($trailerSets as $set)
-        @php
-            $parts = explode('/', $set->label);
-            $displayName = isset($parts[1]) ? trim($parts[1]) : $set->label;
-        @endphp
-        <option value="{{ $set->id }}" data-tare="{{ $set->tare_kg }}" data-label="{{ $set->label }}">
-            {{ $displayName }} ({{ number_format($set->tare_kg, 3, ',', ' ') }} t)
-        </option>
-    @endforeach
-</select>
+            <option value="">– wybierz kontener –</option>
+            @foreach($containers as $c)
+                <option value="{{ $c->id }}" data-tare="{{ $c->tare_kg }}" data-name="{{ $c->name }}" data-client-qty="{{ $c->client_qty }}">
+                    {{ $c->name }} ({{ $c->client_qty }} u klienta)
+                </option>
+            @endforeach
+        </select>
+
         <div class="tare-display" id="trailerTareDisplay" style="display:none">
-            <span class="label">Tara zestawu</span>
+            <span class="label">Tara naczepa + kontener</span>
             <span class="value" id="trailerTareValue">–</span>
         </div>
 
         <div class="weight-input-wrap">
-            <label>Waga z wagi samochodowej (tony)</label>
+            <label>Waga z wagi samochodowej (kg)</label>
             <input type="number" id="trailerBruttoInput" class="weight-input"
-                   step="0.001" min="0" inputmode="decimal" placeholder="0,000">
-            <div class="unit-hint">TONY [t]</div>
+                   step="1" min="0" inputmode="numeric" placeholder="0">
+            <div class="unit-hint">KILOGRAMY [kg]</div>
         </div>
 
         <div class="partial-result" id="trailerResult">
@@ -420,7 +415,7 @@
         <span class="sr-value" id="sumTractorNetto">–</span>
     </div>
 
-    @if($trailer && $trailerSets->isNotEmpty())
+    @if($trailer)
     <div class="summary-row" style="margin-top:8px;padding-top:8px;border-top:2px solid rgba(110,191,88,.3)">
         <span class="sr-label">Naczepa brutto</span>
         <span class="sr-value" id="sumTrailerBrutto">–</span>
@@ -436,7 +431,7 @@
     @endif
 
     <div class="summary-total" id="sumTotalNetto">–</div>
-    <div class="summary-total-unit">ton netto łącznie</div>
+    <div class="summary-total-unit">kg netto łącznie</div>
 </div>
 
 {{-- Przycisk zapisz --}}
@@ -455,27 +450,34 @@
 @section('scripts')
 <script>
 const ORDER_ID = {{ $order->id }};
-const HAS_TRAILER = {{ ($trailer && $trailerSets->isNotEmpty()) ? 'true' : 'false' }};
+const HAS_TRAILER = {{ $trailer ? 'true' : 'false' }};
+const TRACTOR_TARE_KG = {{ (int) round((float) ($tractor->tare_kg ?? 0) * 1000) }};
+const TRAILER_TARE_KG = {{ (int) round((float) ($trailer->tare_kg ?? 0) * 1000) }};
 
-let tractorData = { setId: null, tare: 0, brutto: 0, netto: 0, label: '' };
-let trailerData = { setId: null, tare: 0, brutto: 0, netto: 0, label: '' };
+let tractorData = { containerId: null, tareKg: 0, bruttoKg: 0, nettoKg: 0, name: '' };
+let trailerData = { containerId: null, tareKg: 0, bruttoKg: 0, nettoKg: 0, name: '' };
+
+// tareKg = vehicle.tare_kg (kg) + container.tare_kg (kg); brutto/netto = kg jako int
+
+const fmtKg = n => Math.round(n).toLocaleString('pl-PL').replace(/\u00a0/g, ' ') + ' kg';
 
 function onTractorSetChange() {
     const sel = document.getElementById('tractorSetSelect');
     const opt = sel.options[sel.selectedIndex];
     const tareDisplay = document.getElementById('tractorTareDisplay');
-    
+
     if (opt.value) {
-        tractorData.setId = parseInt(opt.value);
-        tractorData.tare = parseFloat(opt.dataset.tare);
-        tractorData.label = opt.dataset.label;
-        
-        document.getElementById('tractorTareValue').textContent = tractorData.tare.toFixed(3).replace('.', ',') + ' t';
+        const contTareKg = Math.round(parseFloat(opt.dataset.tare) * 1000);
+        tractorData.containerId = parseInt(opt.value);
+        tractorData.tareKg = TRACTOR_TARE_KG + contTareKg;
+        tractorData.name = opt.dataset.name;
+
+        document.getElementById('tractorTareValue').textContent = fmtKg(tractorData.tareKg);
         tareDisplay.style.display = 'flex';
     } else {
-        tractorData.setId = null;
-        tractorData.tare = 0;
-        tractorData.label = '';
+        tractorData.containerId = null;
+        tractorData.tareKg = 0;
+        tractorData.name = '';
         tareDisplay.style.display = 'none';
     }
 }
@@ -483,81 +485,109 @@ function onTractorSetChange() {
 function onTrailerSetChange() {
     const sel = document.getElementById('trailerSetSelect');
     if (!sel) return;
-    
+
     const opt = sel.options[sel.selectedIndex];
     const tareDisplay = document.getElementById('trailerTareDisplay');
-    
+
     if (opt.value) {
-        trailerData.setId = parseInt(opt.value);
-        trailerData.tare = parseFloat(opt.dataset.tare);
-        trailerData.label = opt.dataset.label;
-        
-        document.getElementById('trailerTareValue').textContent = trailerData.tare.toFixed(3).replace('.', ',') + ' t';
+        const contTareKg = Math.round(parseFloat(opt.dataset.tare) * 1000);
+        trailerData.containerId = parseInt(opt.value);
+        trailerData.tareKg = TRAILER_TARE_KG + contTareKg;
+        trailerData.name = opt.dataset.name;
+
+        document.getElementById('trailerTareValue').textContent = fmtKg(trailerData.tareKg);
         tareDisplay.style.display = 'flex';
     } else {
-        trailerData.setId = null;
-        trailerData.tare = 0;
-        trailerData.label = '';
+        trailerData.containerId = null;
+        trailerData.tareKg = 0;
+        trailerData.name = '';
         tareDisplay.style.display = 'none';
     }
 }
 
 function calculate() {
-    // Walidacja samochodu
-    if (!tractorData.setId) {
+    if (!tractorData.containerId) {
         Swal.fire({ icon: 'warning', title: 'Wybierz kontener dla samochodu', timer: 2000, showConfirmButton: false });
         return;
     }
-    
-    const tractorBrutto = parseFloat(document.getElementById('tractorBruttoInput').value);
-    if (isNaN(tractorBrutto) || tractorBrutto <= 0) {
+
+    const tractorBruttoKg = parseInt(document.getElementById('tractorBruttoInput').value);
+    if (isNaN(tractorBruttoKg) || tractorBruttoKg <= 0) {
         Swal.fire({ icon: 'warning', title: 'Podaj wagę samochodu', timer: 2000, showConfirmButton: false });
         return;
     }
-    
-    tractorData.brutto = tractorBrutto;
-    tractorData.netto = Math.round((tractorBrutto - tractorData.tare) * 1000) / 1000;
-    
-    // Wynik cząstkowy samochodu
-    document.getElementById('tractorNettoValue').textContent = tractorData.netto.toFixed(3).replace('.', ',') + ' t';
+
+    if (tractorBruttoKg < tractorData.tareKg) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Waga samochodu niższa niż tara',
+            html: `Brutto: <strong>${fmtKg(tractorBruttoKg)}</strong><br>Tara: <strong>${fmtKg(tractorData.tareKg)}</strong><br>Netto byłoby ujemne — sprawdź wskazanie wagi.`,
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#922b21',
+        });
+        return;
+    }
+
+    tractorData.bruttoKg = tractorBruttoKg;
+    tractorData.nettoKg = tractorBruttoKg - tractorData.tareKg;
+
+    document.getElementById('tractorNettoValue').textContent = fmtKg(tractorData.nettoKg);
     document.getElementById('tractorResult').classList.add('show');
-    
-    // Naczepa (jeśli jest)
+
     if (HAS_TRAILER) {
-        if (!trailerData.setId) {
+        if (!trailerData.containerId) {
             Swal.fire({ icon: 'warning', title: 'Wybierz kontener dla naczepy', timer: 2000, showConfirmButton: false });
             return;
         }
-        
-        const trailerBrutto = parseFloat(document.getElementById('trailerBruttoInput').value);
-        if (isNaN(trailerBrutto) || trailerBrutto <= 0) {
+        if (trailerData.containerId === tractorData.containerId) {
+            // Ten sam typ — wymagamy ≥ 2 szt. u klienta
+            const sel = document.getElementById('tractorSetSelect');
+            const opt = sel.options[sel.selectedIndex];
+            const clientQty = parseInt(opt?.dataset?.clientQty ?? '0');
+            if (clientQty < 2) {
+                Swal.fire({ icon: 'error', title: 'Niewystarczający stan u klienta', text: 'Tego typu klient ma mniej niż 2 szt.' });
+                return;
+            }
+        }
+
+        const trailerBruttoKg = parseInt(document.getElementById('trailerBruttoInput').value);
+        if (isNaN(trailerBruttoKg) || trailerBruttoKg <= 0) {
             Swal.fire({ icon: 'warning', title: 'Podaj wagę naczepy', timer: 2000, showConfirmButton: false });
             return;
         }
-        
-        trailerData.brutto = trailerBrutto;
-        trailerData.netto = Math.round((trailerBrutto - trailerData.tare) * 1000) / 1000;
-        
-        // Wynik cząstkowy naczepy
-        document.getElementById('trailerNettoValue').textContent = trailerData.netto.toFixed(3).replace('.', ',') + ' t';
+
+        if (trailerBruttoKg < trailerData.tareKg) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Waga naczepy niższa niż tara',
+                html: `Brutto: <strong>${fmtKg(trailerBruttoKg)}</strong><br>Tara: <strong>${fmtKg(trailerData.tareKg)}</strong><br>Netto byłoby ujemne — sprawdź wskazanie wagi.`,
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#922b21',
+            });
+            return;
+        }
+
+        trailerData.bruttoKg = trailerBruttoKg;
+        trailerData.nettoKg = trailerBruttoKg - trailerData.tareKg;
+
+        document.getElementById('trailerNettoValue').textContent = fmtKg(trailerData.nettoKg);
         document.getElementById('trailerResult').classList.add('show');
     }
-    
-    // Podsumowanie
-    const totalNetto = tractorData.netto + trailerData.netto;
-    
-    document.getElementById('sumTractorBrutto').textContent = tractorData.brutto.toFixed(3).replace('.', ',') + ' t';
-    document.getElementById('sumTractorTare').textContent = tractorData.tare.toFixed(3).replace('.', ',') + ' t';
-    document.getElementById('sumTractorNetto').textContent = tractorData.netto.toFixed(3).replace('.', ',') + ' t';
-    
+
+    const totalNettoKg = (tractorData.nettoKg || 0) + (trailerData.nettoKg || 0);
+
+    document.getElementById('sumTractorBrutto').textContent = fmtKg(tractorData.bruttoKg);
+    document.getElementById('sumTractorTare').textContent = fmtKg(tractorData.tareKg);
+    document.getElementById('sumTractorNetto').textContent = fmtKg(tractorData.nettoKg);
+
     if (HAS_TRAILER) {
-        document.getElementById('sumTrailerBrutto').textContent = trailerData.brutto.toFixed(3).replace('.', ',') + ' t';
-        document.getElementById('sumTrailerTare').textContent = trailerData.tare.toFixed(3).replace('.', ',') + ' t';
-        document.getElementById('sumTrailerNetto').textContent = trailerData.netto.toFixed(3).replace('.', ',') + ' t';
+        document.getElementById('sumTrailerBrutto').textContent = fmtKg(trailerData.bruttoKg);
+        document.getElementById('sumTrailerTare').textContent = fmtKg(trailerData.tareKg);
+        document.getElementById('sumTrailerNetto').textContent = fmtKg(trailerData.nettoKg);
     }
-    
-    document.getElementById('sumTotalNetto').textContent = totalNetto.toFixed(3).replace('.', ',');
-    
+
+    document.getElementById('sumTotalNetto').textContent = Math.round(totalNettoKg).toLocaleString('pl-PL').replace(/\u00a0/g, ' ');
+
     document.getElementById('summaryCard').classList.add('show');
     document.getElementById('btnConfirm').classList.add('show');
     document.getElementById('summaryCard').scrollIntoView({ behavior: 'smooth' });
@@ -565,15 +595,15 @@ function calculate() {
 
 async function doConfirm() {
     const payload = {
-        tractor_set_id: tractorData.setId,
-        tractor_brutto: tractorData.brutto,
+        tractor_container_id: tractorData.containerId,
+        tractor_brutto: tractorData.bruttoKg / 1000,
     };
-    
-    if (HAS_TRAILER && trailerData.setId) {
-        payload.trailer_set_id = trailerData.setId;
-        payload.trailer_brutto = trailerData.brutto;
+
+    if (HAS_TRAILER && trailerData.containerId) {
+        payload.trailer_container_id = trailerData.containerId;
+        payload.trailer_brutto = trailerData.bruttoKg / 1000;
     }
-    
+
     const res = await fetch(`/kierowca/orders/${ORDER_ID}/weigh-confirm-hakowiec`, {
         method: 'POST',
         headers: {
@@ -583,15 +613,15 @@ async function doConfirm() {
         },
         body: JSON.stringify(payload),
     });
-    
+
     const data = await res.json();
-    
+
     if (data.success) {
-        const totalNetto = tractorData.netto + trailerData.netto;
+        const totalNettoKg = (tractorData.nettoKg || 0) + (trailerData.nettoKg || 0);
         await Swal.fire({
             icon: 'success',
             title: 'Zapisano!',
-            html: `Masa netto łącznie:<br><strong style="font-size:32px">${totalNetto.toFixed(3).replace('.', ',')} t</strong>`,
+            html: `Masa netto łącznie:<br><strong style="font-size:32px">${Math.round(totalNettoKg).toLocaleString('pl-PL').replace(/\u00a0/g, ' ')} kg</strong>`,
             confirmButtonText: 'OK',
             confirmButtonColor: '#6EBF58',
         });

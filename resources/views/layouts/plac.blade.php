@@ -81,6 +81,19 @@
         .nav-menu-item.active i { color: var(--yellow); }
         .nav-menu-divider { height: 1px; background: var(--border); }
 
+        /* Submenu */
+        .nav-submenu-toggle { cursor: pointer; justify-content: space-between; }
+        .nav-submenu-toggle .chev { font-size: 12px; color: #bbb; transition: transform .15s; margin-left:auto; }
+        .nav-submenu-toggle.open .chev { transform: rotate(180deg); }
+        .nav-submenu { display: none; background: #fafbfc; }
+        .nav-submenu.open { display: block; }
+        .nav-submenu .nav-menu-item {
+            padding-left: 46px;
+            font-size: 16px;
+            background: #fafbfc;
+        }
+        .nav-submenu .nav-menu-item:hover { background: #f0f1f3; }
+
         .nav-logout-btn {
             display: flex; align-items: center; gap: 13px;
             padding: 15px 18px;
@@ -223,6 +236,25 @@
            class="nav-menu-item {{ request()->routeIs('plac.inventory*') ? 'active' : '' }}">
             <i class="fas fa-balance-scale"></i> Inwentaryzacja
         </a>
+
+        @php $reportsOpen = request()->routeIs('plac.reports*'); @endphp
+        <div class="nav-menu-item nav-submenu-toggle {{ $reportsOpen ? 'open active' : '' }}"
+             onclick="toggleReportsSubmenu(event)">
+            <i class="fas fa-chart-bar"></i>
+            <span>Raporty</span>
+            <i class="fas fa-chevron-down chev"></i>
+        </div>
+        <div class="nav-submenu {{ $reportsOpen ? 'open' : '' }}" id="reportsSubmenu">
+            <a href="{{ route('plac.reports.deliveries') }}"
+               class="nav-menu-item {{ request()->routeIs('plac.reports.deliveries') ? 'active' : '' }}">
+                <i class="fas fa-boxes"></i> Dostawy
+            </a>
+            <a href="{{ route('plac.reports.loadings') }}"
+               class="nav-menu-item {{ request()->routeIs('plac.reports.loadings') ? 'active' : '' }}">
+                <i class="fas fa-truck-loading"></i> Załadunki
+            </a>
+        </div>
+
         <div class="nav-menu-divider"></div>
         <form method="POST" action="{{ route('logout') }}" style="margin:0">
             @csrf
@@ -258,6 +290,11 @@
 function toggleNavMenu() {
     document.getElementById('navDropdown').classList.toggle('open');
 }
+function toggleReportsSubmenu(e) {
+    e.stopPropagation();
+    e.currentTarget.classList.toggle('open');
+    document.getElementById('reportsSubmenu').classList.toggle('open');
+}
 document.addEventListener('click', function(e) {
     const btn  = document.getElementById('hamburgerBtn');
     const menu = document.getElementById('navDropdown');
@@ -267,6 +304,7 @@ document.addEventListener('click', function(e) {
 });
 </script>
 
+@include('partials._session_guard')
 @yield('scripts')
 </body>
 </html>

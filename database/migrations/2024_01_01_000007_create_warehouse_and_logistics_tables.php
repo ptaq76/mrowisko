@@ -50,59 +50,6 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // Kontenery
-        Schema::create('containers', function (Blueprint $table) {
-            $table->id();
-            $table->string('code')->unique();
-            $table->decimal('tare_kg', 8, 2)->default(0);
-            $table->enum('location', ['plac', 'klient', 'transport'])->default('plac');
-            $table->foreignId('client_id')
-                ->nullable()
-                ->constrained('clients')
-                ->nullOnDelete();
-            $table->boolean('is_active')->default(true);
-            $table->timestamps();
-        });
-
-        Schema::create('order_containers', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('order_id')
-                ->constrained('orders')
-                ->cascadeOnDelete();
-            $table->foreignId('container_id')
-                ->constrained('containers')
-                ->cascadeOnDelete();
-            $table->enum('action', ['zostawiony', 'zabrany']);
-            $table->enum('location_from', ['plac', 'klient', 'transport'])->nullable();
-            $table->enum('location_to', ['plac', 'klient', 'transport'])->nullable();
-            $table->foreignId('client_id')
-                ->nullable()
-                ->constrained('clients')
-                ->nullOnDelete();
-            $table->timestamps();
-        });
-
-        Schema::create('container_events', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('container_id')
-                ->constrained('containers')
-                ->cascadeOnDelete();
-            $table->foreignId('order_id')
-                ->nullable()
-                ->constrained('orders')
-                ->nullOnDelete();
-            $table->enum('event_type', ['wydanie', 'powrot', 'korekta'])->default('wydanie');
-            $table->foreignId('client_id')
-                ->nullable()
-                ->constrained('clients')
-                ->nullOnDelete();
-            $table->foreignId('user_id')
-                ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
-            $table->timestamps();
-        });
-
         // Pozycje dostaw i zamówień
         Schema::create('delivery_items', function (Blueprint $table) {
             $table->id();
@@ -165,9 +112,6 @@ return new class extends Migration
         Schema::dropIfExists('productions');
         Schema::dropIfExists('order_items');
         Schema::dropIfExists('delivery_items');
-        Schema::dropIfExists('container_events');
-        Schema::dropIfExists('order_containers');
-        Schema::dropIfExists('containers');
         Schema::dropIfExists('loading_items');
         Schema::dropIfExists('warehouse_items');
     }

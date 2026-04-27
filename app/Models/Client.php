@@ -96,4 +96,9 @@ class Client extends Model
     {
         return $this->hasMany(PickupRequest::class);
     }
+
+    public function containerStocks(): HasMany
+    {
+        return $this->hasMany(ContainerStock::class);
+    }
 }

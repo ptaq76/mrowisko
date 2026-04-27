@@ -207,6 +207,10 @@
         $totalBales  = $order->loadingItems?->sum('bales') ?? 0;
         $isLoaded    = $order->status === 'loaded';
         $isDone      = $order->status === 'closed' || (!$isSale && $order->status === 'weighed');
+        $isHakowiec  = $order->tractor?->subtype === 'hakowiec';
+        $hakSlots    = $order->trailer_id ? 2 : 1;
+        $dropEntries = $isHakowiec ? $order->orderContainers->where('direction', 'drop') : collect();
+        $dropDone    = $isHakowiec && $dropEntries->count() >= $hakSlots;
     @endphp
 
     <div class="order-card {{ $isSale ? 'type-sale' : 'type-pickup' }} {{ $isDone ? 'is-closed' : '' }}" id="order-{{ $order->id }}">
@@ -299,6 +303,23 @@
         </div>
         @endif
 
+        {{-- Pozostawione kontenery (hakowiec) --}}
+        @if($isHakowiec && $dropDone)
+            @php
+                $dropNamesInfo = $dropEntries->sortBy(fn($oc) => $oc->slot === 'tractor' ? 0 : 1)
+                    ->map(fn($oc) => $oc->container?->name)
+                    ->filter()
+                    ->implode(' · ');
+            @endphp
+            @if($dropNamesInfo)
+            <div style="padding:6px 14px;background:#f4f6f9;border-top:1px solid #e2e5e9;display:flex;align-items:center;gap:8px;font-size:11px;color:#6c7a89">
+                <i class="fas fa-dolly" style="font-size:11px;color:#9aa5b1"></i>
+                <span style="text-transform:uppercase;font-weight:700;letter-spacing:.06em">Pozostawiono:</span>
+                <span style="font-weight:600;color:#34495e">{{ $dropNamesInfo }}</span>
+            </div>
+            @endif
+        @endif
+
         {{-- Uwagi – zawsze na końcu, wyróżnione --}}
         @if($order->notes)
         <div class="notes-bar">
@@ -312,8 +333,28 @@
             @if(in_array($order->status, ['planned', 'in_progress', 'loaded']))
                 {{-- Waga samochodowa jeszcze nie podana --}}
                 <div style="padding:12px 16px;text-align:center">
-                    <a href="{{ route('kierowca.orders.weigh', $order) }}" class="btn-weigh"
-                       style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:15px 16px;background:#922b21;color:#fff;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 12px rgba(146,43,33,.35)">
+                    @if($isHakowiec)
+                        @php
+                            $dropNames = $dropEntries->sortBy(fn($oc) => $oc->slot === 'tractor' ? 0 : 1)
+                                ->map(fn($oc) => $oc->container?->name)
+                                ->filter()
+                                ->implode(' · ');
+                        @endphp
+                        <button onclick="openDropContainers({{ $order->id }}, {{ $hakSlots }}, {{ $dropDone ? 'true' : 'false' }})"
+                                style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:75%;margin:0 auto 10px;padding:12px 16px;background:{{ $dropDone ? '#27ae60' : '#1f3a5f' }};color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(31,58,95,.35)">
+                            <span style="display:flex;align-items:center;gap:10px;font-size:18px">
+                                <i class="fas {{ $dropDone ? 'fa-check-circle' : 'fa-dolly' }}"></i>
+                                {{ $dropDone ? 'POZOSTAWIONE ✓' : 'POZOSTAWIONE KONTENERY' }}
+                            </span>
+                            @if($dropDone && $dropNames)
+                                <span style="font-family:'Barlow',sans-serif;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:none;color:rgba(255,255,255,.7)">{{ $dropNames }}</span>
+                            @endif
+                        </button>
+                    @endif
+                    <a href="{{ $isHakowiec && !$dropDone ? '#' : route('kierowca.orders.weigh', $order) }}"
+                       @if($isHakowiec && !$dropDone) onclick="blockWeigh(event)" @endif
+                       class="btn-weigh"
+                       style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:15px 16px;background:{{ $isHakowiec && !$dropDone ? '#aaa' : '#922b21' }};color:#fff;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 12px rgba(146,43,33,.35)">
                         <i class="fas fa-weight fa-lg"></i> PODAJ WAGĘ
                     </a>
                 </div>
@@ -332,8 +373,28 @@
             {{-- Odbiór --}}
             @if(in_array($order->status, ['planned', 'in_progress']))
                 <div style="padding:12px 16px;text-align:center">
-                    <a href="{{ route('kierowca.orders.weigh', $order) }}" class="btn-weigh"
-                       style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:15px 16px;background:#922b21;color:#fff;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 12px rgba(146,43,33,.35)">
+                    @if($isHakowiec)
+                        @php
+                            $dropNames = $dropEntries->sortBy(fn($oc) => $oc->slot === 'tractor' ? 0 : 1)
+                                ->map(fn($oc) => $oc->container?->name)
+                                ->filter()
+                                ->implode(' · ');
+                        @endphp
+                        <button onclick="openDropContainers({{ $order->id }}, {{ $hakSlots }}, {{ $dropDone ? 'true' : 'false' }})"
+                                style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:75%;margin:0 auto 10px;padding:12px 16px;background:{{ $dropDone ? '#27ae60' : '#1f3a5f' }};color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(31,58,95,.35)">
+                            <span style="display:flex;align-items:center;gap:10px;font-size:18px">
+                                <i class="fas {{ $dropDone ? 'fa-check-circle' : 'fa-dolly' }}"></i>
+                                {{ $dropDone ? 'POZOSTAWIONE ✓' : 'POZOSTAWIONE KONTENERY' }}
+                            </span>
+                            @if($dropDone && $dropNames)
+                                <span style="font-family:'Barlow',sans-serif;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:none;color:rgba(255,255,255,.7)">{{ $dropNames }}</span>
+                            @endif
+                        </button>
+                    @endif
+                    <a href="{{ $isHakowiec && !$dropDone ? '#' : route('kierowca.orders.weigh', $order) }}"
+                       @if($isHakowiec && !$dropDone) onclick="blockWeigh(event)" @endif
+                       class="btn-weigh"
+                       style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:15px 16px;background:{{ $isHakowiec && !$dropDone ? '#aaa' : '#922b21' }};color:#fff;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 12px rgba(146,43,33,.35)">
                         <i class="fas fa-weight fa-lg"></i> PODAJ WAGĘ
                     </a>
                 </div>
@@ -396,6 +457,111 @@ async function wykonajZadanie(id) {
     fd.append('_token', '{{ csrf_token() }}');
     await fetch(`/kierowca/zadania/${id}/wykonaj`, { method: 'POST', body: fd });
     location.reload();
+}
+
+const ALL_CONTAINERS = @json($containers ?? []);
+
+function blockWeigh(e) {
+    e.preventDefault();
+    Swal.fire({
+        icon: 'warning',
+        title: 'Najpierw zgłoś pozostawione kontenery',
+        confirmButtonText: 'OK',
+        confirmButtonColor: '#1f3a5f',
+    });
+}
+
+async function openDropContainers(orderId, slots, alreadyDone) {
+    const available = ALL_CONTAINERS.filter(c => Number(c.plac_qty) > 0);
+
+    if (available.length === 0) {
+        await Swal.fire({
+            icon: 'warning',
+            title: 'Brak kontenerów na placu',
+            text: 'Wszystkie kontenery są obecnie u klientów. Zgłoś to do biura.',
+            confirmButtonColor: '#1f3a5f',
+        });
+        return;
+    }
+
+    const optionsHtml = ['<option value="">– wybierz kontener –</option>']
+        .concat(available.map(c => `<option value="${c.id}">${c.name} (${c.plac_qty} szt.)</option>`))
+        .join('');
+
+    const fields = [];
+    fields.push(`
+        <div style="margin-bottom:14px;text-align:left">
+            <label style="display:block;font-size:12px;font-weight:800;color:#1f3a5f;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Samochód</label>
+            <select id="dropTractorSel" style="width:100%;padding:12px;border:2px solid #e2e5e9;border-radius:8px;font-size:16px;font-weight:700">${optionsHtml}</select>
+        </div>
+    `);
+    if (slots === 2) {
+        fields.push(`
+            <div style="margin-bottom:6px;text-align:left">
+                <label style="display:block;font-size:12px;font-weight:800;color:#1f3a5f;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Naczepa</label>
+                <select id="dropTrailerSel" style="width:100%;padding:12px;border:2px solid #e2e5e9;border-radius:8px;font-size:16px;font-weight:700">${optionsHtml}</select>
+            </div>
+        `);
+    }
+
+    const result = await Swal.fire({
+        title: alreadyDone ? 'Edytuj pozostawione kontenery' : 'Pozostawione kontenery',
+        html: fields.join(''),
+        showCancelButton: true,
+        confirmButtonText: 'Zapisz',
+        cancelButtonText: 'Anuluj',
+        confirmButtonColor: '#1f3a5f',
+        focusConfirm: false,
+        allowOutsideClick: false,
+        preConfirm: () => {
+            const tractorId = document.getElementById('dropTractorSel').value;
+            if (!tractorId) {
+                Swal.showValidationMessage('Wybierz kontener dla samochodu');
+                return false;
+            }
+            const payload = { tractor_container_id: tractorId };
+            if (slots === 2) {
+                const trailerId = document.getElementById('dropTrailerSel').value;
+                if (!trailerId) {
+                    Swal.showValidationMessage('Wybierz kontener dla naczepy');
+                    return false;
+                }
+                if (trailerId === tractorId) {
+                    // Ten sam typ — wymagamy ≥ 2 szt. na placu
+                    const cont = ALL_CONTAINERS.find(c => String(c.id) === String(tractorId));
+                    if (!cont || Number(cont.plac_qty) < 2) {
+                        Swal.showValidationMessage('Tego typu masz tylko 1 szt. na placu — wybierz inny dla naczepy');
+                        return false;
+                    }
+                }
+                payload.trailer_container_id = trailerId;
+            }
+            return payload;
+        },
+    });
+
+    if (!result.isConfirmed) return;
+
+    const res = await fetch(`/kierowca/orders/${orderId}/drop-containers`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify(result.value),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+        await Swal.fire({
+            icon: 'success', title: 'Zapisano',
+            timer: 1500, showConfirmButton: false,
+        });
+        location.reload();
+    } else {
+        Swal.fire({ icon: 'error', title: 'Błąd', text: data.message ?? 'Spróbuj ponownie.' });
+    }
 }
 
 async function saveRW() {

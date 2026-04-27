@@ -303,6 +303,17 @@ function calculate() {
         return;
     }
 
+    if (kg < TARE_KG) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Waga niższa niż tara',
+            html: `Brutto: <strong>${kg.toLocaleString('pl-PL').replace(/\u00a0/g, ' ')} kg</strong><br>Tara: <strong>${Math.round(TARE_KG).toLocaleString('pl-PL').replace(/\u00a0/g, ' ')} kg</strong><br>Netto byłoby ujemne — sprawdź wskazanie wagi.`,
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#922b21',
+        });
+        return;
+    }
+
     _brutto = kg / 1000;
     _netto  = Math.round(kg - TARE_KG) / 1000;
 

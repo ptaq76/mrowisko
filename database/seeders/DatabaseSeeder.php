@@ -25,6 +25,9 @@ class DatabaseSeeder extends Seeder
 
             WasteFractionSeeder::class,
 
+            // Kontenery
+            ContainerSeeder::class,
+
             // Pojazdy i kierowcy
             VehicleSeeder::class,
             DriverSeeder::class,

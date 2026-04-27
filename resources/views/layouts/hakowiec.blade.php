@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Zlecenia') – MrowiskoBIS</title>
+    <title>@yield('title', 'Hakowiec') – MrowiskoBIS</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -39,7 +39,7 @@
             font-size: 18px;
             font-weight: 900;
             letter-spacing: .1em;
-            color: #6EBF58;
+            color: #d68910;
         }
 
         .mobile-nav .nav-right {
@@ -54,7 +54,6 @@
             color: #fff;
         }
 
-        /* Hamburger */
         .hamburger-btn {
             background: none;
             border: 1px solid #444;
@@ -70,7 +69,6 @@
         }
         .hamburger-btn:hover { border-color: #777; color: #fff; }
 
-        /* Dropdown menu */
         .nav-dropdown {
             position: absolute;
             top: calc(100% + 4px);
@@ -125,7 +123,6 @@
         .nav-logout-btn:hover { background: #fdf2f2; }
         .nav-logout-btn i { width: 20px; text-align: center; }
 
-        /* Pasek daty */
         .date-bar {
             background: #fff;
             padding: 10px 16px;
@@ -150,7 +147,7 @@
         .date-bar .day-name {
             font-size: 14px;
             font-weight: 700;
-            color: #6EBF58;
+            color: #d68910;
             white-space: nowrap;
         }
 
@@ -163,7 +160,7 @@
 <body>
 
 <nav class="mobile-nav" style="position:relative">
-    <div class="app-name">MROWISKO</div>
+    <div class="app-name">HAKOWIEC</div>
     <div class="nav-right">
         @if(isset($driver))
             <div class="driver-name">{{ $driver->name }}</div>
@@ -174,13 +171,9 @@
     </div>
 
     <div class="nav-dropdown" id="navDropdown">
-        <a href="{{ route('kierowca.dashboard') }}" class="nav-menu-item">
+        <a href="{{ route('hakowiec.dashboard') }}" class="nav-menu-item">
             <i class="fas fa-calendar-day"></i> Plan dnia
         </a>
-        <a href="{{ route('kierowca.kursy') }}" class="nav-menu-item">
-            <i class="fas fa-route"></i> Moje kursy
-        </a>
-        <div class="nav-menu-divider"></div>
         <div class="nav-menu-divider"></div>
         <form method="POST" action="{{ route('logout') }}" style="margin:0">
             @csrf

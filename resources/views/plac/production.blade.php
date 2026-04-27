@@ -75,6 +75,38 @@
 
 .empty-state { text-align: center; padding: 40px 20px; color: #ccc; }
 .empty-state i { font-size: 40px; margin-bottom: 10px; display: block; }
+
+/* ── Sekcja raportu miesięcznego ── */
+.month-section {
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 4px solid #1a1a1a;
+    position: relative;
+}
+.month-section::before {
+    content: '';
+    position: absolute;
+    top: -4px; left: 0;
+    width: 60px; height: 4px;
+    background: #F5C842;
+}
+.month-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #1a1a1a;
+    margin: 0 0 4px 0;
+    display: flex; align-items: center; gap: 10px;
+}
+.month-title i { color: #F5C842; font-size: 24px; }
+.month-subtitle {
+    font-size: 12px; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase;
+    color: #888;
+    margin-bottom: 14px;
+}
 </style>
 @endsection
 
@@ -179,9 +211,13 @@ $monthTotals = $monthItems->groupBy(fn($i) => $i->fraction_id)->map(fn($g) => [
 @endif
 
 @if($monthTotals->isNotEmpty())
-<div style="margin-top:16px">
-    <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#aaa;margin-bottom:6px">
-        Miesiąc {{ \Carbon\Carbon::parse(request('data', now()))->translatedFormat('F Y') }}
+<div class="month-section">
+    <h2 class="month-title">
+        <i class="fas fa-chart-bar"></i>
+        Raport miesięczny
+    </h2>
+    <div class="month-subtitle">
+        {{ \Carbon\Carbon::parse(request('data', now()))->translatedFormat('F Y') }}
     </div>
     <div class="prod-table">
         <table>

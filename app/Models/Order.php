@@ -24,7 +24,6 @@ class Order extends Model
         'weight_netto',
         'weight_receiver',
         'weight_original',
-        'driver_notes',
         'confirmed_at_client',
         'weight_accepted_by',
         'weight_accepted_at',
@@ -129,6 +128,11 @@ class Order extends Model
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function orderContainers()
+    {
+        return $this->hasMany(OrderContainer::class);
     }
 
     public function statusName(): string

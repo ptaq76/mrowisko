@@ -189,7 +189,7 @@
                 <thead><tr>
                     <th>Data</th><th>Klient</th><th>Pojazdy</th>
                     <th>Brutto</th><th>Tara</th><th>Netto</th>
-                    <th>Kierowca</th><th>Notatka kierowcy</th>
+                    <th>Kierowca</th>
                 </tr></thead>
                 <tbody>
                 @foreach($driver as $o)
@@ -211,10 +211,6 @@
                     <td><span class="w-val" style="color:#888">{{ $tare ? number_format($tare,3,',','') : '–' }}</span></td>
                     <td><span class="w-result">{{ number_format($o->weight_netto,3,',','') }}</span></td>
                     <td style="font-size:13px;color:#555">{{ $o->driver?->name ?? '–' }}</td>
-                    <td style="font-size:12px;color:#888;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
-                        @if($o->driver_notes) title="{{ str_replace(['<br>', '<br/>', '<br />'], "\n", $o->driver_notes) }}" @endif>
-                        {{ str_replace(['<br>', '<br/>', '<br />'], ' ', $o->driver_notes) ?? '–' }}
-                    </td>
                 </tr>
                 @endforeach
                 </tbody>
