@@ -12,7 +12,7 @@ class PojazdyTerminySeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         DB::table('pojazdy_terminy')->truncate();
 
-        $pojazdy = DB::table('mrowisko.pojazdy_terminy')->get();
+        $pojazdy = DB::connection('mrowisko')->table('pojazdy_terminy')->get();
         $this->command->info('Migracja '.$pojazdy->count().' pojazdów...');
 
         foreach ($pojazdy as $p) {

@@ -35,7 +35,7 @@ class ClientSeeder extends Seeder
         DB::table('clients')->truncate();
 
         // --- MIGRACJA KONTRAHENTÓW ---
-        $oldKontrahenci = DB::table('mrowisko.kontrahenci')->get();
+        $oldKontrahenci = DB::connection('mrowisko')->table('kontrahenci')->get();
         $this->command->info('Migracja '.$oldKontrahenci->count().' kontrahentów...');
 
         foreach ($oldKontrahenci as $k) {
@@ -70,7 +70,7 @@ class ClientSeeder extends Seeder
         }
 
         // --- MIGRACJA ADRESÓW ---
-        $oldAdresy = DB::table('mrowisko.kontrahenci_adresy')->get();
+        $oldAdresy = DB::connection('mrowisko')->table('kontrahenci_adresy')->get();
         $this->command->info('Migracja '.$oldAdresy->count().' dodatkowych adresów...');
 
         foreach ($oldAdresy as $a) {
@@ -91,7 +91,7 @@ class ClientSeeder extends Seeder
         }
 
         // --- MIGRACJA KONTAKTÓW ---
-        $oldKontakty = DB::table('mrowisko.kontrahenci_kontakty')->get();
+        $oldKontakty = DB::connection('mrowisko')->table('kontrahenci_kontakty')->get();
         $this->command->info('Migracja '.$oldKontakty->count().' kontaktów...');
 
         foreach ($oldKontakty as $c) {

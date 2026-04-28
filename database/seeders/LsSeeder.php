@@ -7,9 +7,6 @@ use Illuminate\Support\Facades\DB;
 
 class LsSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
         // 1. Definicja mapowania: "kierunek" (stara baza) => client_id (nowa baza)
@@ -28,21 +25,20 @@ class LsSeeder extends Seeder
             'Glückstadt' => 195,
         ];
 
-        // 2. Pobranie danych ze starej bazy
-        $oldLS = DB::table('mrowisko.ls')->get();
+        // 2. Wyłączenie kluczy i czyszczenie tabeli
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('lieferscheins')->truncate();
 
-        $this->command->info('Rozpoczynanie migracji '.$oldLS->count().' rekordów z tabeli ls...');
-
-        $countCreated = 0;
-        $countUpdated = 0;
+        // 3. Pobranie danych ze starej bazy
+        $oldLS = DB::connection('mrowisko')->table('ls')->get();
+        $this->command->info('Migracja '.$oldLS->count().' rekordów z tabeli ls...');
 
         foreach ($oldLS as $l) {
-            // 3. Dopasowanie klienta na podstawie kierunku
             $directionKey = trim($l->kierunek);
             $mappedClientId = $directionToClientId[$directionKey] ?? null;
 
-            // 4. Dane do wstawienia/aktualizacji
-            $data = [
+            DB::table('lieferscheins')->insert([
+                'id' => $l->id,
                 'number' => $l->numer,
                 'importer_id' => $l->importer_id,
                 'client_id' => $mappedClientId,
@@ -57,26 +53,19 @@ class LsSeeder extends Seeder
                 'pdf_path' => $l->pdf_path,
                 'created_at' => $l->created_at,
                 'updated_at' => $l->updated_at,
-            ];
-
-            // 5. Sprawdź czy rekord istnieje (po id)
-            $exists = DB::table('lieferscheins')->where('id', $l->id)->exists();
-
-            if ($exists) {
-                // Aktualizuj istniejący rekord
-                DB::table('lieferscheins')->where('id', $l->id)->update($data);
-                $countUpdated++;
-            } else {
-                // Wstaw nowy rekord z zachowaniem id
-                DB::table('lieferscheins')->insert(array_merge(['id' => $l->id], $data));
-                $countCreated++;
-            }
+            ]);
         }
 
-        $this->command->info('Migracja zakończona!');
-        $this->command->info("Utworzono: $countCreated");
-        if ($countUpdated > 0) {
-            $this->command->info("Zaktualizowano: $countUpdated");
-        }
+        $this->resetAutoIncrement('lieferscheins');
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        $this->command->info('✅ Migracja lieferscheins zakończona.');
+    }
+
+    private function resetAutoIncrement($table)
+    {
+        $maxId = DB::table($table)->max('id') ?? 0;
+        $nextId = $maxId + 1;
+        DB::statement("ALTER TABLE $table AUTO_INCREMENT = $nextId");
     }
 }

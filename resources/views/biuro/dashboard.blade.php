@@ -82,5 +82,14 @@
             </div>
         </a>
     </div>
+    <div class="col-md-4">
+        <a href="{{ route('biuro.migration-report') }}" class="text-decoration-none">
+            <div class="card h-100 text-center p-4 dashboard-tile">
+                <i class="fa-solid fa-database fa-2x mb-2" style="color:#c0392b"></i>
+                <div class="fw-bold">Raport migracji</div>
+                <div class="text-muted small mt-1">Co się powiązało, co kuleje</div>
+            </div>
+        </a>
+    </div>
 </div>
 @endsection

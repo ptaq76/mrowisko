@@ -16,7 +16,7 @@ class KarchemSeeder extends Seeder
         DB::table('karchem_klienci')->truncate();
 
         // 0. Klienci (NIPy do filtrów BDO)
-        $oldKlienci = DB::table('mrowisko.karchem_klienci')->get();
+        $oldKlienci = DB::connection('mrowisko')->table('karchem_klienci')->get();
         $this->command->info('Migracja '.$oldKlienci->count().' klientów Karchem...');
 
         foreach ($oldKlienci as $k) {
@@ -30,7 +30,7 @@ class KarchemSeeder extends Seeder
         }
 
         // 1. Kody odpadów
-        $oldKody = DB::table('mrowisko.karchem_kody_odpadow')->get();
+        $oldKody = DB::connection('mrowisko')->table('karchem_kody_odpadow')->get();
         $this->command->info('Migracja '.$oldKody->count().' kodów odpadów Karchem...');
 
         foreach ($oldKody as $k) {
@@ -43,7 +43,7 @@ class KarchemSeeder extends Seeder
         }
 
         // 2. Stany początkowe
-        $oldStany = DB::table('mrowisko.karchem_stany_poczatkowe')->get();
+        $oldStany = DB::connection('mrowisko')->table('karchem_stany_poczatkowe')->get();
         $this->command->info('Migracja '.$oldStany->count().' stanów początkowych Karchem...');
 
         foreach ($oldStany as $s) {
@@ -58,7 +58,7 @@ class KarchemSeeder extends Seeder
         }
 
         // 3. Wysyłki
-        $oldWysylki = DB::table('mrowisko.karchem_wysylki')->get();
+        $oldWysylki = DB::connection('mrowisko')->table('karchem_wysylki')->get();
         $this->command->info('Migracja '.$oldWysylki->count().' wysyłek Karchem...');
 
         foreach ($oldWysylki as $w) {

@@ -151,12 +151,12 @@ class DashboardController extends Controller
         $fractions = WasteFraction::forLoadings()->orderBy('name')->get();
 
         // Stan magazynu per frakcja
+        $stockMap = WarehouseItem::computeStockMap();
         $stockData = [];
         foreach ($fractions as $f) {
-            $s = WarehouseItem::selectRaw('SUM(bales) as b, SUM(weight_kg) as w')
-                ->where('fraction_id', $f->id)->first();
-            $bales = (int) ($s->b ?? 0);
-            $weight = (float) ($s->w ?? 0);
+            $s = $stockMap->get($f->id);
+            $bales = (int) ($s->total_bales ?? 0);
+            $weight = (float) ($s->total_weight ?? 0);
             $avg = $bales > 0 ? round($weight / $bales) : 0;
             $stockData[$f->id] = compact('bales', 'weight', 'avg');
         }
@@ -173,12 +173,12 @@ class DashboardController extends Controller
 
         $fractions = WasteFraction::forLoadings()->orderBy('name')->get();
 
+        $stockMap = WarehouseItem::computeStockMap();
         $stockData = [];
         foreach ($fractions as $f) {
-            $s = WarehouseItem::selectRaw('SUM(bales) as b, SUM(weight_kg) as w')
-                ->where('fraction_id', $f->id)->first();
-            $bales = (int) ($s->b ?? 0);
-            $weight = (float) ($s->w ?? 0);
+            $s = $stockMap->get($f->id);
+            $bales = (int) ($s->total_bales ?? 0);
+            $weight = (float) ($s->total_weight ?? 0);
             $avg = $bales > 0 ? round($weight / $bales) : 0;
             $stockData[$f->id] = compact('bales', 'weight', 'avg');
         }

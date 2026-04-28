@@ -15,7 +15,7 @@ class WasteFractionSeeder extends Seeder
         DB::table('waste_fraction_groups')->truncate();
 
         // 2. Import GRUP FRAKCJI (towary_grupy -> waste_fraction_groups)
-        $oldGroups = DB::table('mrowisko.towary_grupy')->get();
+        $oldGroups = DB::connection('mrowisko')->table('towary_grupy')->get();
         $this->command->info('Migracja '.$oldGroups->count().' grup frakcji...');
 
         foreach ($oldGroups as $group) {
@@ -34,8 +34,17 @@ class WasteFractionSeeder extends Seeder
             ->orWhere('name', 'LIKE', '%Karchem%')
             ->value('id');
 
-        $oldTowary = DB::table('mrowisko.towary')->get();
+        $oldTowary = DB::connection('mrowisko')->table('towary')->get();
         $this->command->info('Migracja '.$oldTowary->count().' frakcji odpadów...');
+
+        // Frakcje śledzone w magazynie biura: wszystkie z BELKA + ta lista nazw
+        $warehouseTrackedNames = [
+            'DREWNO',
+            '3.05 LUZ',
+            'Gazeta LUZ',
+            'PAPIER SILIKON LUZ',
+            'TWORZYWA 070213 LUZ',
+        ];
 
         foreach ($oldTowary as $t) {
             $name = $t->nazwa;
@@ -56,6 +65,9 @@ class WasteFractionSeeder extends Seeder
                 $sellsAsLuz = 1;
             }
 
+            // Magazyn biura: wszystkie BELKA + jawna lista
+            $isWarehouseTracked = (str_contains($name, 'BELKA') || in_array($name, $warehouseTrackedNames)) ? 1 : 0;
+
             DB::table('waste_fractions')->insert([
                 'id' => $t->id,
                 'name' => $name,
@@ -66,6 +78,7 @@ class WasteFractionSeeder extends Seeder
                 'show_in_deliveries' => $t->dostawy,
                 'show_in_loadings' => $t->zaladunki,
                 'show_in_production' => $t->produkcja,
+                'is_warehouse_tracked' => $isWarehouseTracked,
                 'client_id' => $currentClientId,
                 'is_active' => $t->activ,
                 'created_at' => $t->created_at,

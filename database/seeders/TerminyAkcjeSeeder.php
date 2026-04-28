@@ -12,7 +12,7 @@ class TerminyAkcjeSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         DB::table('pojazdy_terminy_akcje')->truncate();
 
-        $terminy = DB::table('mrowisko.terminy')->where('status', 0)->get();
+        $terminy = DB::connection('mrowisko')->table('terminy')->where('status', 0)->get();
         $this->command->info("Migracja " . $terminy->count() . " terminów...");
 
         $imported = 0;

@@ -55,7 +55,11 @@
 .hist-bales { font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900; }
 .hist-bales.pos { color:#27ae60; }
 .hist-bales.neg { color:#e74c3c; }
-.hist-origin { display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:#f4f5f7;color:#555; }
+.hist-origin { display:inline-block;min-width:42px;text-align:center;padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.04em;background:#eceff3;color:#555; }
+.hist-origin.origin-production { background:#4a6fa5; color:#fff; }
+.hist-origin.origin-inventory  { background:#b85450; color:#fff; }
+.hist-origin.origin-delivery   { background:#5d8a5d; color:#fff; }
+.hist-origin.origin-loading    { background:#b08043; color:#fff; }
 
 .empty-state { text-align:center;padding:48px;color:#ccc; }
 .empty-state i { font-size:48px;margin-bottom:12px;display:block; }
@@ -196,7 +200,7 @@ async function showHistory(fractionId) {
             const isPos = h.bales >= 0;
             return `<tr>
                 <td>${h.date}</td>
-                <td><span class="hist-origin">${h.origin}</span></td>
+                <td><span class="hist-origin origin-${h.origin_code}" title="${h.origin}">${h.origin_short}</span></td>
                 <td style="text-align:right"><span class="hist-bales ${isPos ? 'pos' : 'neg'}">${isPos ? '+' : ''}${h.bales}</span></td>
                 <td style="text-align:right">${(h.weight / 1000).toFixed(3).replace('.', ',')} t</td>
                 <td>${h.operator}</td>

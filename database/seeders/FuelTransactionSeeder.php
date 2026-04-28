@@ -12,10 +12,10 @@ class FuelTransactionSeeder extends Seeder
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         DB::table('fuel_transactions')->truncate();
 
-        $userNames = DB::table('mrowisko.users')->pluck('name', 'id');
+        $userNames = DB::connection('mrowisko')->table('users')->pluck('name', 'id');
         $vehicleIds = DB::table('fuel_vehicles')->pluck('id')->flip();
 
-        $rows = DB::table('mrowisko.tankowania')
+        $rows = DB::connection('mrowisko')->table('tankowania')
             ->orderBy('created_at')
             ->orderBy('id')
             ->get();

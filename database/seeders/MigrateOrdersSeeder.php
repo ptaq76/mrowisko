@@ -7,133 +7,179 @@ use Illuminate\Support\Facades\DB;
 
 class MigrateOrdersSeeder extends Seeder
 {
-    // Tryb testowy - tylko wyświetla dane bez wstawiania
+    // Tryb testowy - tylko wyświetla podsumowanie bez wstawiania
     private bool $testMode = false;
 
     // Limit rekordów do przetworzenia (null = wszystkie)
-    private ?int $limit = 1477;
+    private ?int $limit = null;
+
+    // Bieżące zlecenia (planowanie.data >= dziś - X dni) wstawiamy zawsze,
+    // nawet jeśli brak plan_na_plac / wazenia / towarów (status = 'planned', NULLs)
+    private int $keepRecentDays = 10;
 
     public function run(): void
     {
         $this->command->info('=== MIGRACJA DANYCH: mrowisko → mrowisko_local ===');
         $this->command->newLine();
 
-        // Pobierz rekordy z planowanie
-        $query = DB::connection('mrowisko')
-            ->table('planowanie')
-            ->orderBy('data', 'asc');
+        // Wyłączenie kluczy i czyszczenie tabel docelowych
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('warehouse_items')->truncate();
+        DB::table('loading_items')->truncate();
+        DB::table('orders')->truncate();
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
 
+        $oldDb = DB::connection('mrowisko');
+
+        // 1. Pobierz planowanie
+        $query = $oldDb->table('planowanie')->orderBy('data', 'asc');
         if ($this->limit) {
             $query->limit($this->limit);
         }
-
         $planowanieRecords = $query->get();
+        $totalToScan = $planowanieRecords->count();
+        $this->command->info("Pobrano {$totalToScan} rekordów z tabeli planowanie");
 
-        $this->command->info("Pobrano {$planowanieRecords->count()} rekordów z tabeli planowanie");
+        // 2. Prefetch wszystkich powiązań ze starej bazy (zamiast N+1 zapytań)
+        $this->command->info('Prefetch powiązań...');
+        $planIds = $planowanieRecords->pluck('id');
+
+        $planNaPlacByPlan = $oldDb->table('plan_na_plac')
+            ->whereIn('planowanie_id', $planIds)
+            ->get()
+            ->keyBy('planowanie_id');
+
+        $wazeniaByPlan = $oldDb->table('wazenia')
+            ->whereIn('planowanie_id', $planIds)
+            ->get()
+            ->keyBy('planowanie_id');
+
+        $planNaPlacIds = $planNaPlacByPlan->pluck('id');
+
+        $dostawyByPlanNaPlac = $oldDb->table('dostawy')
+            ->whereIn('plan_na_plac_id', $planNaPlacIds)
+            ->get()
+            ->keyBy('plan_na_plac_id');
+
+        $zaladunkiByPlanNaPlac = $oldDb->table('zaladunki')
+            ->whereIn('plan_na_plac_id', $planNaPlacIds)
+            ->get()
+            ->keyBy('plan_na_plac_id');
+
+        $dostawyTowary = $oldDb->table('dostawy_towary')
+            ->whereIn('dostawy_id', $dostawyByPlanNaPlac->pluck('id'))
+            ->get()
+            ->groupBy('dostawy_id');
+
+        $zaladunkiTowary = $oldDb->table('zaladunki_towary')
+            ->whereIn('zaladunki_id', $zaladunkiByPlanNaPlac->pluck('id'))
+            ->get()
+            ->groupBy('zaladunki_id');
+
+        $this->command->info('Analiza i budowa rekordów...');
         $this->command->newLine();
+
+        // 3. Buduj rekordy do wstawienia (z pre-przypisanymi ID)
+        $now = now();
+        $recentThreshold = now()->subDays($this->keepRecentDays)->toDateString();
 
         $ordersToInsert = [];
         $loadingItemsToInsert = [];
         $warehouseItemsToInsert = [];
-        $skippedRecords = [];
+        $skipReasons = [
+            'no_plan_na_plac' => 0,
+            'no_towary' => 0,
+        ];
+        $keptDespiteMissing = 0;
+        $skippedSamples = [];
+
+        $nextOrderId = 1;
+        $processed = 0;
 
         foreach ($planowanieRecords as $planowanie) {
-            // 1. Znajdź powiązany plan_na_plac
-            $planNaPlac = DB::connection('mrowisko')
-                ->table('plan_na_plac')
-                ->where('planowanie_id', $planowanie->id)
-                ->first();
-
-            if (! $planNaPlac) {
-                $skippedRecords[] = [
-                    'planowanie_id' => $planowanie->id,
-                    'data' => $planowanie->data,
-                    'reason' => 'Brak powiązanego plan_na_plac',
-                ];
-
-                continue;
+            $processed++;
+            if ($processed % 200 === 0) {
+                $this->command->info("  [analiza] {$processed}/{$totalToScan}");
             }
 
-            // 2. Znajdź powiązane wazenia
-            $wazenie = DB::connection('mrowisko')
-                ->table('wazenia')
-                ->where('planowanie_id', $planowanie->id)
-                ->first();
+            $isRecent = $planowanie->data && $planowanie->data >= $recentThreshold;
 
-            if (! $wazenie) {
-                $skippedRecords[] = [
-                    'planowanie_id' => $planowanie->id,
-                    'data' => $planowanie->data,
-                    'reason' => 'Brak powiązanego wazenia',
-                ];
+            $planNaPlac = $planNaPlacByPlan->get($planowanie->id);
+            $wazenie = $wazeniaByPlan->get($planowanie->id);
 
-                continue;
-            }
-
-            // 3. Określ typ i pobierz towary
             $type = $planowanie->rodzaj === 'O' ? 'pickup' : 'sale';
             $warehouseOrigin = $planowanie->rodzaj === 'O' ? 'delivery' : 'loading';
-            $towary = [];
+
+            // Pobierz towary (jeśli są wszystkie potrzebne ogniwa)
+            $towary = collect();
             $operatorId = null;
             $createdAt = null;
             $updatedAt = null;
-            $operationNotes = null; // uwagi z dostawy lub załadunku
-
-            if ($planowanie->rodzaj === 'O') {
-                // Odbiór - tabela dostawy
-                $dostawa = DB::connection('mrowisko')
-                    ->table('dostawy')
-                    ->where('plan_na_plac_id', $planNaPlac->id)
-                    ->first();
-
-                if ($dostawa) {
-                    $towary = DB::connection('mrowisko')
-                        ->table('dostawy_towary')
-                        ->where('dostawy_id', $dostawa->id)
-                        ->get();
-                    $operatorId = $dostawa->operator_id;
-                    $createdAt = $dostawa->created_at;
-                    $updatedAt = $dostawa->updated_at;
-                    $operationNotes = $dostawa->uwagi;
-                }
-            } else {
-                // Wydanie - tabela zaladunki
-                $zaladunek = DB::connection('mrowisko')
-                    ->table('zaladunki')
-                    ->where('plan_na_plac_id', $planNaPlac->id)
-                    ->first();
-
-                if ($zaladunek) {
-                    $towary = DB::connection('mrowisko')
-                        ->table('zaladunki_towary')
-                        ->where('zaladunki_id', $zaladunek->id)
-                        ->get();
-                    $operatorId = $zaladunek->operator_id;
-                    $createdAt = $zaladunek->created_at;
-                    $updatedAt = $zaladunek->updated_at;
-                    $operationNotes = $zaladunek->uwagi;
+            $operationNotes = null;
+            if ($planNaPlac) {
+                if ($planowanie->rodzaj === 'O') {
+                    $dostawa = $dostawyByPlanNaPlac->get($planNaPlac->id);
+                    if ($dostawa) {
+                        $towary = $dostawyTowary->get($dostawa->id) ?? collect();
+                        $operatorId = $dostawa->operator_id;
+                        $createdAt = $dostawa->created_at;
+                        $updatedAt = $dostawa->updated_at;
+                        $operationNotes = $dostawa->uwagi;
+                    }
+                } else {
+                    $zaladunek = $zaladunkiByPlanNaPlac->get($planNaPlac->id);
+                    if ($zaladunek) {
+                        $towary = $zaladunkiTowary->get($zaladunek->id) ?? collect();
+                        $operatorId = $zaladunek->operator_id;
+                        $createdAt = $zaladunek->created_at;
+                        $updatedAt = $zaladunek->updated_at;
+                        $operationNotes = $zaladunek->uwagi;
+                    }
                 }
             }
 
-            if (empty($towary) || $towary->isEmpty()) {
-                $skippedRecords[] = [
-                    'planowanie_id' => $planowanie->id,
-                    'data' => $planowanie->data,
-                    'reason' => 'Brak towarów w '.($planowanie->rodzaj === 'O' ? 'dostawy_towary' : 'zaladunki_towary'),
-                ];
+            // Decyzja:
+            // - Zlecenie WYKONANE (są towary w dostawach/załadunkach) → zawsze zachowaj
+            // - Zlecenie tylko zaplanowane (są dane w planowaniu, brak towarów) → zachowaj jeśli świeże
+            // - Stare i bez wykonania → pomiń
+            $wasExecuted = ! $towary->isEmpty();
 
+            if (! $wasExecuted && ! $isRecent) {
+                // Stare i niewykonane — pomiń
+                if (! $planNaPlac) {
+                    $skipReasons['no_plan_na_plac']++;
+                    $reason = 'Brak plan_na_plac';
+                } else {
+                    $skipReasons['no_towary']++;
+                    $reason = 'Brak towarów w '.($planowanie->rodzaj === 'O' ? 'dostawy_towary' : 'zaladunki_towary');
+                }
+                if (count($skippedSamples) < 20) {
+                    $skippedSamples[] = [$planowanie->id, $planowanie->data, $reason];
+                }
                 continue;
             }
 
-            // 4. Oblicz wagę netto
-            $wagaBrutto = $wazenie->waga1;
-            $wagaNetto = null;
-            if ($wazenie->waga1 !== null && $wazenie->waga2 !== null) {
-                $wagaNetto = $wazenie->waga1 - $wazenie->waga2;
+            // Klasyfikacja statusu
+            if ($wasExecuted && $wazenie) {
+                $status = 'closed';        // pełen cykl
+            } elseif ($wasExecuted) {
+                $status = 'delivered';     // wykonane ale nie zważone
+                $keptDespiteMissing++;
+            } else {
+                $status = 'planned';       // tylko zaplanowane (świeże)
+                $keptDespiteMissing++;
             }
 
-            // 5. Przygotuj dane do orders
-            $orderData = [
+            // Wagi: tylko jeśli wazenie istnieje
+            $wagaBrutto = $wazenie->waga1 ?? null;
+            $wagaNetto = ($wazenie && $wazenie->waga1 !== null && $wazenie->waga2 !== null)
+                ? $wazenie->waga1 - $wazenie->waga2
+                : null;
+
+            $orderId = $nextOrderId++;
+
+            $ordersToInsert[] = [
+                'id' => $orderId,
                 'type' => $type,
                 'client_id' => $planowanie->kontrahent_cel,
                 'driver_id' => $planowanie->kierowca_id,
@@ -143,28 +189,27 @@ class MigrateOrdersSeeder extends Seeder
                 'lieferschein_id' => $planowanie->ls_id,
                 'planned_date' => $planowanie->data,
                 'planned_time' => $planowanie->godzina,
-                'plac_date' => $planNaPlac->data,
+                'plac_date' => $planNaPlac->data ?? null,
                 'fractions_note' => $planowanie->towary,
                 'notes' => $planowanie->uwagi,
-                'status' => 'closed',
+                'status' => $status,
                 'is_archived' => 0,
                 'weight_brutto' => $wagaBrutto,
                 'weight_netto' => $wagaNetto,
-                'created_at' => now(),
-                'updated_at' => now(),
-                // Dodatkowe info do wyświetlenia w teście
-                '_planowanie_id' => $planowanie->id,
-                '_warehouse_origin' => $warehouseOrigin,
-                '_operation_notes' => $operationNotes,
+                'created_at' => $now,
+                'updated_at' => $now,
             ];
 
-            $ordersToInsert[] = $orderData;
+            // Items tylko jeśli są towary
+            if ($towary->isEmpty()) {
+                continue;
+            }
 
-            // 6. Przygotuj dane do loading_items i warehouse_items
+            $isLoading = $planowanie->rodzaj !== 'O';
+            $itemDate = $planNaPlac->data ?? $planowanie->data;
             foreach ($towary as $towar) {
                 $loadingItemsToInsert[] = [
-                    '_planowanie_id' => $planowanie->id,
-                    'order_id' => '[NEW]', // będzie uzupełnione po insercie
+                    'order_id' => $orderId,
                     'fraction_id' => $towar->towar_id,
                     'bales' => $towar->belki,
                     'weight_kg' => $towar->waga,
@@ -174,15 +219,13 @@ class MigrateOrdersSeeder extends Seeder
                     'updated_at' => $updatedAt,
                 ];
 
-                $isLoading = $planowanie->rodzaj !== 'O';
                 $warehouseItemsToInsert[] = [
-                    '_planowanie_id' => $planowanie->id,
-                    'date' => $planNaPlac->data,
+                    'date' => $itemDate,
                     'fraction_id' => $towar->towar_id,
                     'bales' => $isLoading ? -$towar->belki : $towar->belki,
                     'weight_kg' => $isLoading ? -$towar->waga : $towar->waga,
                     'origin' => $warehouseOrigin,
-                    'origin_order_id' => '[NEW]', // będzie uzupełnione po insercie
+                    'origin_order_id' => $orderId,
                     'operator_id' => $operatorId,
                     'notes' => $operationNotes,
                     'created_at' => $createdAt,
@@ -191,219 +234,81 @@ class MigrateOrdersSeeder extends Seeder
             }
         }
 
-        // Wyświetl wyniki
-        $this->displayResults($ordersToInsert, $loadingItemsToInsert, $warehouseItemsToInsert, $skippedRecords);
-
-        // Jeśli nie tryb testowy - wykonaj insert
-        if (! $this->testMode && ! empty($ordersToInsert)) {
-            $this->executeInserts($ordersToInsert, $loadingItemsToInsert, $warehouseItemsToInsert);
-        }
-    }
-
-    private function displayResults(array $orders, array $loadingItems, array $warehouseItems, array $skipped): void
-    {
-        $this->command->info('=== DANE DO WSTAWIENIA DO TABELI orders ===');
-        $this->command->newLine();
-
-        if (empty($orders)) {
-            $this->command->warn('Brak rekordów do wstawienia.');
-        } else {
-            $headers = [
-                'plan_id',
-                'type',
-                'client_id',
-                'driver_id',
-                'start_client_id',
-                'tractor_id',
-                'trailer_id',
-                'planned_date',
-                'planned_time',
-                'plac_date',
-                'fractions_note',
-                'notes',
-                'status',
-                'weight_brutto',
-                'weight_netto',
-            ];
-
-            $rows = [];
-            foreach ($orders as $order) {
-                $rows[] = [
-                    $order['_planowanie_id'],
-                    $order['type'],
-                    $order['client_id'],
-                    $order['driver_id'],
-                    $order['start_client_id'],
-                    $order['tractor_id'],
-                    $order['trailer_id'],
-                    $order['planned_date'],
-                    $order['planned_time'],
-                    $order['plac_date'],
-                    mb_substr($order['fractions_note'] ?? '', 0, 20).'...',
-                    mb_substr($order['notes'] ?? '', 0, 15).'...',
-                    $order['status'],
-                    $order['weight_brutto'],
-                    $order['weight_netto'],
-                ];
-            }
-
-            $this->command->table($headers, $rows);
-        }
-
-        $this->command->newLine();
-        $this->command->info('=== DANE DO WSTAWIENIA DO TABELI loading_items ===');
-        $this->command->newLine();
-
-        if (empty($loadingItems)) {
-            $this->command->warn('Brak rekordów do wstawienia.');
-        } else {
-            $headers = [
-                'plan_id',
-                'order_id',
-                'fraction_id',
-                'bales',
-                'weight_kg',
-                'operator_id',
-                'created_at',
-            ];
-
-            $rows = [];
-            foreach ($loadingItems as $item) {
-                $rows[] = [
-                    $item['_planowanie_id'],
-                    $item['order_id'],
-                    $item['fraction_id'],
-                    $item['bales'],
-                    $item['weight_kg'],
-                    $item['operator_id'],
-                    $item['created_at'],
-                ];
-            }
-
-            $this->command->table($headers, $rows);
-        }
-
-        $this->command->newLine();
-        $this->command->info('=== DANE DO WSTAWIENIA DO TABELI warehouse_items ===');
-        $this->command->newLine();
-
-        if (empty($warehouseItems)) {
-            $this->command->warn('Brak rekordów do wstawienia.');
-        } else {
-            $headers = [
-                'plan_id',
-                'date',
-                'fraction_id',
-                'bales',
-                'weight_kg',
-                'origin',
-                'origin_order_id',
-                'operator_id',
-                'notes',
-            ];
-
-            $rows = [];
-            foreach ($warehouseItems as $item) {
-                $rows[] = [
-                    $item['_planowanie_id'],
-                    $item['date'],
-                    $item['fraction_id'],
-                    $item['bales'],
-                    $item['weight_kg'],
-                    $item['origin'],
-                    $item['origin_order_id'],
-                    $item['operator_id'],
-                    mb_substr($item['notes'] ?? '', 0, 20).'...',
-                ];
-            }
-
-            $this->command->table($headers, $rows);
-        }
-
-        $this->command->newLine();
-        $this->command->info('=== POMINIĘTE REKORDY ===');
-        $this->command->newLine();
-
-        if (empty($skipped)) {
-            $this->command->info('Żaden rekord nie został pominięty.');
-        } else {
-            $this->command->table(
-                ['planowanie_id', 'data', 'powód'],
-                $skipped
-            );
-        }
-
+        // 4. Podsumowanie
         $this->command->newLine();
         $this->command->info('=== PODSUMOWANIE ===');
-        $this->command->info('Rekordów do orders: '.count($orders));
-        $this->command->info('Rekordów do loading_items: '.count($loadingItems));
-        $this->command->info('Rekordów do warehouse_items: '.count($warehouseItems));
-        $this->command->warn('Pominiętych rekordów: '.count($skipped));
+        $this->command->info('Rekordów do orders:          '.count($ordersToInsert));
+        $this->command->info('Rekordów do loading_items:   '.count($loadingItemsToInsert));
+        $this->command->info('Rekordów do warehouse_items: '.count($warehouseItemsToInsert));
+        $this->command->warn('Pominięte (stare i niewykonane): brak plan_na_plac: '.$skipReasons['no_plan_na_plac']);
+        $this->command->warn('Pominięte (stare i niewykonane): brak towarów:     '.$skipReasons['no_towary']);
+        $this->command->info("Zachowane bez wazenia (status='delivered') lub bez wykonania ≤{$this->keepRecentDays} dni (status='planned'): {$keptDespiteMissing}");
+
+        if (! empty($skippedSamples)) {
+            $this->command->newLine();
+            $this->command->info('Próbka pominiętych (max 20):');
+            $this->command->table(['planowanie_id', 'data', 'powód'], $skippedSamples);
+        }
 
         if ($this->testMode) {
             $this->command->newLine();
             $this->command->warn('>>> TRYB TESTOWY - dane NIE zostały wstawione <<<');
-            $this->command->info('Aby wykonać migrację, ustaw $testMode = false w seederze.');
+            return;
         }
-    }
 
-    private function executeInserts(array $orders, array $loadingItems, array $warehouseItems): void
-    {
+        // 5. Bulk insert w chunkach
+        if (empty($ordersToInsert)) {
+            $this->command->warn('Brak rekordów do wstawienia.');
+            return;
+        }
+
         $this->command->newLine();
-        $this->command->info('Rozpoczynam wstawianie danych...');
+        $this->command->info('Wstawianie danych...');
 
         DB::connection('mysql')->beginTransaction();
-
         try {
-            foreach ($orders as $orderData) {
-                $planowanieId = $orderData['_planowanie_id'];
-                unset($orderData['_planowanie_id']);
-                unset($orderData['_warehouse_origin']);
-                unset($orderData['_operation_notes']);
+            $totalOrders = count($ordersToInsert);
+            $insertedOrders = 0;
+            foreach (array_chunk($ordersToInsert, 200) as $chunk) {
+                DB::table('orders')->insert($chunk);
+                $insertedOrders += count($chunk);
+                $this->command->info("  [orders] {$insertedOrders}/{$totalOrders}");
+            }
 
-                // Wstaw order
-                $orderId = DB::connection('mysql')
-                    ->table('orders')
-                    ->insertGetId($orderData);
+            $totalLoading = count($loadingItemsToInsert);
+            $insertedLoading = 0;
+            foreach (array_chunk($loadingItemsToInsert, 500) as $chunk) {
+                DB::table('loading_items')->insert($chunk);
+                $insertedLoading += count($chunk);
+                $this->command->info("  [loading_items] {$insertedLoading}/{$totalLoading}");
+            }
 
-                $this->command->info("Wstawiono order ID: {$orderId} (z planowanie ID: {$planowanieId})");
-
-                // Wstaw loading_items dla tego orderu
-                $itemsForOrder = array_filter($loadingItems, fn ($item) => $item['_planowanie_id'] === $planowanieId);
-
-                foreach ($itemsForOrder as $item) {
-                    unset($item['_planowanie_id']);
-                    $item['order_id'] = $orderId;
-
-                    DB::connection('mysql')
-                        ->table('loading_items')
-                        ->insert($item);
-                }
-
-                $this->command->info('  → Wstawiono '.count($itemsForOrder).' pozycji loading_items');
-
-                // Wstaw warehouse_items dla tego orderu
-                $warehouseForOrder = array_filter($warehouseItems, fn ($item) => $item['_planowanie_id'] === $planowanieId);
-
-                foreach ($warehouseForOrder as $item) {
-                    unset($item['_planowanie_id']);
-                    $item['origin_order_id'] = $orderId;
-
-                    DB::connection('mysql')
-                        ->table('warehouse_items')
-                        ->insert($item);
-                }
-
-                $this->command->info('  → Wstawiono '.count($warehouseForOrder).' pozycji warehouse_items');
+            $totalWarehouse = count($warehouseItemsToInsert);
+            $insertedWarehouse = 0;
+            foreach (array_chunk($warehouseItemsToInsert, 500) as $chunk) {
+                DB::table('warehouse_items')->insert($chunk);
+                $insertedWarehouse += count($chunk);
+                $this->command->info("  [warehouse_items] {$insertedWarehouse}/{$totalWarehouse}");
             }
 
             DB::connection('mysql')->commit();
-            $this->command->info('Migracja zakończona pomyślnie!');
-
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::connection('mysql')->rollBack();
-            $this->command->error('Błąd podczas migracji: '.$e->getMessage());
+            $this->command->error('Błąd: '.$e->getMessage());
             throw $e;
         }
+
+        // Reset AUTO_INCREMENT — robimy POZA transakcją bo ALTER TABLE implicit-commitje
+        $this->resetAutoIncrement('orders');
+        $this->resetAutoIncrement('loading_items');
+        $this->resetAutoIncrement('warehouse_items');
+
+        $this->command->info("✅ Migracja zakończona: {$insertedOrders} orders, {$insertedLoading} loading_items, {$insertedWarehouse} warehouse_items.");
+    }
+
+    private function resetAutoIncrement(string $table): void
+    {
+        $maxId = DB::table($table)->max('id') ?? 0;
+        DB::statement("ALTER TABLE {$table} AUTO_INCREMENT = ".($maxId + 1));
     }
 }

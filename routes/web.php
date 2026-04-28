@@ -15,6 +15,7 @@ use App\Http\Controllers\Biuro\HaulerController;
 use App\Http\Controllers\Biuro\ImporterController;
 use App\Http\Controllers\Biuro\KosztTransportuController;
 use App\Http\Controllers\Biuro\LieferscheinController;
+use App\Http\Controllers\Biuro\MigrationReportController;
 use App\Http\Controllers\Biuro\OrderController;
 use App\Http\Controllers\Biuro\PlanningController;
 use App\Http\Controllers\Biuro\PojazdyTerminyController;
@@ -88,6 +89,9 @@ Route::prefix('biuro')
     ->group(function () {
         Route::get('/dashboard', fn () => view('biuro.dashboard'))->name('dashboard');
         Route::get('ustawienia', fn () => redirect()->route('biuro.fractions.index'))->name('ustawienia');
+
+        // Raport migracji (porównanie starej bazy z nową — co się powiązało, co kuleje)
+        Route::get('migration-report', [MigrationReportController::class, 'index'])->name('migration-report');
 
         // Planowanie
         Route::get('planning', [PlanningController::class, 'index'])->name('planning.index');

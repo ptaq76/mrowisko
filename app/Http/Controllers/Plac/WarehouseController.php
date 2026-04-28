@@ -17,11 +17,8 @@ class WarehouseController extends Controller
             ->orderBy('name')
             ->get();
 
-        // Stan magazynu per frakcja
-        $stockMap = WarehouseItem::selectRaw('fraction_id, SUM(bales) as total_bales, ROUND(SUM(weight_kg), 2) as total_weight')
-            ->groupBy('fraction_id')
-            ->get()
-            ->keyBy('fraction_id');
+        // Stan magazynu per frakcja (snapshot inwentaryzacji uwzględniony)
+        $stockMap = WarehouseItem::computeStockMap();
 
         // Połącz frakcje ze stanami (nawet jeśli stan = 0)
         $stock = $fractions->map(function ($f) use ($stockMap) {
@@ -55,6 +52,8 @@ class WarehouseController extends Controller
                 'weight' => $i->weight_kg,
                 'bales' => $i->bales,
                 'origin' => WarehouseItem::ORIGINS[$i->origin] ?? $i->origin,
+                'origin_short' => WarehouseItem::ORIGIN_SHORT[$i->origin] ?? mb_strtoupper(mb_substr($i->origin, 0, 3)),
+                'origin_code' => $i->origin,
                 'operator' => $i->operator?->name ?? $i->operator?->login ?? '–',
             ]),
         ]);

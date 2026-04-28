@@ -23,7 +23,7 @@ class BdoSeeder extends Seeder
 
     private function migrateTable(string $table, bool $hasEwrant): void
     {
-        $oldRows = DB::table('mrowisko.'.$table)->orderBy('id')->get();
+        $oldRows = DB::connection('mrowisko')->table($table)->orderBy('id')->get();
         $this->command->info("Migracja {$oldRows->count()} rekordów {$table}...");
 
         $rows = $oldRows->map(function ($r) use ($hasEwrant) {

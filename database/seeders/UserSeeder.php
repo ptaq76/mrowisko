@@ -28,7 +28,7 @@ class UserSeeder extends Seeder
         DB::table('users')->truncate();
 
         // 3. Pobieramy WSZYSTKIE dane z tabeli users w bazie 'mrowisko'
-        $oldUsers = DB::table('mrowisko.users')->get();
+        $oldUsers = DB::connection('mrowisko')->table('users')->get();
 
         $this->command->info('Pobrano '.$oldUsers->count()." użytkowników z bazy 'mrowisko'.");
 

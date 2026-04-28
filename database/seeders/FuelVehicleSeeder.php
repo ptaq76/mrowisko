@@ -9,8 +9,12 @@ class FuelVehicleSeeder extends Seeder
 {
     public function run(): void
     {
+        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        DB::table('fuel_vehicles')->truncate();
+        DB::table('fuel_vehicle_groups')->truncate();
+
         // Grupy
-        DB::table('fuel_vehicle_groups')->insertOrIgnore([
+        DB::table('fuel_vehicle_groups')->insert([
             ['id' => 1, 'nazwa' => 'Plac',         'active' => 1, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 2, 'nazwa' => 'PlacTransport', 'active' => 1, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 3, 'nazwa' => 'Audi',          'active' => 1, 'created_at' => now(), 'updated_at' => now()],
@@ -20,7 +24,7 @@ class FuelVehicleSeeder extends Seeder
         ]);
 
         // Pojazdy
-        DB::table('fuel_vehicles')->insertOrIgnore([
+        DB::table('fuel_vehicles')->insert([
             ['id' => 1, 'nazwa' => 'DOSTAWA',             'grupa_id' => 6, 'active' => 1, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 2, 'nazwa' => 'KOMATSU (Stara)',      'grupa_id' => 1, 'active' => 1, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 3, 'nazwa' => 'KOMATSU 80 (Nowa)',    'grupa_id' => 1, 'active' => 1, 'created_at' => now(), 'updated_at' => now()],
@@ -51,5 +55,17 @@ class FuelVehicleSeeder extends Seeder
             ['id' => 28, 'nazwa' => 'SENNEBOGEN',           'grupa_id' => 1, 'active' => 1, 'created_at' => now(), 'updated_at' => now()],
             ['id' => 29, 'nazwa' => 'SYLWESTER',            'grupa_id' => 4, 'active' => 1, 'created_at' => now(), 'updated_at' => now()],
         ]);
+
+        $this->resetAutoIncrement('fuel_vehicle_groups');
+        $this->resetAutoIncrement('fuel_vehicles');
+
+        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+    }
+
+    private function resetAutoIncrement($table)
+    {
+        $maxId = DB::table($table)->max('id') ?? 0;
+        $nextId = $maxId + 1;
+        DB::statement("ALTER TABLE $table AUTO_INCREMENT = $nextId");
     }
 }

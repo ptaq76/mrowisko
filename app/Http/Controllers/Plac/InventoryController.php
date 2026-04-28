@@ -17,10 +17,7 @@ class InventoryController extends Controller
             ->orderBy('name')
             ->get();
 
-        $stockMap = WarehouseItem::selectRaw('fraction_id, SUM(bales) as total_bales, ROUND(SUM(weight_kg), 2) as total_weight')
-            ->groupBy('fraction_id')
-            ->get()
-            ->keyBy('fraction_id');
+        $stockMap = WarehouseItem::computeStockMap();
 
         $stock = $fractions->map(function ($f) use ($stockMap) {
             $s = $stockMap->get($f->id);
@@ -48,26 +45,20 @@ class InventoryController extends Controller
             'weight_kg.required' => 'Podaj wagę.',
         ]);
 
-        // Aktualny stan
-        $current = WarehouseItem::selectRaw('SUM(bales) as total_bales, SUM(weight_kg) as total_weight')
-            ->where('fraction_id', $fractionId)
-            ->first();
-
-        $currentBales = (int) ($current->total_bales ?? 0);
-        $currentWeight = (float) ($current->total_weight ?? 0);
+        // Aktualny stan (snapshot logic — od ostatniej inwentaryzacji)
+        $current = WarehouseItem::stockForFraction($fractionId);
+        $currentBales = $current['bales'];
+        $currentWeight = $current['weight'];
 
         $newBales = (int) $request->bales;
         $newWeight = (float) $request->weight_kg;
 
-        $diffBales = $newBales - $currentBales;
-        $diffWeight = round($newWeight - $currentWeight, 2);
-
-        // Zapisz korektę (może być 0 jeśli bez zmian)
+        // Zapisujemy SNAPSHOT (wartość bezwzględną) — odczyt sumuje od ostatniej inwentaryzacji
         WarehouseItem::create([
             'date' => now()->toDateString(),
             'fraction_id' => $fractionId,
-            'weight_kg' => $diffWeight,
-            'bales' => $diffBales,
+            'weight_kg' => $newWeight,
+            'bales' => $newBales,
             'origin' => 'inventory',
             'operator_id' => null,
             'notes' => "Inwentaryzacja: było {$currentBales} bel. / {$currentWeight} kg → jest {$newBales} bel. / {$newWeight} kg",

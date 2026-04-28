@@ -172,16 +172,22 @@
 .hist-table tr:last-child td { border-bottom: none; }
 
 .origin-badge {
-    font-size: 10px;
+    display: inline-block;
+    min-width: 42px;
+    text-align: center;
+    font-size: 11px;
     font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 10px;
+    letter-spacing: .04em;
+    padding: 3px 8px;
+    border-radius: 6px;
     white-space: nowrap;
+    background: #eceff3;
+    color: #555;
 }
-.origin-production { background: #e8f7e4; color: #2d7a1a; }
-.origin-loading    { background: #fef9e7; color: #d68910; }
-.origin-delivery   { background: #eaf4fb; color: #2471a3; }
-.origin-inventory  { background: #f9ebea; color: #c0392b; }
+.origin-production { background: #4a6fa5; color: #fff; }
+.origin-loading    { background: #b08043; color: #fff; }
+.origin-delivery   { background: #5d8a5d; color: #fff; }
+.origin-inventory  { background: #b85450; color: #fff; }
 
 .positive { color: #27ae60; font-weight: 700; }
 .negative { color: #e74c3c; font-weight: 700; }
@@ -285,24 +291,16 @@ async function showHistory(fractionId, name) {
         return;
     }
 
-    const originClass = {
-        'Produkcja': 'origin-production',
-        'Załadunek': 'origin-loading',
-        'Dostawa':   'origin-delivery',
-        'Inwentaryzacja': 'origin-inventory',
-    };
-
     tbody.innerHTML = data.history.map(h => {
         const isPos    = h.bales >= 0;
         const balesStr = (isPos ? '+' : '') + h.bales;
         const weightStr= (isPos ? '+' : '') + (parseFloat(h.weight)/1000).toLocaleString('pl-PL', {minimumFractionDigits:3, maximumFractionDigits:3}) + ' t';
         const cls      = isPos ? 'positive' : 'negative';
-        const badge    = originClass[h.origin] ?? '';
         return `<tr>
             <td>${h.date}</td>
             <td class="${cls}">${balesStr}</td>
             <td class="${cls}">${weightStr}</td>
-            <td><span class="origin-badge ${badge}">${h.origin}</span></td>
+            <td><span class="origin-badge origin-${h.origin_code}" title="${h.origin}">${h.origin_short}</span></td>
             <td style="color:#888;font-size:11px">${h.operator}</td>
         </tr>`;
     }).join('');
