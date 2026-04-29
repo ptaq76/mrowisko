@@ -29,6 +29,15 @@
 .bar-progress { background: #e67e22; }
 .bar-done     { background: #d5d8db; }
 
+.bar-days {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 900;
+    color: rgba(0,0,0,.55);
+    min-width: 36px;
+}
+.bar-progress .bar-days { color: rgba(255,255,255,.85); }
+.bar-done .bar-days { color: rgba(0,0,0,.35); }
+
 .bar-client {
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 30px; font-weight: 900;
@@ -117,8 +126,9 @@
 <div class="page-title">Załadunki</div>
 
 @php
-    $activeOrders = $orders->filter(fn($o) => $o->status !== 'loaded');
-    $closedOrders = $orders->filter(fn($o) => $o->status === 'loaded');
+    $closedStatuses = ['loaded', 'weighed', 'delivered', 'closed'];
+    $activeOrders = $orders->filter(fn($o) => !in_array($o->status, $closedStatuses));
+    $closedOrders = $orders->filter(fn($o) =>  in_array($o->status, $closedStatuses));
 @endphp
 
 @if($activeOrders->isEmpty() && $closedOrders->isEmpty())
@@ -129,9 +139,14 @@
 @endif
 
 @foreach($activeOrders as $order)
-@php $st = $placStatus($order); @endphp
+@php
+    $st = $placStatus($order);
+    $daysAgo  = $order->planned_date ? (int) $order->planned_date->diffInDays(now(), false) : 0;
+    $daysLabel = $daysAgo === 0 ? 'Dziś' : ($daysAgo > 0 ? "+{$daysAgo}d" : '');
+@endphp
 <div class="order-card">
     <div class="order-bar {{ $order->loadingItems->isNotEmpty() ? 'bar-progress' : 'bar-planned' }}">
+        <div class="bar-days">{{ $daysLabel }}</div>
         <div class="bar-client">{{ $order->client?->short_name }}</div>
         <span class="bar-status">{{ $st['label'] }}</span>
         <a href="{{ route('plac.orders.loading', $order) }}" class="bar-action">

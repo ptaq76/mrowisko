@@ -36,6 +36,14 @@
 .bar-progress { background: #1a5c3a; }
 .bar-done     { background: #d5d8db; }
 
+.bar-days {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 900;
+    color: rgba(255,255,255,.85);
+    min-width: 36px;
+}
+.bar-done .bar-days { color: rgba(0,0,0,.4); }
+
 .bar-client {
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 30px; font-weight: 900;
@@ -142,9 +150,14 @@
 @endif
 
 @foreach($activeOrders as $order)
-@php $st = $placStatus($order); @endphp
+@php
+    $st = $placStatus($order);
+    $daysAgo  = $order->planned_date ? (int) $order->planned_date->diffInDays(now(), false) : 0;
+    $daysLabel = $daysAgo === 0 ? 'Dziś' : ($daysAgo > 0 ? "+{$daysAgo}d" : '');
+@endphp
 <div class="order-card">
     <div class="order-bar {{ $order->loadingItems->isNotEmpty() ? 'bar-progress' : 'bar-planned' }}">
+        <div class="bar-days">{{ $daysLabel }}</div>
         <div class="bar-client">{{ $order->client?->short_name }}</div>
         <span class="bar-status">{{ $st['label'] }}</span>
         <a href="{{ route('plac.delivery.form', $order) }}" class="bar-action">

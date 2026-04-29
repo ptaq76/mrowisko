@@ -15,6 +15,7 @@ use App\Http\Controllers\Biuro\HaulerController;
 use App\Http\Controllers\Biuro\ImporterController;
 use App\Http\Controllers\Biuro\KosztTransportuController;
 use App\Http\Controllers\Biuro\LieferscheinController;
+use App\Http\Controllers\Biuro\MigrationController;
 use App\Http\Controllers\Biuro\MigrationReportController;
 use App\Http\Controllers\Biuro\OrderController;
 use App\Http\Controllers\Biuro\PlanningController;
@@ -92,6 +93,9 @@ Route::prefix('biuro')
 
         // Raport migracji (porównanie starej bazy z nową — co się powiązało, co kuleje)
         Route::get('migration-report', [MigrationReportController::class, 'index'])->name('migration-report');
+
+        // Uruchomienie pełnej migracji (db:seed) z hasłem z .env
+        Route::post('migration/run', [MigrationController::class, 'run'])->name('migration.run');
 
         // Planowanie
         Route::get('planning', [PlanningController::class, 'index'])->name('planning.index');

@@ -15,21 +15,24 @@ class LoadingController extends Controller
             ? Carbon::parse($request->input('data'))->startOfDay()
             : Carbon::today();
 
+        $closedStatuses = ['loaded', 'weighed', 'delivered', 'closed'];
+
         $orders = Order::with(['client', 'driver', 'tractor', 'trailer', 'loadingItems.fraction', 'lieferschein.importer'])
             ->where('type', 'sale')
-            ->where(function ($q) use ($date) {
+            ->where(function ($q) use ($date, $closedStatuses) {
                 $q->whereDate('planned_date', $date)
-                    ->orWhere(function ($q2) use ($date) {
+                    ->orWhere(function ($q2) use ($date, $closedStatuses) {
                         $q2->whereDate('planned_date', '<', $date)
-                            ->whereNotIn('status', ['closed', 'tool', 'weighed']);
+                            ->whereNotIn('status', $closedStatuses);
                     });
             })
-            ->orderByRaw("CASE WHEN status = 'loaded' THEN 1 ELSE 0 END")
+            ->orderByRaw("CASE WHEN status IN ('loaded','weighed','delivered','closed') THEN 1 ELSE 0 END")
             ->orderBy('planned_time')
             ->get();
 
         $placStatus = function ($order) {
-            if ($order->status === 'loaded') {
+            // Wszystko od "loaded" wzwyż jest dla placu zamknięte (loaded/weighed/delivered/closed)
+            if (in_array($order->status, ['loaded', 'weighed', 'delivered', 'closed'])) {
                 return ['label' => 'Zamknięty', 'class' => 'sp-closed', 'done' => true];
             }
             if ($order->loadingItems->isNotEmpty()) {

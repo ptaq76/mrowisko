@@ -91,5 +91,139 @@
             </div>
         </a>
     </div>
+    <div class="col-md-4">
+        <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#migrationRunModal">
+            <div class="card h-100 text-center p-4 dashboard-tile" style="border-color:#c0392b">
+                <i class="fa-solid fa-rotate fa-2x mb-2" style="color:#c0392b"></i>
+                <div class="fw-bold">Uruchom migrację</div>
+                <div class="text-muted small mt-1">Pełen db:seed (wymaga hasła)</div>
+            </div>
+        </a>
+    </div>
 </div>
+
+{{-- Modal: uruchomienie migracji --}}
+<div class="modal fade" id="migrationRunModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-triangle-exclamation text-danger me-2"></i>
+                    Uruchom migrację (db:seed)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Uwaga:</strong> Operacja czyści tabele docelowe i przepisuje dane ze starej bazy.
+                    Może trwać kilkadziesiąt sekund. <strong>Nie zamykaj okna</strong> w trakcie wykonywania.
+                </div>
+
+                <div id="migPanelForm">
+                    <div class="mb-3">
+                        <label for="migPassword" class="form-label">Hasło migracji</label>
+                        <input type="password" id="migPassword" class="form-control" autocomplete="new-password" placeholder="z .env (MIGRATION_PASSWORD)">
+                        <div id="migError" class="form-text text-danger" style="display:none"></div>
+                    </div>
+                </div>
+
+                <div id="migPanelRunning" style="display:none">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="spinner-border text-danger me-3" role="status"></div>
+                        <div>
+                            <div class="fw-bold">Migracja w toku...</div>
+                            <div class="text-muted small">Cierpliwości — to może potrwać.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="migPanelResult" style="display:none">
+                    <div id="migResultStatus" class="alert" role="alert"></div>
+                    <label class="form-label small text-muted mb-1">Output:</label>
+                    <pre id="migOutput" style="background:#1a1a1a;color:#dcdcdc;padding:12px;border-radius:6px;font-size:12px;max-height:400px;overflow:auto;white-space:pre-wrap"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+                <button type="button" class="btn btn-danger" id="migRunBtn">
+                    <i class="fa-solid fa-play me-1"></i> Uruchom migrację
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section('scripts')
+<script>
+(function () {
+    const btn   = document.getElementById('migRunBtn');
+    const pwd   = document.getElementById('migPassword');
+    const err   = document.getElementById('migError');
+    const form  = document.getElementById('migPanelForm');
+    const run   = document.getElementById('migPanelRunning');
+    const res   = document.getElementById('migPanelResult');
+    const out   = document.getElementById('migOutput');
+    const stat  = document.getElementById('migResultStatus');
+
+    if (!btn) return;
+
+    function reset() {
+        form.style.display = '';
+        run.style.display  = 'none';
+        res.style.display  = 'none';
+        err.style.display  = 'none';
+        btn.disabled = false;
+        pwd.value = '';
+    }
+
+    document.getElementById('migrationRunModal').addEventListener('hidden.bs.modal', reset);
+
+    btn.addEventListener('click', async function () {
+        if (!pwd.value) {
+            err.textContent = 'Podaj hasło.';
+            err.style.display = '';
+            pwd.focus();
+            return;
+        }
+
+        err.style.display = 'none';
+        form.style.display = 'none';
+        run.style.display  = '';
+        btn.disabled = true;
+
+        try {
+            const r = await fetch('{{ route('biuro.migration.run') }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ password: pwd.value }),
+            });
+            const data = await r.json();
+
+            run.style.display = 'none';
+            res.style.display = '';
+
+            if (data.success) {
+                stat.className = 'alert alert-success';
+                stat.innerHTML = '<i class="fa-solid fa-check-circle me-2"></i>Migracja zakończona sukcesem.';
+            } else {
+                stat.className = 'alert alert-danger';
+                stat.innerHTML = '<i class="fa-solid fa-xmark-circle me-2"></i>' + (data.error || 'Migracja nie powiodła się.');
+            }
+            out.textContent = data.output || '(brak outputu)';
+        } catch (e) {
+            run.style.display = 'none';
+            res.style.display = '';
+            stat.className = 'alert alert-danger';
+            stat.innerHTML = '<i class="fa-solid fa-xmark-circle me-2"></i>Błąd sieci: ' + e.message;
+            out.textContent = '';
+            btn.disabled = false;
+        }
+    });
+})();
+</script>
+@endsection
 @endsection
