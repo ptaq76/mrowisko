@@ -93,7 +93,7 @@
 </div>
 
 {{-- Tabela --}}
-<div class="card" style="width:75%;margin:0 auto">
+<div id="poll-area" class="card" style="width:75%;margin:0 auto">
     <div class="table-responsive">
         <table class="ls-table">
             <thead>
@@ -229,6 +229,11 @@ async function fetchFromMail() {
 
     btn.disabled = false;
     btn.innerHTML = '<i class="fas fa-envelope-open-text"></i> Pobierz z maila';
+}
+
+// POLLING: tabela LS odświeża się sama co 5s
+if (window.pollPageFragment) {
+    window.pollPageFragment('poll-area', 5000);
 }
 </script>
 @endsection

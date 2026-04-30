@@ -128,7 +128,7 @@
 @endsection
 
 @section('content')
-<div class="container-fluid px-3">
+<div id="poll-area" class="container-fluid px-3">
     <ul class="nav nav-tabs">
         <li class="nav-item">
             <a class="nav-link {{ $status === 'wszystkie' ? 'active' : '' }}"
@@ -251,4 +251,13 @@
         </table>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+// POLLING: lista kart przekazujących odświeża się sama co 5s
+if (window.pollPageFragment) {
+    window.pollPageFragment('poll-area', 5000);
+}
+</script>
 @endsection

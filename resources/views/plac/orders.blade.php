@@ -54,6 +54,7 @@
 
 <div class="page-title">Plan dnia</div>
 
+<div id="poll-area">
 {{-- ══ ZADANIA ══ --}}
 @if(isset($zadania) && $zadania->isNotEmpty())
 <div style="background:#fff8e1;border:2px solid #f9d38c;border-radius:12px;margin-bottom:14px;overflow:hidden">
@@ -137,6 +138,8 @@
 @endforeach
 @endif
 
+</div>{{-- /poll-area --}}
+
 @endsection
 
 @section('scripts')
@@ -155,6 +158,11 @@ async function wykonajZadanie(id) {
     fd.append('_token', '{{ csrf_token() }}');
     await fetch(`/plac/zadania/${id}/wykonaj`, { method: 'POST', body: fd });
     location.reload();
+}
+
+// POLLING: Plan dnia odświeża się sam co 5s
+if (window.pollPageFragment) {
+    window.pollPageFragment('poll-area', 5000);
 }
 </script>
 @endsection

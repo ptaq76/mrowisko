@@ -125,6 +125,8 @@
 
 <div class="page-title">Załadunki</div>
 
+<div id="poll-area">
+
 @php
     $closedStatuses = ['loaded', 'weighed', 'delivered', 'closed'];
     $activeOrders = $orders->filter(fn($o) => !in_array($o->status, $closedStatuses));
@@ -219,4 +221,15 @@
 @endforeach
 @endif
 
+</div>{{-- /poll-area --}}
+
+@endsection
+
+@section('scripts')
+<script>
+// POLLING: lista załadunków odświeża się sama co 5s
+if (window.pollPageFragment) {
+    window.pollPageFragment('poll-area', 5000);
+}
+</script>
 @endsection

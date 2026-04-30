@@ -166,7 +166,7 @@
 @endsection
 
 @section('content')
-<div class="container-fluid px-3">
+<div id="poll-area" class="container-fluid px-3">
     <ul class="nav nav-tabs">
         <li class="nav-item">
             <a class="nav-link {{ $status === 'wszystkie' ? 'active' : '' }}"
@@ -444,4 +444,10 @@
 
 @section('scripts')
 <script src="{{ asset('js/bdo/akcje.js') }}"></script>
+<script>
+// POLLING: lista kart BDO odświeża się sama co 5s — nowe karty z krajowego BDO pojawią się automatycznie
+if (window.pollPageFragment) {
+    window.pollPageFragment('poll-area', 5000);
+}
+</script>
 @endsection

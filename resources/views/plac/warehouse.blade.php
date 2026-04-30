@@ -203,7 +203,7 @@
 </button>
 
 
-<div class="stock-table">
+<div id="poll-area" class="stock-table">
     <table>
         <thead>
             <tr>
@@ -312,6 +312,11 @@ function closeHistModal() {
 
 function closeHistory(e) {
     if (e.target === document.getElementById('histOverlay')) closeHistModal();
+}
+
+// POLLING: stan magazynu placu odświeża się sam co 5s
+if (window.pollPageFragment) {
+    window.pollPageFragment('poll-area', 5000);
 }
 </script>
 @endsection

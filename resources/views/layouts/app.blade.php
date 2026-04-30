@@ -437,6 +437,7 @@
  <script src="{{ asset('js/bdo/akcje.js') }}"></script>
 
 @include('partials._session_guard')
+@include('partials._polling')
 
 @yield('scripts')
 

@@ -47,7 +47,7 @@
 @endsection
 
 @section('content')
-<div class="report-wrap">
+<div id="poll-area" class="report-wrap">
 
     <div class="report-header">
         <div class="report-title">
@@ -165,4 +165,13 @@
     @endif
 
 </div>
+@endsection
+
+@section('scripts')
+<script>
+// POLLING: lista zadań odświeża się sama co 5s
+if (window.pollPageFragment) {
+    window.pollPageFragment('poll-area', 5000);
+}
+</script>
 @endsection

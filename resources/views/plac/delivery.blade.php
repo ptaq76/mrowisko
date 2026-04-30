@@ -137,6 +137,8 @@
 
 <div class="page-title">Przyjęcie towaru</div>
 
+<div id="poll-area">
+
 @php
     $activeOrders = $orders->filter(fn($o) => !in_array($o->status, ['delivered','closed']));
     $doneOrders   = $orders->filter(fn($o) => in_array($o->status, ['delivered','closed']));
@@ -230,4 +232,15 @@
 @endforeach
 @endif
 
+</div>{{-- /poll-area --}}
+
+@endsection
+
+@section('scripts')
+<script>
+// POLLING: lista przyjęć odświeża się sama co 5s
+if (window.pollPageFragment) {
+    window.pollPageFragment('poll-area', 5000);
+}
+</script>
 @endsection

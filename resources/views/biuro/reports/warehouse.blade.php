@@ -67,7 +67,7 @@
 @endsection
 
 @section('content')
-<div class="report-wrap">
+<div id="poll-area" class="report-wrap">
 
     <div class="report-header" style="width:50%;margin:0 auto 16px auto">
         <div class="report-title">
@@ -216,5 +216,10 @@ function closeHistory() {
 }
 
 document.getElementById('histModal').addEventListener('click', closeHistory);
+
+// POLLING: tabela stanu magazynu odświeża się sama co 5s
+if (window.pollPageFragment) {
+    window.pollPageFragment('poll-area', 5000);
+}
 </script>
 @endsection

@@ -156,6 +156,8 @@
 
 @section('content')
 
+<div id="poll-area">
+
 {{-- ══ ZADANIA ══ --}}
 @if(isset($zadania) && $zadania->isNotEmpty())
 <div style="background:#fff8e1;border:2px solid #f9d38c;border-radius:12px;margin-bottom:20px;overflow:hidden">
@@ -424,6 +426,8 @@
     </div>
 </div>
 
+</div>{{-- /poll-area --}}
+
 @endsection
 
 @section('scripts')
@@ -592,6 +596,11 @@ async function saveRW() {
     } else {
         Swal.fire({ icon: 'error', title: 'Błąd', text: data.message });
     }
+}
+
+// POLLING: dashboard kierowcy odświeża się sam co 5s
+if (window.pollPageFragment) {
+    window.pollPageFragment('poll-area', 5000);
 }
 </script>
 @endsection

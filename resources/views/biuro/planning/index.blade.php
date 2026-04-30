@@ -55,12 +55,54 @@
     .week-day-header:hover { filter: brightness(.95); }
 
     .week-order-mini {
-        font-size: 11px;
-        padding: 2px 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 6px 4px 8px;
         border-left: 3px solid #ddd;
-        margin-bottom: 2px;
+        margin-bottom: 3px;
+        background: #fff;
+        border-radius: 0 4px 4px 0;
+        font-size: 11px;
         color: var(--black);
+        line-height: 1.25;
     }
+    .week-order-mini .wom-info { flex: 1; min-width: 0; overflow: hidden; }
+    .week-order-mini .wom-line1 {
+        display: flex;
+        align-items: baseline;
+        gap: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .week-order-mini .wom-client { font-weight: 700; color: #1a1a1a; }
+    .week-order-mini .wom-driver { color: #666; font-size: 10px; }
+    .week-order-mini .wom-line2 {
+        font-size: 10px;
+        color: #999;
+        font-family: 'Barlow Condensed', sans-serif;
+        font-weight: 600;
+        letter-spacing: .03em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 1px;
+    }
+    .week-order-mini .wom-status {
+        flex-shrink: 0;
+        width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        border-radius: 50%;
+        background: #eceff3;
+        color: #aaa;
+    }
+    .week-order-mini .wom-status.active   { background: var(--green); color: #fff; }
+    .week-order-mini .wom-status.progress { background: #f39c12; color: #fff; }
 
     /* ── ŚRODKOWA KOLUMNA ── */
     .col-middle {
@@ -519,11 +561,41 @@
                 <span class="ms-auto text-muted" style="font-weight:400">{{ $dayData['date']->format('d.m') }}</span>
             </div>
             @foreach($dayData['orders'] as $o)
-            <div class="week-order-mini" style="border-color: {{ $o->driver?->color ?? '#ddd' }}">
-                {{ $o->client?->short_name ?? '?' }}
-                @if($o->planned_time)
-                    <span class="text-muted">{{ substr($o->planned_time, 0, 5) }}</span>
-                @endif
+            @php
+                // Numery rejestracyjne ciągnik / naczepa
+                $plates = collect([$o->tractor?->plate, $o->trailer?->plate])->filter()->implode(' / ');
+
+                // Ikona statusu — pasek progresu zlecenia w jednej ikonce
+                $statusIcon  = 'fa-clock';
+                $statusClass = '';
+                $statusTitle = 'Zaplanowane';
+                if ($o->status === 'closed') {
+                    $statusIcon = 'fa-check-double'; $statusClass = 'active'; $statusTitle = 'Zamknięte';
+                } elseif ($o->status === 'delivered') {
+                    $statusIcon = 'fa-boxes'; $statusClass = 'active'; $statusTitle = 'Dostarczone';
+                } elseif ($o->status === 'weighed') {
+                    $statusIcon = 'fa-weight'; $statusClass = 'active'; $statusTitle = 'Zważone';
+                } elseif ($o->status === 'loaded') {
+                    $statusIcon = 'fa-truck-loading'; $statusClass = 'active'; $statusTitle = 'Załadowane';
+                } elseif ($o->loadingItems->isNotEmpty()) {
+                    $statusIcon = 'fa-cog'; $statusClass = 'progress'; $statusTitle = 'W trakcie';
+                }
+            @endphp
+            <div class="week-order-mini" style="border-color: {{ $o->driver?->color ?? '#ddd' }}" title="{{ $statusTitle }}">
+                <div class="wom-info">
+                    <div class="wom-line1">
+                        <span class="wom-client">{{ $o->client?->short_name ?? '?' }}</span>
+                        @if($o->driver)
+                            <span class="wom-driver">· {{ $o->driver->name }}</span>
+                        @endif
+                    </div>
+                    @if($plates)
+                        <div class="wom-line2">{{ $plates }}</div>
+                    @endif
+                </div>
+                <span class="wom-status {{ $statusClass }}">
+                    <i class="fas {{ $statusIcon }}"></i>
+                </span>
             </div>
             @endforeach
         </div>
@@ -581,7 +653,7 @@
         </div>
         @endif
 
-        <div class="orders-list" style="border: 3px solid {{ $driver?->color ?? '#eee' }}; border-top: none; background: #fff; border-radius: 0 0 12px 12px; overflow: hidden">
+        <div id="poll-area" class="orders-list" style="border: 3px solid {{ $driver?->color ?? '#eee' }}; border-top: none; background: #fff; border-radius: 0 0 12px 12px; overflow: hidden">
 
             {{-- ══ ZADANIA ══ --}}
             @if($driver && $zadania->isNotEmpty())
@@ -1084,4 +1156,11 @@ async function odrzucZlecenie(id, klient) {
 }
 </script>
 @include('biuro.planning.order_modal_js')
+
+{{-- POLLING: lista zleceń kierowcy odświeża się sama co 5s --}}
+<script>
+    if (window.pollPageFragment) {
+        window.pollPageFragment('poll-area', 5000);
+    }
+</script>
 @endsection

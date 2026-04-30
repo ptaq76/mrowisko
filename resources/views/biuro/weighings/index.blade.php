@@ -100,7 +100,7 @@
 @endsection
 
 @section('content')
-<div class="weighings-wrap">
+<div id="poll-area" class="weighings-wrap">
 
     <div class="page-header">
         <div style="display:flex;align-items:center;gap:12px">
@@ -702,6 +702,11 @@ async function deleteWeighing(id) {
         document.getElementById('wr-' + id)?.remove();
         Swal.fire({ icon: 'success', title: 'Usunięto', timer: 1200, showConfirmButton: false });
     }
+}
+
+// POLLING: lista ważeń odświeża się sama co 5s
+if (window.pollPageFragment) {
+    window.pollPageFragment('poll-area', 5000);
 }
 </script>
 @endsection

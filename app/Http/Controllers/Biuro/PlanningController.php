@@ -49,7 +49,7 @@ class PlanningController extends Controller
         $weekDays = collect();
         for ($i = 0; $i < 7; $i++) {
             $d = $startOfWeek->copy()->addDays($i);
-            $weekOrders = Order::with(['client', 'driver'])
+            $weekOrders = Order::with(['client', 'driver', 'tractor', 'trailer', 'loadingItems'])
                 ->whereDate('planned_date', $d)
                 ->orderBy('planned_time')
                 ->get();
