@@ -67,6 +67,80 @@
     color: #e74c3c; cursor: pointer; font-size: 15px; margin-left: auto;
 }
 .del-btn:active { background: #e74c3c; color: #fff; }
+.cam-btn {
+    position: relative;
+    background: #f0f2f5; border: none; border-radius: 7px;
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    color: #888; cursor: pointer; font-size: 15px;
+}
+.cam-btn.has-photos { background: #e8f7e4; color: #1e8449; }
+.cam-btn:active { filter: brightness(.92); }
+.cam-badge {
+    position: absolute; top: -5px; right: -5px;
+    background: #27ae60; color: #fff;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 900;
+    min-width: 17px; height: 17px; border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; line-height: 1;
+    border: 2px solid #fff;
+}
+.it-actions { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+
+/* ── Galeria zdjęć ── */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 4px;
+}
+.gallery-tile {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f0f2f5;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+.gallery-tile img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block;
+}
+.gallery-del {
+    position: absolute; top: 4px; right: 4px;
+    background: rgba(231, 76, 60, .9);
+    color: #fff; border: none; border-radius: 50%;
+    width: 26px; height: 26px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; cursor: pointer;
+}
+.gallery-add {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    background: #f0f8ff;
+    border: 2px dashed #3498db;
+    color: #3498db;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; cursor: pointer;
+}
+.gallery-add.disabled {
+    background: #f4f5f7; border-color: #ddd; color: #ccc; cursor: not-allowed;
+}
+.gallery-empty {
+    text-align: center; padding: 28px 12px;
+    color: #aaa; font-size: 13px;
+}
+.lightbox-img {
+    max-width: 100%; max-height: 70vh;
+    border-radius: 8px;
+    object-fit: contain;
+}
+.lightbox-counter {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px; color: #888; margin-bottom: 8px;
+}
 .summary-row {
     background: #f8f9fa; padding: 10px 16px;
     display: flex; justify-content: space-between; align-items: center;
@@ -237,9 +311,20 @@
                 <td><span class="it-bales">{{ $item->bales }}</span></td>
                 <td><span class="it-weight">{{ number_format($item->weight_kg, 0, ',', ' ') }}</span></td>
                 <td>
-                    <button class="del-btn" onclick="deleteItem({{ $item->id }})" title="Usuń">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <div class="it-actions">
+                        <button id="cam-{{ $item->id }}"
+                                class="cam-btn {{ ($item->photos_count ?? 0) > 0 ? 'has-photos' : '' }}"
+                                onclick="event.stopPropagation(); openPhotoGallery({{ $item->id }})"
+                                title="Zdjęcia">
+                            <i class="fas fa-camera"></i>
+                            @if(($item->photos_count ?? 0) > 0)
+                                <span class="cam-badge">{{ $item->photos_count }}</span>
+                            @endif
+                        </button>
+                        <button class="del-btn" onclick="event.stopPropagation(); deleteItem({{ $item->id }})" title="Usuń">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
                 </td>
             </tr>
             @empty
@@ -432,6 +517,307 @@ async function deleteItem(id) {
     if (data.success) {
         await Swal.fire({ icon: 'success', title: 'Usunięto', timer: 1200, showConfirmButton: false });
         location.reload();
+    }
+}
+
+/* ─────────── ZDJĘCIA TOWARU ─────────── */
+const PHOTO_LIMIT = 5;
+const PHOTO_MAX_PX = 1600;
+const PHOTO_QUALITY = 0.85;
+const THUMB_MAX_PX = 300;
+const THUMB_QUALITY = 0.7;
+
+let _photoState = { itemId: null, photos: [] };
+
+async function openPhotoGallery(itemId) {
+    _photoState.itemId = itemId;
+
+    const res = await fetch(`/plac/delivery/${ORDER_ID}/items/${itemId}/photos`, {
+        headers: { 'Accept': 'application/json' },
+    });
+    const data = await res.json();
+    if (!data.success) {
+        Swal.fire({ icon: 'error', title: 'Błąd', text: 'Nie udało się pobrać zdjęć.' });
+        return;
+    }
+    _photoState.photos = data.photos;
+    await showGallery();
+}
+
+async function showGallery() {
+    const photos = _photoState.photos;
+    const canAdd = photos.length < PHOTO_LIMIT;
+
+    let html = '<div class="lightbox-counter">Zdjęć: '+photos.length+' / '+PHOTO_LIMIT+'</div>';
+
+    if (photos.length === 0 && !canAdd) {
+        html += '<div class="gallery-empty">Brak zdjęć</div>';
+    } else {
+        html += '<div class="gallery-grid">';
+        photos.forEach((p, idx) => {
+            html += `
+                <div class="gallery-tile" data-idx="${idx}">
+                    <img src="${p.thumb_url}" alt="">
+                    <button class="gallery-del" data-photo-id="${p.id}" title="Usuń">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>`;
+        });
+        if (canAdd) {
+            html += `<div class="gallery-add" id="galAddBtn"><i class="fas fa-plus"></i></div>`;
+        } else {
+            html += `<div class="gallery-add disabled" title="Limit zdjęć"><i class="fas fa-ban"></i></div>`;
+        }
+        html += '</div>';
+    }
+
+    const result = await Swal.fire({
+        title: 'Zdjęcia towaru',
+        html,
+        showCancelButton: false,
+        showConfirmButton: true,
+        confirmButtonText: 'Zamknij',
+        confirmButtonColor: '#27ae60',
+        width: 480,
+        didOpen: () => {
+            document.querySelectorAll('.gallery-tile').forEach(tile => {
+                tile.addEventListener('click', (e) => {
+                    if (e.target.closest('.gallery-del')) return;
+                    const idx = parseInt(tile.dataset.idx);
+                    Swal.close();
+                    openLightbox(idx);
+                });
+            });
+            document.querySelectorAll('.gallery-del').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const id = parseInt(btn.dataset.photoId);
+                    Swal.close();
+                    await deletePhoto(id);
+                });
+            });
+            const addBtn = document.getElementById('galAddBtn');
+            if (addBtn) {
+                addBtn.addEventListener('click', () => {
+                    Swal.close();
+                    triggerCamera();
+                });
+            }
+        },
+    });
+
+    // Po zamknięciu — odśwież badge w głównym widoku
+    refreshCameraBadge();
+}
+
+async function openLightbox(startIdx) {
+    let idx = startIdx;
+    const photos = _photoState.photos;
+
+    while (true) {
+        if (photos.length === 0) break;
+        if (idx < 0) idx = photos.length - 1;
+        if (idx >= photos.length) idx = 0;
+
+        const p = photos[idx];
+        const counter = `Zdjęcie ${idx + 1} / ${photos.length}`;
+
+        const html = `
+            <div class="lightbox-counter">${counter}</div>
+            <img src="${p.url}" class="lightbox-img" alt="">
+        `;
+
+        const showPrev = photos.length > 1;
+        const result = await Swal.fire({
+            html,
+            showCancelButton: true,
+            showDenyButton: showPrev,
+            showConfirmButton: showPrev,
+            confirmButtonText: '<i class="fas fa-chevron-right"></i>',
+            denyButtonText:    '<i class="fas fa-chevron-left"></i>',
+            cancelButtonText:  '<i class="fas fa-trash-alt"></i> Usuń',
+            confirmButtonColor: '#27ae60',
+            denyButtonColor:    '#27ae60',
+            cancelButtonColor:  '#e74c3c',
+            reverseButtons: true,
+            width: 600,
+            footer: '<button id="lbBack" class="btn-gray" style="padding:8px 16px;border:none;border-radius:7px;background:#f0f2f5;cursor:pointer">← Wróć do listy</button>',
+            didOpen: () => {
+                document.getElementById('lbBack')?.addEventListener('click', () => {
+                    Swal.close();
+                    Swal.getPopup()?.dataset && (Swal.getPopup().dataset.action = 'back');
+                });
+            },
+        });
+
+        if (result.isConfirmed) { idx++; continue; }
+        if (result.isDenied) { idx--; continue; }
+        if (result.dismiss === Swal.DismissReason.cancel) {
+            // Usuń zdjęcie
+            const photoId = p.id;
+            const confirm = await Swal.fire({
+                title: 'Usunąć zdjęcie?', icon: 'warning',
+                showCancelButton: true, confirmButtonColor: '#e74c3c',
+                confirmButtonText: 'Usuń', cancelButtonText: 'Anuluj',
+            });
+            if (!confirm.isConfirmed) continue;
+            await deletePhoto(photoId, false);
+            // photos zostały zmodyfikowane — pokaż listę
+            break;
+        }
+        // Backdrop / Esc
+        break;
+    }
+
+    await showGallery();
+}
+
+async function deletePhoto(photoId, reopenGallery = true) {
+    const res = await fetch(`/plac/delivery/${ORDER_ID}/items/${_photoState.itemId}/photos/${photoId}`, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+    });
+    const data = await res.json();
+    if (!data.success) {
+        await Swal.fire({ icon: 'error', title: 'Błąd', text: 'Nie udało się usunąć.' });
+        if (reopenGallery) await openPhotoGallery(_photoState.itemId);
+        return;
+    }
+    _photoState.photos = _photoState.photos.filter(p => p.id !== photoId);
+    await Swal.fire({ icon: 'success', title: 'Usunięto', timer: 800, showConfirmButton: false });
+    if (reopenGallery) await showGallery();
+}
+
+function triggerCamera() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    input.multiple = true;
+    input.style.display = 'none';
+    document.body.appendChild(input);
+    input.addEventListener('change', async () => {
+        const files = Array.from(input.files || []);
+        document.body.removeChild(input);
+        if (files.length === 0) {
+            await openPhotoGallery(_photoState.itemId);
+            return;
+        }
+        await uploadFiles(files);
+    });
+    input.click();
+}
+
+async function uploadFiles(files) {
+    const free = PHOTO_LIMIT - _photoState.photos.length;
+    if (free <= 0) {
+        await Swal.fire({ icon: 'warning', title: 'Limit', text: 'Osiągnięto limit '+PHOTO_LIMIT+' zdjęć.' });
+        await openPhotoGallery(_photoState.itemId);
+        return;
+    }
+    const toUpload = files.slice(0, free);
+    if (files.length > free) {
+        await Swal.fire({
+            icon: 'info',
+            title: 'Limit zdjęć',
+            text: `Wyślę tylko ${free} z ${files.length} (limit ${PHOTO_LIMIT}).`,
+            timer: 1800, showConfirmButton: false,
+        });
+    }
+
+    Swal.fire({
+        title: 'Wysyłam zdjęcia...',
+        html: `<div id="upProg" style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;color:#27ae60">0 / ${toUpload.length}</div>`,
+        allowOutsideClick: false, allowEscapeKey: false,
+        showConfirmButton: false,
+        didOpen: () => Swal.showLoading(),
+    });
+
+    let success = 0;
+    let lastError = null;
+
+    for (let i = 0; i < toUpload.length; i++) {
+        try {
+            const file = toUpload[i];
+            const photo = await compressImage(file, PHOTO_MAX_PX, PHOTO_QUALITY);
+            const thumb = await compressImage(file, THUMB_MAX_PX, THUMB_QUALITY);
+
+            const fd = new FormData();
+            fd.append('photo', photo, 'photo.jpg');
+            fd.append('thumb', thumb, 'thumb.jpg');
+
+            const res = await fetch(`/plac/delivery/${ORDER_ID}/items/${_photoState.itemId}/photos`, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+                body: fd,
+            });
+            const data = await res.json();
+            if (data.success) {
+                _photoState.photos.push(data.photo);
+                success++;
+                const prog = document.getElementById('upProg');
+                if (prog) prog.textContent = `${success} / ${toUpload.length}`;
+            } else {
+                lastError = data.message || 'Błąd uploadu.';
+                break;
+            }
+        } catch (e) {
+            lastError = e.message || 'Błąd.';
+            break;
+        }
+    }
+
+    Swal.close();
+
+    if (lastError) {
+        await Swal.fire({ icon: 'error', title: 'Błąd', text: lastError });
+    } else if (success > 0) {
+        await Swal.fire({ icon: 'success', title: `Dodano ${success}`, timer: 1000, showConfirmButton: false });
+    }
+
+    await showGallery();
+}
+
+function compressImage(file, maxPx, quality) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const reader = new FileReader();
+        reader.onload = (e) => { img.src = e.target.result; };
+        reader.onerror = () => reject(new Error('Nie można odczytać pliku.'));
+        img.onload = () => {
+            let { width, height } = img;
+            if (width > maxPx || height > maxPx) {
+                if (width > height) { height = Math.round(height * maxPx / width); width = maxPx; }
+                else                { width  = Math.round(width  * maxPx / height); height = maxPx; }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Kompresja nie powiodła się.')), 'image/jpeg', quality);
+        };
+        img.onerror = () => reject(new Error('Niepoprawny obraz.'));
+        reader.readAsDataURL(file);
+    });
+}
+
+function refreshCameraBadge() {
+    // Nie mamy danych z innych itemów — przeładowujemy tylko stan przycisku aktualnego
+    const btn = document.getElementById('cam-' + _photoState.itemId);
+    if (!btn) return;
+    const count = _photoState.photos.length;
+    btn.classList.toggle('has-photos', count > 0);
+    let badge = btn.querySelector('.cam-badge');
+    if (count > 0) {
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'cam-badge';
+            btn.appendChild(badge);
+        }
+        badge.textContent = count;
+    } else if (badge) {
+        badge.remove();
     }
 }
 

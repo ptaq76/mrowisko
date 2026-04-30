@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -l app/Models/LoadingItemPhoto.php)",
+      "Bash(php -l app/Models/LoadingItem.php)",
+      "Bash(php -l app/Http/Controllers/Plac/DeliveryPhotoController.php)",
+      "Bash(php -l app/Http/Controllers/Plac/DeliveryController.php)",
+      "Bash(php -l app/Http/Controllers/Biuro/ReportController.php)",
+      "Bash(php artisan *)"
+    ]
+  }
+}

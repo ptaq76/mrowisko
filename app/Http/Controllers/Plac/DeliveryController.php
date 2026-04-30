@@ -64,6 +64,21 @@ class DeliveryController extends Controller
 
         $fractions = WasteFraction::forDeliveries()->orderBy('name')->get();
 
+        // Top 5 najczęściej używanych frakcji dla tego klienta (na podstawie historii)
+        $topFractionIds = [];
+        if ($order->client_id) {
+            $topFractionIds = LoadingItem::query()
+                ->join('orders', 'orders.id', '=', 'loading_items.order_id')
+                ->where('orders.client_id', $order->client_id)
+                ->where('orders.type', 'pickup')
+                ->whereIn('loading_items.fraction_id', $fractions->pluck('id'))
+                ->groupBy('loading_items.fraction_id')
+                ->orderByRaw('COUNT(*) DESC')
+                ->limit(5)
+                ->pluck('loading_items.fraction_id')
+                ->all();
+        }
+
         $stockMap = WarehouseItem::computeStockMap();
         $stockData = [];
         foreach ($fractions as $f) {
@@ -79,7 +94,7 @@ class DeliveryController extends Controller
         $hasPkg = $order->packaging->isNotEmpty();
 
         return view('plac.delivery_add', compact(
-            'order', 'fractions', 'stockData', 'editItem', 'date', 'allOpakowania', 'hasPkg'
+            'order', 'fractions', 'stockData', 'editItem', 'date', 'allOpakowania', 'hasPkg', 'topFractionIds'
         ));
     }
 
@@ -90,6 +105,7 @@ class DeliveryController extends Controller
             'loadingItems.fraction',
             'packaging.opakowanie',
         ]);
+        $order->loadingItems->loadCount('photos');
         $date = $order->planned_date ?? Carbon::today();
 
         $fractions = WasteFraction::forDeliveries()->orderBy('name')->get();

@@ -34,6 +34,7 @@ use App\Http\Controllers\Biuro\WeighingController;
 use App\Http\Controllers\Biuro\ZadanieController;
 use App\Http\Controllers\Kierowca\DashboardController;
 use App\Http\Controllers\Plac\DeliveryController;
+use App\Http\Controllers\Plac\DeliveryPhotoController;
 use App\Http\Controllers\Plac\FuelController;
 use App\Http\Controllers\Plac\InventoryController;
 use App\Http\Controllers\Plac\LoadingController;
@@ -385,6 +386,11 @@ Route::prefix('plac')
         Route::post('delivery/{order}/close', [DeliveryController::class, 'close'])->name('delivery.close');
         Route::post('delivery/{order}/packaging/confirm', [DeliveryController::class, 'packagingConfirm'])->name('delivery.packaging.confirm');
         Route::post('delivery/{order}/packaging', [DeliveryController::class, 'packagingStore'])->name('delivery.packaging.store');
+
+        Route::get('delivery/{order}/items/{item}/photos', [DeliveryPhotoController::class, 'index'])->name('delivery.photos.index');
+        Route::post('delivery/{order}/items/{item}/photos', [DeliveryPhotoController::class, 'store'])->name('delivery.photos.store');
+        Route::delete('delivery/{order}/items/{item}/photos/{photo}', [DeliveryPhotoController::class, 'destroy'])->name('delivery.photos.destroy');
+
         Route::get('stock', [App\Http\Controllers\Plac\DashboardController::class, 'stock'])->name('stock');
         });
 

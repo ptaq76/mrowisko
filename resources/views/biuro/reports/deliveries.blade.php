@@ -49,7 +49,9 @@
 .goods-table tr:last-child { border-bottom:none; }
 .goods-table td { padding:3px 7px;font-size:12px;border-right:1px solid #e8eaed; }
 .goods-table td:last-child { border-right:none; }
-.g-name { color:#1a1a1a;font-weight:600;width:140px;min-width:140px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.g-name { color:#1a1a1a;font-weight:600;width:160px;min-width:160px;max-width:160px;white-space:nowrap; }
+.g-name { display:flex;align-items:center;gap:4px; }
+.g-name-text { overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0; }
 .g-bales { color:#1a1a1a;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;text-align:right;white-space:nowrap;width:55px;min-width:55px; }
 .g-weight { color:#1a1a1a;text-align:right;white-space:nowrap;width:80px;min-width:80px; }
 .goods-sum { background:#f0fdf4; }
@@ -65,6 +67,42 @@
 
 .empty-state { text-align:center;padding:48px;color:#ccc; }
 .empty-state i { font-size:48px;margin-bottom:12px;display:block; }
+
+.g-photos { width:36px;min-width:36px;text-align:center; }
+.g-cam-btn {
+    position: relative;
+    background: transparent; border: none;
+    color: #aaa; cursor: pointer; font-size: 13px;
+    padding: 2px 4px;
+}
+.g-cam-btn.has-photos { color: #27ae60; }
+.g-cam-btn:disabled { cursor: default; opacity: .35; }
+.g-cam-badge {
+    position: absolute; top: -4px; right: -2px;
+    background: #27ae60; color: #fff;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 9px; font-weight: 900;
+    min-width: 14px; height: 14px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 3px; line-height: 1;
+    border: 1.5px solid #fff;
+}
+
+.report-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+.report-gallery-tile {
+    aspect-ratio: 1;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f0f2f5;
+    cursor: pointer;
+}
+.report-gallery-tile img { width:100%; height:100%; object-fit:cover; display:block; }
+.report-lightbox-img { max-width:100%; max-height:70vh; border-radius:8px; object-fit:contain; }
+.report-lightbox-counter { font-family:'Barlow Condensed',sans-serif; font-size:14px; color:#888; margin-bottom:8px; }
 </style>
 @endsection
 
@@ -171,8 +209,19 @@
                         @if($order->loadingItems->isNotEmpty())
                         <table class="goods-table">
                             @foreach($order->loadingItems as $item)
+                            @php $photoCount = $item->photos->count(); @endphp
                             <tr>
-                                <td class="g-name">{{ $item->fraction?->name }}</td>
+                                <td class="g-name">
+                                    <span class="g-name-text">{{ $item->fraction?->name }}</span>
+                                    @if($photoCount > 0)
+                                    <button class="g-cam-btn has-photos"
+                                            onclick='openReportGallery(@json($item->photos->map(fn($p) => ["url" => $p->url, "thumb_url" => $p->thumb_url])->values()), "{{ $item->fraction?->name }}")'
+                                            title="{{ $photoCount }} zdjęć">
+                                        <i class="fas fa-camera"></i>
+                                        <span class="g-cam-badge">{{ $photoCount }}</span>
+                                    </button>
+                                    @endif
+                                </td>
                                 <td class="g-bales">{{ $item->bales }}</td>
                                 <td class="g-weight">{{ number_format($item->weight_kg / 1000, 3, ',', ' ') }} t</td>
                             </tr>
@@ -245,6 +294,70 @@ async function archiveDelivery(id) {
     if (data.success) {
         document.getElementById('row-' + id).remove();
         Swal.fire({ icon: 'success', title: 'Zarchiwizowano!', timer: 1500, showConfirmButton: false });
+    }
+}
+
+async function openReportGallery(photos, label) {
+    if (!photos || !photos.length) return;
+
+    let html = `<div class="report-lightbox-counter">${label} — ${photos.length} ${photos.length === 1 ? 'zdjęcie' : 'zdjęć'}</div>`;
+    html += '<div class="report-gallery-grid">';
+    photos.forEach((p, idx) => {
+        html += `<div class="report-gallery-tile" data-idx="${idx}"><img src="${p.thumb_url}" alt=""></div>`;
+    });
+    html += '</div>';
+
+    let pickedIdx = null;
+    await Swal.fire({
+        title: 'Zdjęcia',
+        html,
+        showConfirmButton: true,
+        confirmButtonText: 'Zamknij',
+        confirmButtonColor: '#27ae60',
+        width: 520,
+        didOpen: () => {
+            document.querySelectorAll('.report-gallery-tile').forEach(t => {
+                t.addEventListener('click', () => {
+                    pickedIdx = parseInt(t.dataset.idx);
+                    Swal.close();
+                });
+            });
+        },
+    });
+
+    if (pickedIdx !== null) {
+        await openReportLightbox(photos, pickedIdx, label);
+    }
+}
+
+async function openReportLightbox(photos, startIdx, label) {
+    let idx = startIdx;
+    while (true) {
+        if (idx < 0) idx = photos.length - 1;
+        if (idx >= photos.length) idx = 0;
+
+        const p = photos[idx];
+        const html = `
+            <div class="report-lightbox-counter">${label} — ${idx + 1} / ${photos.length}</div>
+            <img src="${p.url}" class="report-lightbox-img" alt="">`;
+        const showNav = photos.length > 1;
+        const result = await Swal.fire({
+            html,
+            showCancelButton: true,
+            showDenyButton: showNav,
+            showConfirmButton: showNav,
+            confirmButtonText: '<i class="fas fa-chevron-right"></i>',
+            denyButtonText:    '<i class="fas fa-chevron-left"></i>',
+            cancelButtonText:  'Zamknij',
+            confirmButtonColor: '#27ae60',
+            denyButtonColor:    '#27ae60',
+            cancelButtonColor:  '#888',
+            reverseButtons: true,
+            width: 700,
+        });
+        if (result.isConfirmed) { idx++; continue; }
+        if (result.isDenied)    { idx--; continue; }
+        break;
     }
 }
 

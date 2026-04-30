@@ -30,4 +30,18 @@ class LoadingItem extends Model
     {
         return $this->belongsTo(User::class, 'operator_id');
     }
+
+    public function photos()
+    {
+        return $this->hasMany(LoadingItemPhoto::class);
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (LoadingItem $item) {
+            foreach ($item->photos as $photo) {
+                $photo->delete();
+            }
+        });
+    }
 }

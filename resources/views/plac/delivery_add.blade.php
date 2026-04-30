@@ -287,6 +287,28 @@
     <label class="f-label">Towar</label>
     <select id="fracSel" class="f-select" onchange="onFracChange()">
         <option value="">– wybierz –</option>
+
+        @php
+            $topFractions = collect($topFractionIds ?? [])
+                ->map(fn($id) => $fractions->firstWhere('id', $id))
+                ->filter();
+        @endphp
+
+        @if($topFractions->isNotEmpty())
+        <optgroup label="Często używane">
+            @foreach($topFractions as $f)
+                <option value="{{ $f->id }}"
+                        data-avg="{{ $stockData[$f->id]['avg'] ?? 0 }}"
+                        data-bales="{{ $stockData[$f->id]['bales'] ?? 0 }}"
+                        data-weight="{{ $stockData[$f->id]['weight'] ?? 0 }}"
+                        data-bale="{{ stripos($f->name, 'BELKA') !== false ? '1' : '0' }}">
+                    {{ $f->name }}
+                </option>
+            @endforeach
+        </optgroup>
+        <optgroup label="Wszystkie">
+        @endif
+
         @foreach($fractions as $f)
             <option value="{{ $f->id }}"
                     data-avg="{{ $stockData[$f->id]['avg'] ?? 0 }}"
@@ -296,6 +318,10 @@
                 {{ $f->name }}
             </option>
         @endforeach
+
+        @if($topFractions->isNotEmpty())
+        </optgroup>
+        @endif
     </select>
 
     <div class="stock-strip" id="stockInfo">
