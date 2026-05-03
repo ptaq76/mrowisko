@@ -15,12 +15,6 @@
 .btn-add-w { padding:9px 18px;background:#3498db;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px; }
 .btn-add-w:hover { background:#2980b9; }
 
-.tabs { display:flex;gap:0;margin-bottom:16px;border-bottom:2px solid #e2e5e9; }
-.tab-btn { padding:10px 20px;background:none;border:none;font-size:13px;font-weight:700;color:#888;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px; }
-.tab-btn.active { color:#3498db;border-bottom-color:#3498db; }
-.tab-content { display:none; }
-.tab-content.active { display:block; }
-
 .w-table-wrap { background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden; }
 .w-table { width:100%;border-collapse:collapse;font-size:13px; }
 .w-table thead tr { background:#3498db;color:#fff; }
@@ -36,60 +30,174 @@
 .plates { font-size:12px;font-weight:700;color:#555;white-space:nowrap; }
 .nr-rej { display:inline-block;background:#fff;border:2px solid #1a1a1a;padding:1px 5px;border-radius:4px;font-weight:800;font-size:11px; }
 .w-val    { font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800; }
+.w-val.muted { color:#888; }
 .w-result { font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;color:#2d7a1a; }
 .w-result.negative { color:#e74c3c; }
+.w-empty { color:#ccc; font-size:12px; }
+.row-source-order .cell-client::before {
+    content:''; display:inline-block; width:5px; height:5px; border-radius:50%;
+    background:#27ae60; margin-right:6px; vertical-align:middle;
+}
+.row-locked { cursor:default; }
+.row-locked:hover td { background:#fff !important; }
+
+/* Statusy — ikony kierowca/plac */
+.status-cell {
+    border-left: 1px solid #e2e5e9;
+    border-right: 1px solid #e2e5e9;
+    background: #fafbfc;
+    text-align: center;
+    white-space: nowrap;
+    width: 80px;
+}
+.status-icons { display:flex; gap:8px; justify-content:center; align-items:center; }
+.s-icon {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:26px; height:26px; border-radius:50%;
+    font-size:13px; color:#fff;
+}
+.s-icon.green { background:#27ae60; }
+.s-icon.gray { background:#c8cdd3; }
+.s-icon.partial { background:#f39c12; }
+
 .btn-del-w { background:#fdecea;border:1px solid #f5c6cb;border-radius:5px;padding:5px 9px;color:#e74c3c;cursor:pointer;font-size:12px; }
 .btn-del-w:hover { background:#e74c3c;color:#fff; }
+.btn-arch-w {
+    background:#f4f5f7;border:1px solid #dde0e5;border-radius:5px;padding:5px 9px;
+    color:#7f8c8d;cursor:pointer;font-size:12px;transition:all .15s;
+}
+.btn-arch-w:hover { background:#7f8c8d;color:#fff;border-color:#7f8c8d; }
+.btn-arch-w:disabled, .btn-del-w:disabled {
+    background:#f4f5f7 !important; color:#dde0e5 !important; border-color:#eaecef !important;
+    cursor:not-allowed; opacity:.6;
+}
+.btn-arch-w:disabled:hover, .btn-del-w:disabled:hover {
+    background:#f4f5f7 !important; color:#dde0e5 !important; border-color:#eaecef !important;
+}
 .empty-state { text-align:center;padding:40px;color:#ccc; }
 .empty-state i { font-size:36px;margin-bottom:8px;display:block; }
 
 /* Modal – 2x szerszy */
 .modal-overlay { display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:20px; }
 .modal-overlay.open { display:flex; }
-.modal-box { background:#fff;border-radius:12px;width:100%;max-width:860px;max-height:92vh;overflow-y:auto;padding:28px;box-shadow:0 8px 32px rgba(0,0,0,.2); }
+.modal-box { background:#fff;border-radius:12px;width:100%;max-width:1200px;max-height:92vh;overflow-y:auto;padding:28px;box-shadow:0 8px 32px rgba(0,0,0,.2); }
 .modal-title { font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:#1a1a1a;margin-bottom:18px;display:flex;justify-content:space-between;align-items:center; }
 .modal-close { background:#f0f2f5;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center; }
 
 .m-label { display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:5px; }
 .m-input, .m-select { width:100%;padding:9px 11px;border:1.5px solid #dde0e5;border-radius:8px;font-size:15px;font-weight:600;color:#1a1a1a;outline:none;margin-bottom:0; }
 .m-input:focus, .m-select:focus { border-color:#3498db; }
-
-/* Dwukolumnowy layout modala */
+.m-input:disabled, .m-select:disabled { background:#f4f5f7;color:#888; }
 
 .m-row-2 { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
-.m-row-3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px; }
 
-/* Wynik */
 .m-result { background:#e8f7e4;border-radius:8px;padding:7px 12px;display:flex;justify-content:space-between;align-items:center;border:1.5px solid #a8d8a8; }
 .mr-label { font-size:11px;font-weight:700;color:#2d7a1a;text-transform:uppercase;letter-spacing:.06em; }
 .mr-val   { font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:#2d7a1a; }
 .mr-val.neg { color:#e74c3c; }
-.tare-filter-btn {
-    padding:3px 8px;border:1px solid #bcc4ce;border-radius:4px;
-    background:#f4f5f7;color:#555;cursor:pointer;
-    font-size:10px;font-weight:700;letter-spacing:.03em;
-    font-family:'Barlow Condensed',sans-serif;
-    transition:all .12s;white-space:nowrap;
-}
-.tare-filter-btn:hover { background:#2c3e50;color:#fff;border-color:#2c3e50; }
-.tare-filter-btn.active { background:#2c3e50;color:#fff;border-color:#2c3e50; }
-.tare-filter-btn-b { border-color:#7f8c8d;color:#7f8c8d; }
-.tare-filter-btn-b:hover { background:#7f8c8d;color:#fff;border-color:#7f8c8d; }
-.tare-filter-btn-b.active { background:#7f8c8d;color:#fff;border-color:#7f8c8d; }
-#wW1.needs-fill { border-color:#e74c3c; box-shadow:0 0 0 2px rgba(231,76,60,.2); }
+#wW1.needs-fill, #wGoods.needs-fill { border-color:#e74c3c; box-shadow:0 0 0 2px rgba(231,76,60,.2); }
 #wW2.needs-fill { border-color:#e74c3c; box-shadow:0 0 0 2px rgba(231,76,60,.2); }
 
-/* Aktywne zlecenia */
+/* Hakowiec — toggle + 4 pola */
+.hakowiec-toggle-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:8px 12px; background:#fff7e6; border:1.5px dashed #e67e22;
+    border-radius:8px; margin-bottom:10px;
+}
+.hakowiec-toggle-row.active { background:#fef5ec; border-style:solid; }
+.hakowiec-toggle-label { font-size:12px; font-weight:700; color:#c0392b; display:flex; align-items:center; gap:8px; }
+.hakowiec-toggle-label i { font-size:15px; }
+.hakowiec-switch { position:relative; width:44px; height:22px; }
+.hakowiec-switch input { opacity:0; width:0; height:0; }
+.hakowiec-switch .slider {
+    position:absolute; cursor:pointer; inset:0; background:#bcc4ce;
+    border-radius:22px; transition:.2s;
+}
+.hakowiec-switch .slider::before {
+    position:absolute; content:''; height:18px; width:18px; left:2px; bottom:2px;
+    background:#fff; border-radius:50%; transition:.2s;
+}
+.hakowiec-switch input:checked + .slider { background:#e67e22; }
+.hakowiec-switch input:checked + .slider::before { transform:translateX(22px); }
+
+.hakowiec-fields { margin-top:10px; padding-top:10px; border-top:1.5px solid #e2e5e9; }
+.hakowiec-row {
+    display:grid; grid-template-columns:1fr 1fr auto; gap:10px;
+    align-items:center; margin-bottom:8px;
+}
+.hakowiec-row .h-label-row {
+    grid-column:1 / -1; font-size:11px; font-weight:700;
+    color:#888; text-transform:uppercase; letter-spacing:.06em;
+    display:flex; align-items:center; gap:8px; margin-bottom:2px;
+}
+.h-input {
+    width:100%; padding:8px 10px;
+    border:1.5px solid #dde0e5; border-radius:6px;
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:18px; font-weight:900; text-align:center;
+    background:#fff; outline:none;
+}
+.h-input:focus { border-color:#e67e22; }
+.h-input.tara { background:#f4f5f7; color:#666; }
+.h-netto {
+    font-family:'Barlow Condensed',sans-serif; font-size:14px; font-weight:800;
+    color:#2d7a1a; min-width:80px; text-align:right;
+}
+.h-netto.empty { color:#ccc; }
+.h-sum-row {
+    display:flex; justify-content:space-between; align-items:center;
+    background:#fef5ec; border-radius:6px; padding:6px 12px;
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+    color:#c0392b; margin-top:6px;
+}
+.h-sum-val { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:900; color:#1a1a1a; }
+#wW1:disabled, #wW2:disabled { background:#f4f5f7; color:#1a1a1a; }
+
+/* Hakowiec — lista tar w kolumnach po pojeździe */
+.btn-hak-tary {
+    background:#e67e22; border:none; border-radius:6px; padding:5px 12px; color:#fff;
+    font-family:'Barlow Condensed',sans-serif; font-size:13px; font-weight:900;
+    letter-spacing:.06em; text-transform:uppercase; cursor:pointer;
+}
+.btn-hak-tary:hover { background:#d35400; }
+.hak-tara-cols {
+    display:grid; grid-template-columns:repeat(5, 1fr); gap:8px;
+    margin-bottom:8px;
+}
+.hak-tara-col {
+    background:#f8f9fa; border:1px solid #e2e5e9; border-radius:6px; padding:6px;
+    display:flex; flex-direction:column;
+}
+.hak-tara-section + .hak-tara-section {
+    margin-top:8px; padding-top:8px; border-top:1.5px dashed #bcc4ce;
+}
+.hak-tara-col-head {
+    text-align:center; font-size:11px; font-weight:900; letter-spacing:.04em;
+    background:#fff; border:1.5px solid #1a1a1a; border-radius:4px;
+    padding:2px 4px; margin-bottom:6px;
+}
+.hak-tara-item {
+    display:flex; align-items:center; justify-content:space-between;
+    width:100%; padding:4px 8px; margin-bottom:2px;
+    background:#fff; border:1px solid #dde0e5; border-radius:5px;
+    font-family:'Barlow Condensed',sans-serif;
+    color:#1a1a1a; cursor:pointer; transition:all .12s;
+}
+.hak-tara-item:hover { background:#fef5ec; border-color:#e67e22; }
+.hak-tara-item .pair { font-size:12px; font-weight:700; color:#444; letter-spacing:.02em; }
+.hak-tara-item .weight { font-size:14px; font-weight:900; color:#1a1a1a; text-align:right; white-space:nowrap; }
+.hak-tara-item:hover .weight { color:#c0392b; }
+.hak-tara-target {
+    text-align:center; font-size:11px; font-weight:700; color:#888;
+    margin-bottom:6px; font-style:italic;
+}
+
 .active-orders-label { font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:6px; }
 .active-orders { display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0; }
 .ao-btn { padding:5px 11px;border:1.5px solid #3498db;border-radius:20px;background:#eaf4fb;color:#2471a3;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap; }
 .ao-btn:hover { background:#3498db;color:#fff; }
 .ao-btn.selected { background:#3498db;color:#fff; }
 .linked-badge { display:inline-flex;align-items:center;gap:6px;background:#e8f7e4;border:1.5px solid #27ae60;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:700;color:#1a7a3a;margin-top:6px; }
-.ao-btn:hover { background:#3498db;color:#fff; }
-.ao-btn.selected { background:#3498db;color:#fff; }
-
-/* Side panel */
 
 .modal-footer { display:flex;gap:10px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid #e2e5e9; }
 .btn-cancel { padding:10px 20px;background:#f4f5f7;color:#555;border:1px solid #dde0e5;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer; }
@@ -114,110 +222,126 @@
         </a>
     </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('manual')">
-            Ręczne <span style="background:#3498db;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px">{{ $manual->count() }}</span>
-        </button>
-        <button class="tab-btn" onclick="switchTab('driver')">
-            Kierowcy <span style="background:#6EBF58;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px">{{ $driver->count() }}</span>
-        </button>
-    </div>
-
-    {{-- Ważenia ręczne --}}
-    <div id="tab-manual" class="tab-content active">
-        @if($manual->isEmpty())
-        <div class="empty-state"><i class="fas fa-weight"></i><p>Brak ręcznych ważeń</p></div>
-        @else
-        <div class="w-table-wrap">
-            <table class="w-table">
-                <thead><tr>
-                    <th>Data</th><th>Klient</th><th>Pojazdy</th>
-                    <th>Waga 1</th><th>Waga 2</th><th>Wynik</th>
-                    <th>Towar</th><th>Uwagi</th><th style="width:50px"></th>
-                </tr></thead>
-                <tbody>
-                @foreach($manual as $w)
-                <tr id="wr-{{ $w->id }}" onclick="openEditModal({{ $w->id }})">
-                    <td>
-                        <div class="cell-dt">{{ $w->weighed_at->format('d.m.Y') }}</div>
-                        <div class="cell-time">{{ $w->weighed_at->format('H:i') }}</div>
-                    </td>
-                    <td class="cell-client">{{ $w->client?->short_name ?? '–' }}</td>
-                    <td class="plates">
-                        @if($w->plate1)<span class="nr-rej">{{ $w->plate1 }}</span>@endif
-                        @if($w->plate2) <span class="nr-rej">{{ $w->plate2 }}</span>@endif
-                    </td>
-                    <td><span class="w-val">{{ $w->weight1 ? number_format($w->weight1,3,',','') : '–' }}</span></td>
-                    <td><span class="w-val">{{ $w->weight2 ? number_format($w->weight2,3,',','') : '–' }}</span></td>
-                    <td>
-                        @if($w->result !== null)
-                        <span class="w-result {{ $w->result < 0 ? 'negative' : '' }}">
-                            {{ number_format($w->result,3,',','') }}
+    @if($rows->isEmpty())
+    <div class="empty-state"><i class="fas fa-weight"></i><p>Brak ważeń</p></div>
+    @else
+    <div class="w-table-wrap">
+        <table class="w-table">
+            <thead><tr>
+                <th>Data</th>
+                <th>Klient</th>
+                <th>Pojazdy</th>
+                <th>Brutto</th>
+                <th>Tara</th>
+                <th>Netto</th>
+                <th>Towar</th>
+                <th>Uwagi</th>
+                <th class="status-cell" style="background:#2980b9;border-color:#2980b9">Status</th>
+                <th style="width:90px">Akcje</th>
+            </tr></thead>
+            <tbody>
+            @foreach($rows as $r)
+            @php
+                $rowKey = $r->source.'-'.$r->id;
+                $bothGreen = $r->source === 'order' && $r->has_weight && $r->plac_closed;
+                $hasAnyWeight = $r->has_weight || ($r->has_partial ?? false);
+                $deleteEnabled = $r->source === 'weighing'
+                    ? true
+                    : ($hasAnyWeight && ! $r->plac_closed);
+                $archiveEnabled = $r->source === 'weighing'
+                    ? true
+                    : ($r->has_weight && $r->plac_closed);
+                $driverIconClass = $r->has_weight ? 'green' : (($r->has_partial ?? false) ? 'partial' : 'gray');
+                $driverIconTitle = $r->has_weight
+                    ? 'Zważone'
+                    : (($r->has_partial ?? false) ? 'Ważenie częściowe' : 'Brak wagi');
+                $placIcon = $r->type === 'sale' ? 'fa-truck-loading' : 'fa-boxes';
+                $placTitleDone = $r->type === 'sale' ? 'Załadowane' : 'Dostarczone';
+                $placTitleOpen = $r->type === 'sale' ? 'Załadunek otwarty' : 'Dostawa otwarta';
+            @endphp
+            <tr id="row-{{ $rowKey }}"
+                class="row-source-{{ $r->source }} {{ $bothGreen ? 'row-locked' : '' }}"
+                data-source="{{ $r->source }}" data-id="{{ $r->id }}" data-locked="{{ $bothGreen ? '1' : '0' }}"
+                onclick="rowClick(this)">
+                <td>
+                    <div class="cell-dt">{{ $r->date?->format('d.m.Y') ?? '–' }}</div>
+                    <div class="cell-time">{{ $r->time_at?->format('H:i') }}</div>
+                </td>
+                <td class="cell-client">
+                    @if($r->type)
+                        <span style="color:{{ $r->type==='sale' ? '#f39c12' : '#27ae60' }};margin-right:4px">
+                            {{ $r->type==='sale' ? '↑' : '↓' }}
                         </span>
-                        @else<span style="color:#ccc">–</span>@endif
-                    </td>
-                    <td style="font-size:12px;color:#555">{{ $w->goods ?? '–' }}</td>
-                    <td style="font-size:12px;color:#888;max-width:120px">{{ Str::limit($w->notes,40) }}</td>
-                    <td onclick="event.stopPropagation()">
-                        <div style="display:flex;gap:4px">
-                            <button class="btn-del-w" onclick="deleteWeighing({{ $w->id }})" title="Usuń">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                            <button class="btn-arch-w" onclick="archiveWeighing({{ $w->id }})" title="Archiwizuj"
-                                    style="background:#f4f5f7;border:1px solid #dde0e5;border-radius:5px;padding:5px 9px;color:#7f8c8d;cursor:pointer;font-size:12px;transition:background .15s,color .15s"
-                                    onmouseover="this.style.background='#7f8c8d';this.style.color='#fff';this.style.borderColor='#7f8c8d'"
-                                    onmouseout="this.style.background='#f4f5f7';this.style.color='#7f8c8d';this.style.borderColor='#dde0e5'">
-                                <i class="fas fa-archive"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                @endforeach
-                </tbody>
-            </table>
-        </div>
-        @endif
-    </div>
+                    @endif
+                    {{ $r->client?->short_name ?? '–' }}
+                </td>
+                <td class="plates">
+                    @if($r->plate1)<span class="nr-rej">{{ $r->plate1 }}</span>@endif
+                    @if($r->plate2) <span class="nr-rej">{{ $r->plate2 }}</span>@endif
+                </td>
+                <td>
+                    @if($r->brutto !== null)
+                        <span class="w-val">{{ number_format($r->brutto, 3, ',', '') }}</span>
+                    @else<span class="w-empty">–</span>@endif
+                </td>
+                <td>
+                    @if($r->tara !== null)
+                        <span class="w-val muted">{{ number_format($r->tara, 3, ',', '') }}</span>
+                    @else<span class="w-empty">–</span>@endif
+                </td>
+                <td>
+                    @if($r->netto !== null)
+                        <span class="w-result {{ $r->netto < 0 ? 'negative' : '' }}">{{ number_format($r->netto, 3, ',', '') }}</span>
+                    @else<span class="w-empty">–</span>@endif
+                </td>
+                <td style="font-size:12px;color:#555;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ $r->goods }}">
+                    {{ $r->goods ?? '–' }}
+                </td>
+                <td style="font-size:12px;color:#888;max-width:120px" title="{{ $r->notes }}">
+                    {{ Str::limit($r->notes, 40) }}
+                </td>
 
-    {{-- Ważenia kierowców --}}
-    <div id="tab-driver" class="tab-content">
-        @if($driver->isEmpty())
-        <div class="empty-state"><i class="fas fa-truck-moving"></i><p>Brak ważeń kierowców</p></div>
-        @else
-        <div class="w-table-wrap">
-            <table class="w-table">
-                <thead><tr>
-                    <th>Data</th><th>Klient</th><th>Pojazdy</th>
-                    <th>Brutto</th><th>Tara</th><th>Netto</th>
-                    <th>Kierowca</th>
-                </tr></thead>
-                <tbody>
-                @foreach($driver as $o)
-                @php $tare = $o->weight_brutto && $o->weight_netto ? round($o->weight_brutto - $o->weight_netto, 3) : null; @endphp
-                <tr>
-                    <td>
-                        <div class="cell-dt">{{ $o->planned_date->format('d.m.Y') }}</div>
-                        <div class="cell-time">{{ $o->updated_at->format('H:i') }}</div>
-                    </td>
-                    <td class="cell-client">
-                        <span style="color:{{ $o->type==='sale'?'#f39c12':'#27ae60' }};margin-right:4px">{{ $o->type==='sale'?'↑':'↓' }}</span>
-                        {{ $o->client?->short_name ?? '–' }}
-                    </td>
-                    <td class="plates" style="white-space:nowrap">
-                        @if($o->tractor)<span class="nr-rej" style="font-size:10px;padding:1px 4px">{{ $o->tractor->plate }}</span>@endif
-                        @if($o->trailer) <span class="nr-rej" style="font-size:10px;padding:1px 4px">{{ $o->trailer->plate }}</span>@endif
-                    </td>
-                    <td><span class="w-val">{{ $o->weight_brutto ? number_format($o->weight_brutto,3,',','') : '–' }}</span></td>
-                    <td><span class="w-val" style="color:#888">{{ $tare ? number_format($tare,3,',','') : '–' }}</span></td>
-                    <td><span class="w-result">{{ number_format($o->weight_netto,3,',','') }}</span></td>
-                    <td style="font-size:13px;color:#555">{{ $o->driver?->name ?? '–' }}</td>
-                </tr>
-                @endforeach
-                </tbody>
-            </table>
-        </div>
-        @endif
+                {{-- Statusy --}}
+                <td class="status-cell">
+                    @if($r->source === 'order')
+                    <div class="status-icons">
+                        <span class="s-icon {{ $driverIconClass }}" title="{{ $driverIconTitle }}">
+                            <i class="fas fa-weight"></i>
+                        </span>
+                        <span class="s-icon {{ $r->plac_closed ? 'green' : 'gray' }}" title="{{ $r->plac_closed ? $placTitleDone : $placTitleOpen }}">
+                            <i class="fas {{ $placIcon }}"></i>
+                        </span>
+                    </div>
+                    @endif
+                </td>
+
+                {{-- Akcje --}}
+                <td onclick="event.stopPropagation()">
+                    <div style="display:flex;gap:4px">
+                        @if($deleteEnabled)
+                        <button class="btn-del-w" onclick="deleteRow('{{ $r->source }}', {{ $r->id }})" title="Usuń wagę">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        @else
+                        <button class="btn-del-w" disabled title="Usuń (niedostępne)">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        @endif
+
+                        <button class="btn-arch-w"
+                                onclick="archiveRow('{{ $r->source }}', {{ $r->id }})"
+                                {{ $archiveEnabled ? '' : 'disabled' }}
+                                title="{{ $archiveEnabled ? 'Archiwizuj' : 'Archiwum dostępne po zamknięciu placu' }}">
+                            <i class="fas fa-archive"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            @endforeach
+            </tbody>
+        </table>
     </div>
+    @endif
 </div>
 
 {{-- Modal --}}
@@ -230,13 +354,14 @@
 
         <input type="hidden" id="wId">
         <input type="hidden" id="wOrderId">
+        <input type="hidden" id="wSource" value="weighing">
 
         <div style="display:flex;flex-direction:column;gap:12px">
             <div>
 
                 {{-- Aktywne zlecenia --}}
-                <div style="margin-bottom:8px">
-                    <div class="active-orders-label">Aktywne zlecenia</div>
+                <div style="margin-bottom:8px" id="activeOrdersWrap">
+                    <div class="active-orders-label">Aktywne zlecenia (bez wagi)</div>
                     <div class="active-orders" style="margin-bottom:20px">
                         @foreach($activeOrders as $ao)
                         <button type="button" class="ao-btn"
@@ -244,10 +369,14 @@
                                 data-order="{{ $ao->id }}"
                                 data-plate1="{{ $ao->tractor?->plate }}"
                                 data-plate2="{{ $ao->trailer?->plate }}"
+                                data-tractor-tara="{{ $ao->tractor?->tare_kg }}"
+                                data-trailer-tara="{{ $ao->trailer?->tare_kg }}"
+                                data-tractor-subtype="{{ $ao->tractor?->subtype }}"
+                                data-trailer-subtype="{{ $ao->trailer?->subtype }}"
                                 data-type="{{ $ao->type }}"
                                 data-client-name="{{ $ao->client?->short_name }}"
                                 data-date="{{ $ao->planned_date->format('d.m') }}"
-                                data-goods="{{ $ao->fractions_note }}"
+                                data-goods="{{ $ao->loadingItems->pluck('fraction.name')->filter()->unique()->implode(', ') ?: $ao->fractions_note }}"
                                 onclick="selectActiveOrder(this)">
                             <span style="color:{{ $ao->type==='sale'?'#f39c12':'#27ae60' }}">{{ $ao->type==='sale'?'↑':'↓' }}</span>
                             {{ $ao->client?->short_name ?? '?' }}
@@ -261,9 +390,8 @@
                     </div>
                 </div>
 
-                {{-- Wozacy + Skróty (dwie kolumny) --}}
-                <div style="display:flex;gap:12px;margin-bottom:8px;align-items:flex-start">
-                    {{-- Przyciski woźaców --}}
+                {{-- Wozacy + Skróty --}}
+                <div style="display:flex;gap:12px;margin-bottom:8px;align-items:flex-start" id="haulerShortcutsWrap">
                     @if($haulers->isNotEmpty())
                     <div style="flex:1;min-width:0">
                         <div class="active-orders-label">Woźacy</div>
@@ -281,7 +409,6 @@
                     </div>
                     @endif
 
-                    {{-- Skróty --}}
                     <div style="flex:1;min-width:0">
                         <div class="active-orders-label">Skróty</div>
                         <div style="display:flex;flex-wrap:wrap;gap:5px">
@@ -312,55 +439,105 @@
                     </div>
                 </div>
 
-                <div style="background:#dde3ea;border-radius:10px;padding:14px 16px;margin-bottom:8px;border:2px solid #bcc4ce">
-                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-                        <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#555">Wskazania wagi</span>
-                        <button type="button" onclick="toggleTareList()" id="tareBtnToggle"
-                                style="background:#2c3e50;border:none;border-radius:6px;padding:4px 12px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">
-                            <i class="fas fa-weight-hanging"></i> TARY
-                        </button>
+                {{-- Pasek z przyciskiem TARY (dostępny zawsze) --}}
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding:8px 12px;background:#f8f9fa;border:1px solid #e2e5e9;border-radius:8px">
+                    <span style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#888">Tary z bazy zestawów</span>
+                    <button type="button" onclick="toggleHakTaraList()" class="btn-hak-tary">
+                        <i class="fas fa-weight-hanging"></i> TARY
+                    </button>
+                </div>
+                <div id="hakTaraList" style="display:none;background:#fff;border:1.5px solid #e2e5e9;border-radius:10px;padding:12px 14px;margin-bottom:10px">
+                    <div class="hak-tara-target" id="hakTaraTarget">Klik tary → ciągnik</div>
+                    <div class="hak-tara-cols" id="hakTaraCols"></div>
+                </div>
+
+                {{-- Toggle hakowca --}}
+                <div class="hakowiec-toggle-row" id="hakowiecRow">
+                    <span class="hakowiec-toggle-label">
+                        <i class="fas fa-truck-pickup"></i> Hakowiec — 2 ważenia (ciągnik + naczepa)
+                    </span>
+                    <label class="hakowiec-switch">
+                        <input type="checkbox" id="hakowiecToggle" onchange="onHakowiecToggle()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                {{-- Sekcja 4 pól (ukryta domyślnie) --}}
+                <div id="hakowiecFields" class="hakowiec-fields" style="display:none;background:#fff;border:1.5px solid #fcd9b8;border-radius:10px;padding:12px 14px;margin-bottom:10px">
+                    {{-- Wiersz 1: ciągnik --}}
+                    <div class="h-label-row">
+                        <i class="fas fa-truck" style="color:#e67e22"></i>
+                        <span>Ciągnik</span>
+                        <span id="hCPlateLabel" style="color:#888;font-weight:600;letter-spacing:0;text-transform:none"></span>
                     </div>
-                    {{-- Lista tar --}}
-                    <div id="tareList" style="display:none;margin-bottom:10px;background:#fff;border-radius:8px;padding:8px">
-                        {{-- Filtry numerów rej --}}
-                        <div id="tareFilters" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #e2e5e9">
-                            <button type="button" class="tare-filter-btn active" data-plate="" onclick="filterTares(this, '')">Wszystkie</button>
-                            <button type="button" class="tare-filter-btn" data-plate="PNT81294" onclick="filterTares(this, 'PNT81294')">PNT81294</button>
-                            <button type="button" class="tare-filter-btn" data-plate="WGM0958F" onclick="filterTares(this, 'WGM0958F')">WGM0958F</button>
-                            <button type="button" class="tare-filter-btn" data-plate="WGM2624C" onclick="filterTares(this, 'WGM2624C')">WGM2624C</button>
-                            <button type="button" class="tare-filter-btn" data-plate="WGM3595C" onclick="filterTares(this, 'WGM3595C')">WGM3595C</button>
-                            <button type="button" class="tare-filter-btn tare-filter-btn-b" data-plate="WGM8340P" onclick="filterTares(this, 'WGM8340P')">WGM8340P</button>
-                            <button type="button" class="tare-filter-btn tare-filter-btn-b" data-plate="WGM5564P" onclick="filterTares(this, 'WGM5564P')">WGM5564P</button>
-                            <button type="button" class="tare-filter-btn tare-filter-btn-b" data-plate="WGM4617P" onclick="filterTares(this, 'WGM4617P')">WGM4617P</button>
-                            <button type="button" class="tare-filter-btn tare-filter-btn-b" data-plate="WGM2126P" onclick="filterTares(this, 'WGM2126P')">WGM2126P</button>
-                            <button type="button" class="tare-filter-btn tare-filter-btn-b" data-plate="PNTKY66" onclick="filterTares(this, 'PNTKY66')">PNTKY66</button>
+                    <div class="hakowiec-row">
+                        <div>
+                            <label class="m-label" style="margin-bottom:3px">Brutto [t]</label>
+                            <input type="number" id="hCBrutto" class="h-input" step="0.001" min="0" oninput="onHakowiecCalc()">
                         </div>
-                        <div id="tareListItems" style="display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto">
-                            {{-- wypełniane JS --}}
+                        <div>
+                            <label class="m-label" style="margin-bottom:3px">Tara [t]</label>
+                            <input type="number" id="hCTara" class="h-input tara" step="0.001" min="0" oninput="onHakowiecCalc()">
                         </div>
+                        <div style="text-align:center">
+                            <div class="m-label" style="margin-bottom:3px">Netto</div>
+                            <span class="h-netto empty" id="hCNetto">–</span>
+                        </div>
+                    </div>
+
+                    {{-- Wiersz 2: naczepa --}}
+                    <div class="h-label-row" style="margin-top:8px">
+                        <i class="fas fa-trailer" style="color:#e67e22"></i>
+                        <span>Naczepa</span>
+                        <span id="hNPlateLabel" style="color:#888;font-weight:600;letter-spacing:0;text-transform:none"></span>
+                    </div>
+                    <div class="hakowiec-row">
+                        <div>
+                            <label class="m-label" style="margin-bottom:3px">Brutto [t]</label>
+                            <input type="number" id="hNBrutto" class="h-input" step="0.001" min="0" oninput="onHakowiecCalc()">
+                        </div>
+                        <div>
+                            <label class="m-label" style="margin-bottom:3px">Tara [t]</label>
+                            <input type="number" id="hNTara" class="h-input tara" step="0.001" min="0" oninput="onHakowiecCalc()">
+                        </div>
+                        <div style="text-align:center">
+                            <div class="m-label" style="margin-bottom:3px">Netto</div>
+                            <span class="h-netto empty" id="hNNetto">–</span>
+                        </div>
+                    </div>
+
+                    {{-- Sumy --}}
+                    <div class="h-sum-row">
+                        <span>Razem brutto / tara → Wagi</span>
+                        <span><span class="h-sum-val" id="hSumBrutto">–</span> / <span class="h-sum-val" id="hSumTara">–</span> t</span>
+                    </div>
+                </div>
+
+                <div style="background:#dde3ea;border-radius:10px;padding:14px 16px;margin-bottom:8px;border:2px solid #bcc4ce">
+                    <div style="margin-bottom:10px">
+                        <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#555">Wskazania wagi</span>
                     </div>
                     <div class="m-row-2">
                         <div>
-                            <label class="m-label" style="color:#3498db;font-size:12px">Waga 1 [t]</label>
+                            <label class="m-label" id="wW1Label" style="color:#3498db;font-size:12px">Waga 1 [t]</label>
                             <input type="number" id="wW1" class="m-input" step="0.001" min="0" oninput="calcResult()"
                                    style="font-size:22px;font-weight:900;font-family:'Barlow Condensed',sans-serif;padding:12px 14px;border-width:2px">
                         </div>
                         <div>
-                            <label class="m-label" style="color:#3498db;font-size:12px">Waga 2 [t]</label>
+                            <label class="m-label" id="wW2Label" style="color:#3498db;font-size:12px">Waga 2 [t]</label>
                             <input type="number" id="wW2" class="m-input" step="0.001" min="0" oninput="calcResult()"
                                    style="font-size:22px;font-weight:900;font-family:'Barlow Condensed',sans-serif;padding:12px 14px;border-width:2px">
                         </div>
                     </div>
                 </div>
 
-                {{-- Wynik --}}
                 <div class="m-result" id="resultBox">
-                    <span class="mr-label">Wynik (Waga 1 – Waga 2)</span>
+                    <span class="mr-label" id="resultLabel">Wynik (Waga 1 – Waga 2)</span>
                     <span class="mr-val" id="resultVal">–</span>
                 </div>
 
                 <div>
-                    <label class="m-label">Towar</label>
+                    <label class="m-label">Towar <span id="goodsHint" style="color:#e74c3c;font-weight:700;display:none">(wymagany przy obu wagach)</span></label>
                     <input type="text" id="wGoods" class="m-input">
                 </div>
 
@@ -380,8 +557,6 @@
                     <textarea id="wNotes" class="m-input" rows="2" style="resize:none"></textarea>
                 </div>
             </div>
-
-
         </div>
 
         <div class="modal-footer">
@@ -400,19 +575,276 @@
 <script>
 const CSRF = '{{ csrf_token() }}';
 let _editId = null;
+let _editSource = null; // 'weighing' | 'order'
+let _orderType = null;  // 'pickup' | 'sale' | null
 
-function switchTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
-    document.getElementById(`tab-${tab}`).classList.add('active');
+/* ─── Hakowiec — lista tar w kolumnach po pojeździe ─── */
+async function toggleHakTaraList() {
+    const list = document.getElementById('hakTaraList');
+    if (list.style.display !== 'none') {
+        list.style.display = 'none';
+        return;
+    }
+    if (_tareCache.length === 0) {
+        try {
+            const res  = await fetch('/biuro/weighings/all-tares', { headers: { 'Accept': 'application/json' } });
+            const data = await res.json();
+            data.sets.forEach(s => _tareCache.push(s));
+        } catch(e) { return; }
+    }
+    renderHakTaraColumns();
+    updateHakTaraTarget();
+    list.style.display = 'block';
+}
+
+// Stałe przypisanie sekcji do kolumn — grupowanie po pierwszej części labela (przed " / ").
+// Sekcje nie wymienione tutaj trafiają do kolumny ZS992RM (REST_COLUMN_INDEX).
+const HAK_COLUMNS = [
+    ['WGM3595C', 'WGM2125P'],
+    ['PNT81294', 'ZS438MG'],
+    ['WGM0958F', 'Nissan', 'Toyota'],
+    ['WGM2624C'],
+    ['ZS992RM'],
+];
+const REST_COLUMN_INDEX = 4; // indeks kolumny ZS992RM, do której idą nieprzypisane
+
+function renderHakTaraColumns() {
+    // Grupuj wpisy po pierwszej części labela (przed " / "); wpisy bez "/" → cały label
+    const byHead = {};
+    _tareCache.forEach(s => {
+        const head = s.label.split(' / ')[0].trim();
+        if (!byHead[head]) byHead[head] = [];
+        byHead[head].push({ label: s.label, tare_kg: s.tare_kg });
+    });
+
+    // Sekcje nieprzewidziane w HAK_COLUMNS → do kolumny ZS992RM
+    const fixedSet = new Set(HAK_COLUMNS.flat());
+    const restHeads = Object.keys(byHead).filter(h => !fixedSet.has(h)).sort();
+    const columns = HAK_COLUMNS.map(c => [...c]);
+    if (restHeads.length > 0) {
+        columns[REST_COLUMN_INDEX].push(...restHeads);
+    }
+
+    const container = document.getElementById('hakTaraCols');
+    container.innerHTML = '';
+
+    columns.forEach(heads => {
+        const col = document.createElement('div');
+        col.className = 'hak-tara-col';
+
+        heads.forEach(head => {
+            const items = byHead[head];
+            if (!items || items.length === 0) return;
+            const section = document.createElement('div');
+            section.className = 'hak-tara-section';
+            const headEl = document.createElement('div');
+            headEl.className = 'hak-tara-col-head';
+            headEl.textContent = head;
+            section.appendChild(headEl);
+            items.forEach(item => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'hak-tara-item';
+                const tareTons = parseFloat(item.tare_kg).toFixed(3).replace('.', ',');
+                btn.innerHTML = `<span class="pair">${item.label}</span><span class="weight">${tareTons} t</span>`;
+                btn.onclick = () => selectHakTara(item.tare_kg);
+                section.appendChild(btn);
+            });
+            col.appendChild(section);
+        });
+
+        if (col.children.length === 0) {
+            col.style.opacity = '.4';
+            col.innerHTML = '<div style="color:#ccc;text-align:center;font-size:11px;padding:8px">brak</div>';
+        }
+        container.appendChild(col);
+    });
+}
+
+// Jawny target ustawiany gdy operator kliknie/sfokusuje pole tary.
+// Konsumowany po jednym kliku TARY. Bez tego — domyślnie pierwsze puste pole, fallback do ciągnika.
+let _hakTaraExplicitTarget = null;
+
+function selectHakTara(tareKg) {
+    const tareTons = parseFloat(tareKg).toFixed(3);
+    const isHakowiec = document.getElementById('hakowiecToggle').checked;
+
+    if (isHakowiec) {
+        const cTara = document.getElementById('hCTara');
+        const nTara = document.getElementById('hNTara');
+        let target = _hakTaraExplicitTarget;
+        if (!target) {
+            // Auto: pierwsze puste pole; jeśli oba wypełnione — nadpisuje ciągnik
+            if (!cTara.value.trim()) target = 'cTara';
+            else if (!nTara.value.trim()) target = 'nTara';
+            else target = 'cTara';
+        }
+        const el = target === 'nTara' ? nTara : cTara;
+        el.value = tareTons;
+        _hakTaraExplicitTarget = null; // konsumujemy
+        onHakowiecCalc();
+    } else {
+        // Bez hakowca — tara idzie do właściwego pola wagowego zależnie od typu
+        if (_orderType === 'sale') {
+            document.getElementById('wW1').value = tareTons;
+        } else {
+            document.getElementById('wW2').value = tareTons;
+        }
+        document.getElementById('hakTaraList').style.display = 'none';
+        calcResult();
+    }
+    updateHakTaraTarget();
+}
+
+function updateHakTaraTarget() {
+    const target = document.getElementById('hakTaraTarget');
+    if (!target) return;
+    const isHakowiec = document.getElementById('hakowiecToggle').checked;
+
+    if (!isHakowiec) {
+        const fieldName = _orderType === 'sale' ? 'Waga 1 (Tara)' : 'Waga 2 (Tara)';
+        target.textContent = 'Klik tary → ' + fieldName;
+        target.style.color = '#888';
+        return;
+    }
+    // Jawny target wybrany przez operatora (focus na polu) ma priorytet
+    if (_hakTaraExplicitTarget === 'cTara') {
+        target.textContent = '→ ciągnik (wybrane ręcznie)';
+        target.style.color = '#e67e22';
+        return;
+    }
+    if (_hakTaraExplicitTarget === 'nTara') {
+        target.textContent = '→ naczepa (wybrane ręcznie)';
+        target.style.color = '#e67e22';
+        return;
+    }
+    const cFilled = document.getElementById('hCTara').value.trim() !== '';
+    const nFilled = document.getElementById('hNTara').value.trim() !== '';
+    if (!cFilled) {
+        target.textContent = 'Klik tary → ciągnik';
+        target.style.color = '#888';
+    } else if (!nFilled) {
+        target.textContent = 'Klik tary → naczepa';
+        target.style.color = '#888';
+    } else {
+        target.textContent = 'Obie tary uzupełnione — klik nadpisze ciągnik (lub kliknij pole aby wybrać)';
+        target.style.color = '#27ae60';
+    }
+}
+
+// Focus na polu tary = jawny target (priorytet dla najbliższego klika TARY)
+document.addEventListener('DOMContentLoaded', () => {
+    const c = document.getElementById('hCTara');
+    const n = document.getElementById('hNTara');
+    if (c) c.addEventListener('focus', () => { _hakTaraExplicitTarget = 'cTara'; updateHakTaraTarget(); });
+    if (n) n.addEventListener('focus', () => { _hakTaraExplicitTarget = 'nTara'; updateHakTaraTarget(); });
+});
+
+/* ─── Hakowiec — toggle + 4 pola ─── */
+function onHakowiecToggle() {
+    const on = document.getElementById('hakowiecToggle').checked;
+    document.getElementById('hakowiecFields').style.display = on ? '' : 'none';
+    document.getElementById('hakowiecRow').classList.toggle('active', on);
+    document.getElementById('wW1').disabled = on;
+    document.getElementById('wW2').disabled = on;
+    if (!on) {
+        // Wyczyść i przelicz Waga1/Waga2 jako wolne pola
+        ['hCBrutto','hCTara','hNBrutto','hNTara'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('hCNetto').textContent = '–';
+        document.getElementById('hNNetto').textContent = '–';
+        document.getElementById('hSumBrutto').textContent = '–';
+        document.getElementById('hSumTara').textContent = '–';
+    } else {
+        onHakowiecCalc();
+    }
+    calcResult();
+}
+
+function onHakowiecCalc() {
+    const cb = parseFloat(document.getElementById('hCBrutto').value);
+    const ct = parseFloat(document.getElementById('hCTara').value);
+    const nb = parseFloat(document.getElementById('hNBrutto').value);
+    const nt = parseFloat(document.getElementById('hNTara').value);
+
+    // Netto per element
+    const cNetto = (!isNaN(cb) && !isNaN(ct)) ? Math.round((cb - ct) * 1000) / 1000 : null;
+    const nNetto = (!isNaN(nb) && !isNaN(nt)) ? Math.round((nb - nt) * 1000) / 1000 : null;
+    const cN = document.getElementById('hCNetto');
+    const nN = document.getElementById('hNNetto');
+    cN.textContent = cNetto !== null ? cNetto.toFixed(3).replace('.', ',') : '–';
+    nN.textContent = nNetto !== null ? nNetto.toFixed(3).replace('.', ',') : '–';
+    cN.classList.toggle('empty', cNetto === null);
+    nN.classList.toggle('empty', nNetto === null);
+
+    // Sumy
+    const allFilled = !isNaN(cb) && !isNaN(ct) && !isNaN(nb) && !isNaN(nt);
+    const sumBrutto = allFilled ? Math.round((cb + nb) * 1000) / 1000 : null;
+    const sumTara = allFilled ? Math.round((ct + nt) * 1000) / 1000 : null;
+    document.getElementById('hSumBrutto').textContent = sumBrutto !== null ? sumBrutto.toFixed(3).replace('.', ',') : '–';
+    document.getElementById('hSumTara').textContent = sumTara !== null ? sumTara.toFixed(3).replace('.', ',') : '–';
+
+    // Wpisz do Waga1/Waga2 zgodnie z typem zlecenia
+    if (allFilled) {
+        const w1El = document.getElementById('wW1');
+        const w2El = document.getElementById('wW2');
+        if (_orderType === 'sale') {
+            w1El.value = sumTara.toFixed(3);
+            w2El.value = sumBrutto.toFixed(3);
+        } else {
+            // pickup lub bez zlecenia: brutto=W1, tara=W2
+            w1El.value = sumBrutto.toFixed(3);
+            w2El.value = sumTara.toFixed(3);
+        }
+        calcResult();
+    }
+
+    if (typeof updateHakTaraTarget === 'function') updateHakTaraTarget();
+}
+
+function maybeAutoEnableHakowiec(btn) {
+    const isHakowiec = btn.dataset.tractorSubtype === 'hakowiec' || btn.dataset.trailerSubtype === 'hakowiec';
+    const toggle = document.getElementById('hakowiecToggle');
+    toggle.checked = isHakowiec;
+    onHakowiecToggle();
+
+    if (isHakowiec) {
+        const cTara = parseFloat(btn.dataset.tractorTara) || 0;
+        const nTara = parseFloat(btn.dataset.trailerTara) || 0;
+        // Tara w kg w bazie, w modalu w tonach
+        document.getElementById('hCTara').value = cTara > 0 ? (cTara / 1000).toFixed(3) : '';
+        document.getElementById('hNTara').value = nTara > 0 ? (nTara / 1000).toFixed(3) : '';
+        document.getElementById('hCPlateLabel').textContent = btn.dataset.plate1 ? '['+btn.dataset.plate1+']' : '';
+        document.getElementById('hNPlateLabel').textContent = btn.dataset.plate2 ? '['+btn.dataset.plate2+']' : '';
+        onHakowiecCalc();
+    }
+}
+
+function rowClick(tr) {
+    if (tr.dataset.locked === '1') {
+        rowLockedAlert();
+    } else {
+        openEditModal(tr.dataset.source, parseInt(tr.dataset.id, 10));
+    }
+}
+
+function rowLockedAlert() {
+    Swal.fire({
+        icon: 'info',
+        title: 'Ważenie zamknięte',
+        html: 'Zlecenie ma wagę przekazaną i plac zamknięty.<br><small style="color:#888">Aby edytować — najpierw cofnij wagę przyciskiem 🗑 (gdy plac jeszcze otwarty) lub przywróć dostawę z raportu.</small>',
+        timer: 3500,
+        showConfirmButton: false,
+    });
 }
 
 function openAddModal() {
     _editId = null;
+    _editSource = null;
+    _orderType = null;
     document.getElementById('modalTitle').textContent = 'Dodaj ważenie';
     document.getElementById('wId').value      = '';
     document.getElementById('wOrderId').value = '';
+    document.getElementById('wSource').value  = 'weighing';
     document.getElementById('wClient').value  = '';
     document.getElementById('wDate').value    = new Date().toISOString().slice(0,16);
     document.getElementById('wPlate1').value  = '';
@@ -425,18 +857,30 @@ function openAddModal() {
     document.getElementById('resultVal').className   = 'mr-val';
     document.querySelectorAll('.ao-btn').forEach(b => b.classList.remove('selected'));
     document.getElementById('linkedBadge').style.display = 'none';
+    document.getElementById('activeOrdersWrap').style.display = '';
+    document.getElementById('haulerShortcutsWrap').style.display = '';
+    setWeightLabels(null);
+    setOrderEditMode(false);
+    document.getElementById('hakowiecToggle').checked = false;
+    onHakowiecToggle();
+    _hakTaraExplicitTarget = null;
     document.getElementById('weighModal').classList.add('open');
 }
 
-function openEditModal(id) {
+function openEditModal(source, id) {
     _editId = id;
+    _editSource = source;
     document.getElementById('modalTitle').textContent = 'Edytuj ważenie';
-    fetch(`/biuro/weighings/${id}/edit`, { headers: { 'Accept': 'application/json' } })
+    const url = source === 'order'
+        ? `/biuro/weighings/orders/${id}/edit`
+        : `/biuro/weighings/${id}/edit`;
+    fetch(url, { headers: { 'Accept': 'application/json' } })
         .then(r => r.json())
         .then(d => {
             document.getElementById('wId').value      = d.id;
+            document.getElementById('wSource').value  = d.source;
             document.getElementById('wClient').value  = d.client_id ?? '';
-            document.getElementById('wDate').value    = d.weighed_at_input;
+            document.getElementById('wDate').value    = d.weighed_at_input ?? new Date().toISOString().slice(0,16);
             document.getElementById('wPlate1').value  = d.plate1 ?? '';
             document.getElementById('wPlate2').value  = d.plate2 ?? '';
             document.getElementById('wW1').value      = d.weight1 ?? '';
@@ -444,7 +888,8 @@ function openEditModal(id) {
             document.getElementById('wGoods').value   = d.goods ?? '';
             document.getElementById('wNotes').value   = d.notes ?? '';
             document.getElementById('wOrderId').value = d.order_id ?? '';
-            // Pokaż badge jeśli powiązane ze zleceniem
+            _orderType = d.order_type ?? null;
+
             const badge = document.getElementById('linkedBadge');
             const text  = document.getElementById('linkedText');
             if (d.order_id) {
@@ -454,9 +899,46 @@ function openEditModal(id) {
             } else {
                 badge.style.display = 'none';
             }
+
+            setWeightLabels(d.order_type);
+            setOrderEditMode(d.source === 'order');
+            // Edycja zawsze startuje z toggle off — w bazie mamy tylko sumy, brak rozbicia na hakowca
+            document.getElementById('hakowiecToggle').checked = false;
+            onHakowiecToggle();
+            _hakTaraExplicitTarget = null;
             calcResult();
             document.getElementById('weighModal').classList.add('open');
         });
+}
+
+/**
+ * Tryb edycji wpisu z orders: ukrywa listę aktywnych zleceń i blokuje pola
+ * niezwiązane z wagą (klient, data, pojazdy, towar — pochodzą ze zlecenia).
+ */
+function setOrderEditMode(isOrder) {
+    document.getElementById('activeOrdersWrap').style.display = isOrder ? 'none' : '';
+    document.getElementById('haulerShortcutsWrap').style.display = isOrder ? 'none' : '';
+    const lockFields = ['wClient', 'wDate', 'wPlate1', 'wPlate2', 'wGoods', 'wNotes'];
+    lockFields.forEach(id => { document.getElementById(id).disabled = isOrder; });
+}
+
+function setWeightLabels(orderType) {
+    const w1Label = document.getElementById('wW1Label');
+    const w2Label = document.getElementById('wW2Label');
+    const resultLabel = document.getElementById('resultLabel');
+    if (orderType === 'pickup') {
+        w1Label.textContent = 'Brutto [t]';
+        w2Label.textContent = 'Tara [t]';
+        resultLabel.textContent = 'Netto (Brutto – Tara)';
+    } else if (orderType === 'sale') {
+        w1Label.textContent = 'Tara [t]';
+        w2Label.textContent = 'Brutto [t]';
+        resultLabel.textContent = 'Netto (Brutto – Tara)';
+    } else {
+        w1Label.textContent = 'Waga 1 [t]';
+        w2Label.textContent = 'Waga 2 [t]';
+        resultLabel.textContent = 'Wynik (Waga 1 – Waga 2)';
+    }
 }
 
 function closeModal() {
@@ -469,24 +951,26 @@ async function selectActiveOrder(btn) {
 
     document.getElementById('wClient').value  = btn.dataset.client;
     document.getElementById('wOrderId').value = btn.dataset.order;
+    _orderType = btn.dataset.type;
 
     const plate1 = btn.dataset.plate1 ? btn.dataset.plate1.toUpperCase() : '';
     const plate2 = btn.dataset.plate2 ? btn.dataset.plate2.toUpperCase() : '';
     if (plate1) document.getElementById('wPlate1').value = plate1;
     if (plate2) document.getElementById('wPlate2').value = plate2;
 
-    // Towar ze zlecenia
     if (btn.dataset.goods) document.getElementById('wGoods').value = btn.dataset.goods;
 
-    // Badge POWIĄZANE
+    setWeightLabels(btn.dataset.type);
+    maybeAutoEnableHakowiec(btn);
+
     const badge = document.getElementById('linkedBadge');
     const text  = document.getElementById('linkedText');
     const arrow = btn.dataset.type === 'sale' ? '↑' : '↓';
     text.textContent = 'POWIĄZANE: ' + arrow + ' ' + btn.dataset.clientName + ' · ' + btn.dataset.date;
     badge.style.display = 'inline-flex';
 
-    // Pobierz tarę zestawu i wstaw do odpowiedniego pola wagi
-    if (plate1) {
+    // Tara z vehicle_set tylko gdy NIE hakowiec (hakowiec ma własne tary per pojazd)
+    if (plate1 && !document.getElementById('hakowiecToggle').checked) {
         try {
             const params = new URLSearchParams({ plate1, plate2 });
             const res  = await fetch('/biuro/weighings/tare-for-vehicles?' + params, {
@@ -496,14 +980,11 @@ async function selectActiveOrder(btn) {
             if (data.found && data.tare) {
                 const tareVal = parseFloat(data.tare).toFixed(3);
                 if (btn.dataset.type === 'sale') {
-                    // Wysyłka: pusty pojazd → Waga 1
                     document.getElementById('wW1').value = tareVal;
                 } else {
-                    // Dostawa/odbiór: pusty pojazd → Waga 2
                     document.getElementById('wW2').value = tareVal;
                 }
                 calcResult();
-                // tara wstawiona cicho – bez modyfikacji badge
             }
         } catch(e) { /* brak tary */ }
     }
@@ -511,80 +992,29 @@ async function selectActiveOrder(btn) {
 
 const _tareCache = [];
 
-async function toggleTareList() {
-    const list = document.getElementById('tareList');
-    if (list.style.display !== 'none') {
-        list.style.display = 'none';
-        return;
-    }
-    // Załaduj tary jeśli jeszcze nie ma
-    if (_tareCache.length === 0) {
-        try {
-            const res  = await fetch('/biuro/weighings/all-tares', { headers: { 'Accept': 'application/json' } });
-            const data = await res.json();
-            data.sets.forEach(s => _tareCache.push(s));
-        } catch(e) { return; }
-    }
-    const container = document.getElementById('tareListItems');
-    container.innerHTML = '';
-    renderTareItems();
-    list.style.display = 'block';
-}
-
-let _currentFilter = '';
-
-function filterTares(btn, plate) {
-    _currentFilter = plate;
-    document.querySelectorAll('.tare-filter-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    renderTareItems();
-}
-
-function renderTareItems() {
-    const container = document.getElementById('tareListItems');
-    container.innerHTML = '';
-    const filtered = _currentFilter
-        ? _tareCache.filter(s => s.label.toUpperCase().includes(_currentFilter.toUpperCase()))
-        : _tareCache;
-    if (filtered.length === 0) {
-        container.innerHTML = '<div style="text-align:center;color:#ccc;padding:10px;font-size:12px">Brak wyników</div>';
-        return;
-    }
-    filtered.forEach(s => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.style.cssText = 'display:flex;justify-content:space-between;align-items:center;width:100%;padding:6px 10px;border:1px solid #e2e5e9;border-radius:6px;background:#f8f9fa;cursor:pointer;font-size:13px;text-align:left';
-        btn.onmouseover = () => btn.style.background = '#eaf4fb';
-        btn.onmouseout  = () => btn.style.background = '#f8f9fa';
-        btn.innerHTML = `<span style="font-weight:700;color:#1a1a1a">${s.label}</span><span style="font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:900;color:#2c3e50">${parseFloat(s.tare_kg).toFixed(3).replace('.',',')} t</span>`;
-        btn.onclick = () => selectTare(s.tare_kg);
-        container.appendChild(btn);
-    });
-}
-
-function selectTare(tare) {
-    document.getElementById('wW2').value = parseFloat(tare).toFixed(3);
-    document.getElementById('tareList').style.display = 'none';
-    calcResult();
-}
-
 function calcResult() {
     const w1El = document.getElementById('wW1');
     const w2El = document.getElementById('wW2');
     const w1   = parseFloat(w1El.value);
     const w2   = parseFloat(w2El.value);
     const val  = document.getElementById('resultVal');
+    const goodsHint = document.getElementById('goodsHint');
+    const goodsEl = document.getElementById('wGoods');
 
-    // Czerwony border na polu które czeka na uzupełnienie
     const w1filled = !isNaN(w1) && w1El.value.trim() !== '';
     const w2filled = !isNaN(w2) && w2El.value.trim() !== '';
     w1El.classList.toggle('needs-fill', !w1filled && w2filled);
     w2El.classList.toggle('needs-fill', w1filled && !w2filled);
 
+    const orderId = document.getElementById('wOrderId').value.trim();
+    const showGoodsHint = w1filled && w2filled && !orderId;
+    goodsHint.style.display = showGoodsHint ? '' : 'none';
+    goodsEl.classList.toggle('needs-fill', showGoodsHint && !goodsEl.value.trim());
+
     if (w1filled && w2filled) {
-        const r = Math.round((w1 - w2) * 1000) / 1000;
+        const r = Math.round(Math.abs(w1 - w2) * 1000) / 1000;
         val.textContent = r.toFixed(3).replace('.', ',') + ' t';
-        val.className   = 'mr-val' + (r < 0 ? ' neg' : '');
+        val.className   = 'mr-val';
     } else {
         val.textContent = '–';
         val.className   = 'mr-val';
@@ -595,12 +1025,70 @@ async function saveWeighing() {
     const w1      = document.getElementById('wW1').value.trim();
     const w2      = document.getElementById('wW2').value.trim();
     const orderId = document.getElementById('wOrderId').value.trim();
+    const goods   = document.getElementById('wGoods').value.trim();
+    const source  = document.getElementById('wSource').value || 'weighing';
 
     if (!w1) {
         Swal.fire({ icon: 'warning', title: 'Podaj Wagę 1', timer: 1800, showConfirmButton: false });
         return;
     }
 
+    // Walidacja hakowca: wszystkie 4 pola wymagane
+    if (document.getElementById('hakowiecToggle').checked) {
+        const fields = ['hCBrutto','hCTara','hNBrutto','hNTara'];
+        for (const id of fields) {
+            const el = document.getElementById(id);
+            if (!el.value.trim() || isNaN(parseFloat(el.value))) {
+                Swal.fire({ icon: 'warning', title: 'Hakowiec — uzupełnij wszystkie 4 pola', timer: 2200, showConfirmButton: false });
+                el.focus();
+                return;
+            }
+        }
+    }
+
+    // Hakowiec — dopisz rozbicie do uwag (#1: brutto-tara=netto, #2: ...)
+    if (document.getElementById('hakowiecToggle').checked) {
+        const cb = Math.round(parseFloat(document.getElementById('hCBrutto').value) * 1000);
+        const ct = Math.round(parseFloat(document.getElementById('hCTara').value) * 1000);
+        const nb = Math.round(parseFloat(document.getElementById('hNBrutto').value) * 1000);
+        const nt = Math.round(parseFloat(document.getElementById('hNTara').value) * 1000);
+        const lines = `#1: ${cb}-${ct}=${cb-ct}\n#2: ${nb}-${nt}=${nb-nt}`;
+        const notesEl = document.getElementById('wNotes');
+        const existing = notesEl.value.trim();
+        notesEl.value = existing ? existing + '\n' + lines : lines;
+    }
+
+    // Walidacja: oba wagi + brak orderu → wymagany towar
+    if (w1 && w2 && !orderId && !goods) {
+        Swal.fire({ icon: 'warning', title: 'Podaj towar', text: 'Towar jest wymagany gdy wpisane są obie wagi.', timer: 2200, showConfirmButton: false });
+        document.getElementById('wGoods').focus();
+        return;
+    }
+
+    // Edycja wpisu z orders → uderzamy w nowy endpoint (dopuszcza częściowe ważenie — tylko w1)
+    if (_editId && source === 'order') {
+        const res = await fetch(`/biuro/weighings/orders/${_editId}`, {
+            method: 'PUT',
+            headers: { 'X-CSRF-TOKEN': CSRF, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            body: JSON.stringify({
+                weight1: w1,
+                weight2: w2 || null,
+                notes: document.getElementById('wNotes').value || null,
+            }),
+        });
+        const data = await res.json();
+        if (data.success) {
+            closeModal();
+            Swal.fire({ icon: 'success', title: 'Zapisano!', timer: 1200, showConfirmButton: false });
+            setTimeout(() => location.reload(), 1200);
+        } else {
+            const errors = data.errors ? Object.values(data.errors).flat().join('\n') : 'Błąd.';
+            Swal.fire({ icon: 'error', title: 'Błąd', text: errors });
+        }
+        return;
+    }
+
+    // Dodawanie nowego lub edycja luźnego ważenia
     const payload = {
         weighed_at:    document.getElementById('wDate').value,
         client_id:     document.getElementById('wClient').value || null,
@@ -609,46 +1097,9 @@ async function saveWeighing() {
         plate2:        document.getElementById('wPlate2').value || null,
         weight1:       w1,
         weight2:       w2 || null,
-        goods:         document.getElementById('wGoods').value || null,
+        goods:         goods || null,
         notes:         document.getElementById('wNotes').value || null,
-        push_to_order: false,
     };
-
-    // Jeśli powiązane ze zleceniem i obie wagi podane - zapytaj
-    if (orderId !== '' && w2 !== '' && !_editId) {
-        const confirm = await Swal.fire({
-            title: 'Zakończyć?',
-            html: 'Przekazać wagę na plac?<br><small style="color:#888">Zlecenie otrzyma status <b>Zważone</b>, ważenie zostanie przeniesione do archiwum</small>',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#27ae60',
-            confirmButtonText: '<i class="fas fa-check"></i> Tak, przekaż',
-            cancelButtonText: 'Nie, tylko zapisz',
-            reverseButtons: true,
-        });
-        if (confirm.isConfirmed) {
-            payload.push_to_order  = true;
-            payload.archive_after  = true;
-        }
-    }
-
-    // Edycja – jeśli order_id istnieje i obie wagi - też zapytaj
-    if (_editId && orderId !== '' && w2 !== '') {
-        const confirm = await Swal.fire({
-            title: 'Zakończyć?',
-            html: 'Przekazać wagę na plac?<br><small style="color:#888">Zlecenie otrzyma status <b>Zważone</b>, ważenie zostanie przeniesione do archiwum</small>',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#27ae60',
-            confirmButtonText: '<i class="fas fa-check"></i> Tak, przekaż',
-            cancelButtonText: 'Nie, tylko zapisz',
-            reverseButtons: true,
-        });
-        if (confirm.isConfirmed) {
-            payload.push_to_order = true;
-            payload.archive_after = true;
-        }
-    }
 
     const url    = _editId ? `/biuro/weighings/${_editId}` : '/biuro/weighings';
     const method = _editId ? 'PUT' : 'POST';
@@ -660,51 +1111,60 @@ async function saveWeighing() {
     const data = await res.json();
     if (data.success) {
         closeModal();
-        Swal.fire({ icon: 'success', title: 'Zapisano!', timer: 1500, showConfirmButton: false });
-        setTimeout(() => location.reload(), 1500);
+        Swal.fire({ icon: 'success', title: 'Zapisano!', timer: 1200, showConfirmButton: false });
+        setTimeout(() => location.reload(), 1200);
     } else {
         const errors = data.errors ? Object.values(data.errors).flat().join('\n') : 'Błąd.';
         Swal.fire({ icon: 'error', title: 'Błąd', text: errors });
     }
 }
 
-async function archiveWeighing(id) {
+async function archiveRow(source, id) {
     const result = await Swal.fire({
         title: 'Przenieść do archiwum?', icon: 'question',
         showCancelButton: true, confirmButtonColor: '#7f8c8d',
         confirmButtonText: 'Archiwizuj', cancelButtonText: 'Anuluj',
     });
     if (!result.isConfirmed) return;
-    const res  = await fetch(`/biuro/weighings/${id}/archive`, {
+    const url = source === 'order'
+        ? `/biuro/weighings/orders/${id}/archive`
+        : `/biuro/weighings/${id}/archive`;
+    const res  = await fetch(url, {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
     });
     const data = await res.json();
     if (data.success) {
-        document.getElementById('wr-' + id)?.remove();
+        document.getElementById('row-' + source + '-' + id)?.remove();
         Swal.fire({ icon: 'success', title: 'Zarchiwizowano!', timer: 1200, showConfirmButton: false });
     }
 }
 
-async function deleteWeighing(id) {
+async function deleteRow(source, id) {
+    const txt = source === 'order'
+        ? 'Wyzerowane zostaną wagi na zleceniu — kierowca będzie mógł wpisać ponownie.'
+        : 'Ważenie zostanie usunięte.';
     const result = await Swal.fire({
-        title: 'Usunąć ważenie?', icon: 'warning',
+        title: 'Usunąć?', text: txt,
+        icon: 'warning',
         showCancelButton: true, confirmButtonColor: '#e74c3c',
         confirmButtonText: 'Usuń', cancelButtonText: 'Anuluj',
     });
     if (!result.isConfirmed) return;
-    const res  = await fetch(`/biuro/weighings/${id}`, {
+    const url = source === 'order'
+        ? `/biuro/weighings/orders/${id}`
+        : `/biuro/weighings/${id}`;
+    const res  = await fetch(url, {
         method: 'DELETE',
         headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
     });
     const data = await res.json();
     if (data.success) {
-        document.getElementById('wr-' + id)?.remove();
+        document.getElementById('row-' + source + '-' + id)?.remove();
         Swal.fire({ icon: 'success', title: 'Usunięto', timer: 1200, showConfirmButton: false });
     }
 }
 
-// POLLING: lista ważeń odświeża się sama co 5s
 if (window.pollPageFragment) {
     window.pollPageFragment('poll-area', 5000);
 }

@@ -305,6 +305,34 @@
         </div>
         @endif
 
+        {{-- Opakowania (zatwierdzone — quantity od kierowcy lub qty_plac od placu) --}}
+        @if($isDone && $order->packaging && $order->packaging->isNotEmpty())
+            @php
+                $pkgConfirmed = $order->packaging->filter(fn($p) => ($p->qty_plac ?? $p->quantity) > 0);
+                $pkgTotalSzt = $pkgConfirmed->sum(fn($p) => $p->qty_plac ?? $p->quantity ?? 0);
+                $pkgTotalKg  = $pkgConfirmed->sum(fn($p) => ($p->qty_plac ?? $p->quantity ?? 0) * (float)($p->opakowanie?->waga ?? 0));
+            @endphp
+            @if($pkgConfirmed->isNotEmpty())
+            <div style="padding:8px 14px;background:#f4f6f9;border-top:1px solid #e2e5e9;font-size:11px;color:#6c7a89">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                    <i class="fas fa-box" style="font-size:11px;color:#9aa5b1"></i>
+                    <span style="text-transform:uppercase;font-weight:700;letter-spacing:.06em">Opakowania:</span>
+                    <span style="margin-left:auto;font-weight:700;color:#34495e">
+                        {{ $pkgTotalSzt }} szt.@if($pkgTotalKg > 0) · {{ number_format($pkgTotalKg, 0, ',', ' ') }} kg @endif
+                    </span>
+                </div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;padding-left:19px">
+                    @foreach($pkgConfirmed as $pkg)
+                    @php $qty = $pkg->qty_plac ?? $pkg->quantity ?? 0; @endphp
+                    <span style="font-size:11px;color:#34495e">
+                        <b>{{ $qty }}</b>×&nbsp;{{ $pkg->opakowanie?->name ?? '?' }}
+                    </span>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+        @endif
+
         {{-- Pozostawione kontenery (hakowiec) --}}
         @if($isHakowiec && $dropDone)
             @php

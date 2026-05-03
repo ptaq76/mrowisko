@@ -100,6 +100,15 @@
             </div>
         </a>
     </div>
+    <div class="col-md-4">
+        <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#testDataRunModal">
+            <div class="card h-100 text-center p-4 dashboard-tile" style="border-color:#f39c12">
+                <i class="fa-solid fa-flask fa-2x mb-2" style="color:#f39c12"></i>
+                <div class="fw-bold">Dane testowe</div>
+                <div class="text-muted small mt-1">TestDataSeeder: zerowanie magazynu + zlecenia (wymaga hasła)</div>
+            </div>
+        </a>
+    </div>
 </div>
 
 {{-- Modal: uruchomienie migracji --}}
@@ -153,17 +162,69 @@
     </div>
 </div>
 
+{{-- Modal: uruchomienie seedera danych testowych --}}
+<div class="modal fade" id="testDataRunModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-flask text-warning me-2"></i>
+                    Dane testowe (TestDataSeeder)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>Uwaga:</strong> Seeder zeruje stan magazynu (korekty inwentaryzacyjne)
+                    i dodaje przykładowe zlecenia na dziś. Operacja modyfikuje produkcyjne dane.
+                </div>
+
+                <div id="tdPanelForm">
+                    <div class="mb-3">
+                        <label for="tdPassword" class="form-label">Hasło</label>
+                        <input type="password" id="tdPassword" class="form-control" autocomplete="new-password" placeholder="z .env (MIGRATION_PASSWORD)">
+                        <div id="tdError" class="form-text text-danger" style="display:none"></div>
+                    </div>
+                </div>
+
+                <div id="tdPanelRunning" style="display:none">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="spinner-border text-warning me-3" role="status"></div>
+                        <div>
+                            <div class="fw-bold">Seedowanie w toku...</div>
+                            <div class="text-muted small">Chwilę to potrwa.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tdPanelResult" style="display:none">
+                    <div id="tdResultStatus" class="alert" role="alert"></div>
+                    <label class="form-label small text-muted mb-1">Output:</label>
+                    <pre id="tdOutput" style="background:#1a1a1a;color:#dcdcdc;padding:12px;border-radius:6px;font-size:12px;max-height:400px;overflow:auto;white-space:pre-wrap"></pre>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+                <button type="button" class="btn btn-warning" id="tdRunBtn">
+                    <i class="fa-solid fa-play me-1"></i> Uruchom seeder
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section('scripts')
 <script>
-(function () {
-    const btn   = document.getElementById('migRunBtn');
-    const pwd   = document.getElementById('migPassword');
-    const err   = document.getElementById('migError');
-    const form  = document.getElementById('migPanelForm');
-    const run   = document.getElementById('migPanelRunning');
-    const res   = document.getElementById('migPanelResult');
-    const out   = document.getElementById('migOutput');
-    const stat  = document.getElementById('migResultStatus');
+function setupSeederModal(opts) {
+    const btn   = document.getElementById(opts.btn);
+    const pwd   = document.getElementById(opts.pwd);
+    const err   = document.getElementById(opts.err);
+    const form  = document.getElementById(opts.form);
+    const run   = document.getElementById(opts.run);
+    const res   = document.getElementById(opts.res);
+    const out   = document.getElementById(opts.out);
+    const stat  = document.getElementById(opts.stat);
+    const modal = document.getElementById(opts.modal);
 
     if (!btn) return;
 
@@ -176,7 +237,7 @@
         pwd.value = '';
     }
 
-    document.getElementById('migrationRunModal').addEventListener('hidden.bs.modal', reset);
+    modal.addEventListener('hidden.bs.modal', reset);
 
     btn.addEventListener('click', async function () {
         if (!pwd.value) {
@@ -192,7 +253,7 @@
         btn.disabled = true;
 
         try {
-            const r = await fetch('{{ route('biuro.migration.run') }}', {
+            const r = await fetch(opts.url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -208,10 +269,10 @@
 
             if (data.success) {
                 stat.className = 'alert alert-success';
-                stat.innerHTML = '<i class="fa-solid fa-check-circle me-2"></i>Migracja zakończona sukcesem.';
+                stat.innerHTML = '<i class="fa-solid fa-check-circle me-2"></i>' + opts.successMsg;
             } else {
                 stat.className = 'alert alert-danger';
-                stat.innerHTML = '<i class="fa-solid fa-xmark-circle me-2"></i>' + (data.error || 'Migracja nie powiodła się.');
+                stat.innerHTML = '<i class="fa-solid fa-xmark-circle me-2"></i>' + (data.error || opts.failMsg);
             }
             out.textContent = data.output || '(brak outputu)';
         } catch (e) {
@@ -223,7 +284,25 @@
             btn.disabled = false;
         }
     });
-})();
+}
+
+setupSeederModal({
+    btn: 'migRunBtn', pwd: 'migPassword', err: 'migError',
+    form: 'migPanelForm', run: 'migPanelRunning', res: 'migPanelResult',
+    out: 'migOutput', stat: 'migResultStatus', modal: 'migrationRunModal',
+    url: '{{ route('biuro.migration.run') }}',
+    successMsg: 'Migracja zakończona sukcesem.',
+    failMsg: 'Migracja nie powiodła się.',
+});
+
+setupSeederModal({
+    btn: 'tdRunBtn', pwd: 'tdPassword', err: 'tdError',
+    form: 'tdPanelForm', run: 'tdPanelRunning', res: 'tdPanelResult',
+    out: 'tdOutput', stat: 'tdResultStatus', modal: 'testDataRunModal',
+    url: '{{ route('biuro.test-data.run') }}',
+    successMsg: 'Seeder zakończony sukcesem.',
+    failMsg: 'Seeder nie powiódł się.',
+});
 </script>
 @endsection
 @endsection

@@ -163,7 +163,8 @@ class MigrateOrdersSeeder extends Seeder
             if ($wasExecuted && $wazenie) {
                 $status = 'closed';        // pełen cykl
             } elseif ($wasExecuted) {
-                $status = 'delivered';     // wykonane ale nie zważone
+                // wykonane ale nie zważone — różny status zależnie od typu
+                $status = $type === 'pickup' ? 'delivered' : 'loaded';
                 $keptDespiteMissing++;
             } else {
                 $status = 'planned';       // tylko zaplanowane (świeże)
@@ -171,10 +172,20 @@ class MigrateOrdersSeeder extends Seeder
             }
 
             // Wagi: tylko jeśli wazenie istnieje
-            $wagaBrutto = $wazenie->waga1 ?? null;
+            // W starej bazie waga1 czasem brutto, czasem pierwsze wskazanie — używamy max/abs aby było type-safe
+            $wagaBrutto = ($wazenie && $wazenie->waga1 !== null && $wazenie->waga2 !== null)
+                ? max($wazenie->waga1, $wazenie->waga2)
+                : ($wazenie->waga1 ?? null);
             $wagaNetto = ($wazenie && $wazenie->waga1 !== null && $wazenie->waga2 !== null)
-                ? $wazenie->waga1 - $wazenie->waga2
+                ? abs($wazenie->waga1 - $wazenie->waga2)
                 : null;
+
+            // Auto-archiwizacja: zamknięte zawsze, wykonane-bez-wazenia tylko gdy stare
+            $isArchived = match (true) {
+                $status === 'closed' => 1,
+                in_array($status, ['delivered', 'loaded'], true) && ! $isRecent => 1,
+                default => 0,
+            };
 
             $orderId = $nextOrderId++;
 
@@ -193,7 +204,7 @@ class MigrateOrdersSeeder extends Seeder
                 'fractions_note' => $planowanie->towary,
                 'notes' => $planowanie->uwagi,
                 'status' => $status,
-                'is_archived' => 0,
+                'is_archived' => $isArchived,
                 'weight_brutto' => $wagaBrutto,
                 'weight_netto' => $wagaNetto,
                 'created_at' => $now,

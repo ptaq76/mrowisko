@@ -44,6 +44,7 @@ class DashboardController extends Controller
             'lieferschein.importer', 'lieferschein.goods',
             'loadingItems',
             'orderContainers.container',
+            'packaging.opakowanie',
         ])
             ->where('driver_id', $driver->id)
             ->whereDate('planned_date', $date)

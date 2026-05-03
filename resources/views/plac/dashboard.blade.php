@@ -35,6 +35,7 @@
 .tile-production  { background: #2980b9; }
 .tile-delivery    { background: #27ae60; }
 .tile-loading     { background: #f39c12; }
+.tile-weighing    { background: #34495e; }
 .tile-warehouse   { background: #16a085; }
 .tile-inventory   { background: #c0392b; }
 .tile-fuel        { background: #f39c12; }
@@ -60,6 +61,10 @@
 
     <a href="{{ route('plac.loading.index') }}" class="tile tile-loading">
         <i class="fas fa-truck-moving"></i> Załadunki
+    </a>
+
+    <a href="{{ route('plac.weighing.form') }}" class="tile tile-weighing">
+        <i class="fas fa-weight"></i> Waga
     </a>
 
     <a href="{{ route('plac.warehouse.index') }}" class="tile tile-warehouse">

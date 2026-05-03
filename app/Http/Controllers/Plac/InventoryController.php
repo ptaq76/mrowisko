@@ -53,7 +53,7 @@ class InventoryController extends Controller
         $newBales = (int) $request->bales;
         $newWeight = (float) $request->weight_kg;
 
-        // Zapisujemy SNAPSHOT (wartość bezwzględną) — odczyt sumuje od ostatniej inwentaryzacji
+        // Zapisujemy SNAPSHOT — odczyt sumuje od ostatniej inwentaryzacji
         WarehouseItem::create([
             'date' => now()->toDateString(),
             'fraction_id' => $fractionId,
@@ -70,8 +70,8 @@ class InventoryController extends Controller
             'fraction' => $fraction->name,
             'new_bales' => $newBales,
             'new_weight' => $newWeight,
-            'diff_bales' => $diffBales,
-            'diff_weight' => $diffWeight,
+            'diff_bales' => $newBales - $currentBales,
+            'diff_weight' => $newWeight - $currentWeight,
         ]);
     }
 }

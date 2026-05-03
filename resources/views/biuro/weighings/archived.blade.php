@@ -25,6 +25,7 @@
 .nr-rej { display:inline-block;background:#fff;border:2px solid #aaa;padding:1px 5px;border-radius:4px;font-weight:800;font-size:11px;color:#888; }
 .w-val    { font-family:'Barlow Condensed',sans-serif;font-size:17px;font-weight:800;color:#aaa; }
 .w-result { font-family:'Barlow Condensed',sans-serif;font-size:19px;font-weight:900;color:#888; }
+.w-empty { color:#ccc;font-size:12px; }
 .btn-unarch { background:#f4f5f7;border:1px solid #dde0e5;border-radius:5px;padding:5px 9px;color:#555;cursor:pointer;font-size:12px; }
 .btn-unarch:hover { background:#6EBF58;color:#fff;border-color:#6EBF58; }
 .empty-state { text-align:center;padding:48px;color:#ccc; }
@@ -43,42 +44,60 @@
         </a>
     </div>
 
-    @if($weighings->isEmpty())
+    @if($rows->isEmpty())
     <div class="empty-state"><i class="fas fa-archive"></i><p>Archiwum jest puste</p></div>
     @else
     <div class="w-table-wrap">
         <table class="w-table">
             <thead><tr>
                 <th>Data</th><th>Klient</th><th>Pojazdy</th>
-                <th>Waga 1</th><th>Waga 2</th><th>Wynik</th>
-                <th>Towar</th><th>Uwagi</th><th style="width:80px"></th>
+                <th>Brutto</th><th>Tara</th><th>Netto</th>
+                <th>Towar</th><th>Uwagi</th><th style="width:110px"></th>
             </tr></thead>
             <tbody>
-            @foreach($weighings as $w)
-            <tr id="wr-{{ $w->id }}">
+            @foreach($rows as $r)
+            @php $rowKey = $r->source.'-'.$r->id; @endphp
+            <tr id="row-{{ $rowKey }}">
                 <td>
-                    <div class="cell-dt">{{ $w->weighed_at->format('d.m.Y') }}</div>
-                    <div class="cell-time">{{ $w->weighed_at->format('H:i') }}</div>
+                    <div class="cell-dt">{{ $r->date?->format('d.m.Y') ?? '–' }}</div>
+                    <div class="cell-time">{{ $r->time_at?->format('H:i') }}</div>
                 </td>
-                <td class="cell-client">{{ $w->client?->short_name ?? '–' }}</td>
+                <td class="cell-client">
+                    @if($r->type)
+                        <span style="color:{{ $r->type==='sale' ? '#f39c12' : '#27ae60' }};margin-right:4px;opacity:.7">
+                            {{ $r->type==='sale' ? '↑' : '↓' }}
+                        </span>
+                    @endif
+                    {{ $r->client?->short_name ?? '–' }}
+                </td>
                 <td>
-                    @if($w->plate1)<span class="nr-rej" style="font-size:10px;padding:1px 4px">{{ $w->plate1 }}</span>@endif
-                    @if($w->plate2) <span class="nr-rej" style="font-size:10px;padding:1px 4px">{{ $w->plate2 }}</span>@endif
+                    @if($r->plate1)<span class="nr-rej" style="font-size:10px;padding:1px 4px">{{ $r->plate1 }}</span>@endif
+                    @if($r->plate2) <span class="nr-rej" style="font-size:10px;padding:1px 4px">{{ $r->plate2 }}</span>@endif
                 </td>
-                <td><span class="w-val">{{ $w->weight1 ? number_format($w->weight1,3,',','') : '–' }}</span></td>
-                <td><span class="w-val">{{ $w->weight2 ? number_format($w->weight2,3,',','') : '–' }}</span></td>
                 <td>
-                    @if($w->result !== null)
-                    <span class="w-result">{{ number_format($w->result,3,',','') }}</span>
-                    @else<span style="color:#ccc">–</span>@endif
+                    @if($r->brutto !== null)
+                        <span class="w-val">{{ number_format($r->brutto, 3, ',', '') }}</span>
+                    @else<span class="w-empty">–</span>@endif
                 </td>
-                <td style="font-size:12px;color:#888">{{ $w->goods ?? '–' }}</td>
+                <td>
+                    @if($r->tara !== null)
+                        <span class="w-val">{{ number_format($r->tara, 3, ',', '') }}</span>
+                    @else<span class="w-empty">–</span>@endif
+                </td>
+                <td>
+                    @if($r->netto !== null)
+                        <span class="w-result">{{ number_format($r->netto, 3, ',', '') }}</span>
+                    @else<span class="w-empty">–</span>@endif
+                </td>
+                <td style="font-size:12px;color:#888;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="{{ $r->goods }}">
+                    {{ $r->goods ?? '–' }}
+                </td>
                 <td style="font-size:12px;color:#aaa;max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis"
-                    @if($w->notes) title="{{ $w->notes }}" @endif>
-                    {{ $w->notes ?? '–' }}
+                    @if($r->notes) title="{{ $r->notes }}" @endif>
+                    {{ $r->notes ?? '–' }}
                 </td>
                 <td>
-                    <button class="btn-unarch" onclick="unarchive({{ $w->id }})" title="Przywróć">
+                    <button class="btn-unarch" onclick="unarchive('{{ $r->source }}', {{ $r->id }})" title="Przywróć">
                         <i class="fas fa-undo"></i> Przywróć
                     </button>
                 </td>
@@ -94,14 +113,17 @@
 @section('scripts')
 <script>
 const CSRF = '{{ csrf_token() }}';
-async function unarchive(id) {
-    const res  = await fetch(`/biuro/weighings/${id}/unarchive`, {
+async function unarchive(source, id) {
+    const url = source === 'order'
+        ? `/biuro/weighings/orders/${id}/unarchive`
+        : `/biuro/weighings/${id}/unarchive`;
+    const res  = await fetch(url, {
         method: 'POST',
         headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
     });
     const data = await res.json();
     if (data.success) {
-        document.getElementById('wr-' + id)?.remove();
+        document.getElementById('row-' + source + '-' + id)?.remove();
         Swal.fire({ icon: 'success', title: 'Przywrócono!', timer: 1200, showConfirmButton: false });
     }
 }

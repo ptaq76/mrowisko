@@ -23,6 +23,8 @@ class VehicleSetSeeder extends Seeder
             ['label' => 'ZS438MG',                        'tractor' => 'ZS438MG',     'trailer' => null,          'tare' => 6.500],
             ['label' => 'WGM0958F / WGM5564P',            'tractor' => 'WGM0958F',    'trailer' => 'WGM5564P',    'tare' => 13.900],
             ['label' => 'WGM0958F / PNTKY66',             'tractor' => 'WGM0958F',    'trailer' => 'PNTKY66',     'tare' => 14.220],
+            ['label' => 'Nissan',                         'tractor' => null,          'trailer' => null,          'tare' => 1.520],
+            ['label' => 'Toyota',                         'tractor' => null,          'trailer' => null,          'tare' => 1.640],
             ['label' => 'WGM2624C / WGM5564P',            'tractor' => 'WGM2624C',    'trailer' => 'WGM5564P',    'tare' => 14.800],
             ['label' => 'WGM2624C / WGM2126P',            'tractor' => 'WGM2624C',    'trailer' => 'WGM2126P',    'tare' => 13.940],
             ['label' => 'WGM2624C / WGM4617P',            'tractor' => 'WGM2624C',    'trailer' => 'WGM4617P',    'tare' => 16.060],
@@ -54,12 +56,13 @@ class VehicleSetSeeder extends Seeder
             ['label' => 'WGM3595C / KONTENER MAŁY ZIELONY', 'tractor' => 'WGM3595C',    'trailer' => null,          'tare' => 13.500],
             ['label' => 'WGM3595C',                       'tractor' => 'WGM3595C',    'trailer' => null,          'tare' => 11.700],
             ['label' => 'WGM2624C / GCH5U46',             'tractor' => 'WGM2624C',    'trailer' => 'GCH5U46',     'tare' => 16.520],
+            ['label' => 'WGM0958F / GCH5U46',             'tractor' => 'WGM0958F',    'trailer' => 'GCH5U46',     'tare' => 16.020],
         ];
 
         foreach ($sets as $s) {
             DB::table('vehicle_sets')->insert([
                 'label' => $s['label'],
-                'tractor_id' => $plates[$s['tractor']] ?? null,
+                'tractor_id' => $s['tractor'] ? ($plates[$s['tractor']] ?? null) : null,
                 'trailer_id' => $s['trailer'] ? ($plates[$s['trailer']] ?? null) : null,
                 'tare_kg' => $s['tare'],
                 'is_active' => true,

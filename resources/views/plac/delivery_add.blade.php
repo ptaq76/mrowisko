@@ -227,7 +227,7 @@
             @endif
         </div>
         {{-- Pozostało --}}
-        <div class="lhw-block" style="align-items:flex-end">
+        <div class="lhw-block" id="pozostaloBlock" data-kg="{{ (int) round($diff * 1000) }}" style="align-items:flex-end">
             <span class="lhw-label">Pozostało</span>
             <span class="lhw-val {{ $diff < 0 ? 'negative' : '' }}">{{ number_format($diff, 3, ',', ' ') }} t</span>
         </div>
@@ -335,8 +335,8 @@
                 <span class="sv-weight" id="stockWeight">–</span>
             </div>
         </div>
-        <button type="button" onclick="zaladujWszystko()" class="btn-load-all">
-            <i class="fas fa-download"></i> Wszystko
+        <button type="button" onclick="przeniesPozostalo()" class="btn-load-all">
+            <i class="fas fa-arrow-right"></i> Przenieś
         </button>
     </div>
 </div>
@@ -422,12 +422,18 @@ function onFracChange() {
     if (!isBale()) document.getElementById('balesInput').value = 0;
 }
 
-function zaladujWszystko() {
-    const bales  = parseInt((document.getElementById('stockBales').textContent  || '').replace(/\s/g, '')) || 0;
-    const weight = parseInt((document.getElementById('stockWeight').textContent || '').replace(/\s/g, '')) || 0;
-    if (!bales && !weight) return;
-    if (isBale() && bales) document.getElementById('balesInput').value = bales;
-    if (weight) document.getElementById('weightInput').value = weight;
+function przeniesPozostalo() {
+    const block = document.getElementById('pozostaloBlock');
+    if (!block) {
+        Swal.fire({ icon: 'warning', title: 'Brak wagi kierowcy', text: 'Nie można obliczyć pozostałej masy.', timer: 1800, showConfirmButton: false });
+        return;
+    }
+    const kg = parseInt(block.dataset.kg) || 0;
+    if (kg <= 0) {
+        Swal.fire({ icon: 'info', title: 'Brak pozostałej masy', text: 'Cała masa już rozdzielona.', timer: 1800, showConfirmButton: false });
+        return;
+    }
+    document.getElementById('weightInput').value = kg;
 }
 
 /* ── Formularz opakowań w SweetAlert – lista wierszy ── */

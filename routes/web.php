@@ -25,6 +25,7 @@ use App\Http\Controllers\Biuro\RaportWysylekController;
 use App\Http\Controllers\Biuro\ReklamacjeController;
 use App\Http\Controllers\Biuro\ReportController;
 use App\Http\Controllers\Biuro\ShortcutController;
+use App\Http\Controllers\Biuro\TestDataController;
 use App\Http\Controllers\Biuro\VehicleController;
 use App\Http\Controllers\Biuro\VehicleSetController;
 use App\Http\Controllers\Biuro\WarehouseController;
@@ -97,6 +98,9 @@ Route::prefix('biuro')
 
         // Uruchomienie pełnej migracji (db:seed) z hasłem z .env
         Route::post('migration/run', [MigrationController::class, 'run'])->name('migration.run');
+
+        // Uruchomienie seedera danych testowych (TestDataSeeder) z hasłem z .env
+        Route::post('test-data/run', [TestDataController::class, 'run'])->name('test-data.run');
 
         // Planowanie
         Route::get('planning', [PlanningController::class, 'index'])->name('planning.index');
@@ -177,10 +181,18 @@ Route::prefix('biuro')
         // Ważenia
         Route::get('weighings/tare-for-vehicles', [WeighingController::class, 'tareForVehicles'])->name('weighings.tare-for-vehicles');
         Route::get('weighings/all-tares', [WeighingController::class, 'allTares'])->name('weighings.all-tares');
-        Route::get('weighings/tare-for-vehicles', [WeighingController::class, 'tareForVehicles'])->name('weighings.tare-for-vehicles');
         Route::get('weighings', [WeighingController::class, 'index'])->name('weighings.index');
         Route::get('weighings/archived', [WeighingController::class, 'archived'])->name('weighings.archived');
         Route::post('weighings', [WeighingController::class, 'store'])->name('weighings.store');
+
+        // Endpointy dla wierszy pochodzących z orders (waga zapisana na zleceniu)
+        Route::get('weighings/orders/{order}/edit', [WeighingController::class, 'editOrder'])->name('weighings.orders.edit');
+        Route::put('weighings/orders/{order}', [WeighingController::class, 'updateOrderWeight'])->name('weighings.orders.update');
+        Route::delete('weighings/orders/{order}', [WeighingController::class, 'destroyOrderWeight'])->name('weighings.orders.destroy');
+        Route::post('weighings/orders/{order}/archive', [WeighingController::class, 'archiveOrder'])->name('weighings.orders.archive');
+        Route::post('weighings/orders/{order}/unarchive', [WeighingController::class, 'unarchiveOrder'])->name('weighings.orders.unarchive');
+
+        // Endpointy dla wierszy z weighings (luźne ważenia bez zlecenia)
         Route::get('weighings/{weighing}/edit', [WeighingController::class, 'edit'])->name('weighings.edit');
         Route::put('weighings/{weighing}', [WeighingController::class, 'update'])->name('weighings.update');
         Route::delete('weighings/{weighing}', [WeighingController::class, 'destroy'])->name('weighings.destroy');
@@ -365,6 +377,9 @@ Route::prefix('plac')
         Route::post('delivery/{order}/items', [DeliveryController::class, 'store'])->name('delivery.store');
         Route::delete('delivery/{order}/items/{item}', [DeliveryController::class, 'destroy'])->name('delivery.destroy');
         Route::post('delivery/{order}/close', [DeliveryController::class, 'close'])->name('delivery.close');
+
+        Route::get('weighing', [App\Http\Controllers\Plac\DashboardController::class, 'weighingForm'])->name('weighing.form');
+        Route::post('weighing/{order}', [App\Http\Controllers\Plac\DashboardController::class, 'weighingStore'])->name('weighing.store');
 
         Route::get('warehouse', [App\Http\Controllers\Plac\WarehouseController::class, 'index'])->name('warehouse.index');
         Route::get('warehouse/{fraction}/history', [App\Http\Controllers\Plac\WarehouseController::class, 'history'])->name('warehouse.history');

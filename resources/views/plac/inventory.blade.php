@@ -230,8 +230,9 @@ function openAdjust(fracId, name, curBales, curWeight) {
 
     document.getElementById('invTitle').textContent      = name;
     document.getElementById('currentState').textContent  = `${curBales} bel. / ${(curWeight/1000).toLocaleString('pl-PL', {minimumFractionDigits:3, maximumFractionDigits:3})} t`;
-    document.getElementById('invBales').value            = curBales;
-    document.getElementById('invWeight').value           = Math.round(curWeight); // kg
+    // Pola startują puste — operator musi świadomie wpisać stan, żeby uniknąć przypadkowego zapisu pre-filla
+    document.getElementById('invBales').value            = '';
+    document.getElementById('invWeight').value           = '';
 
     document.getElementById('invOverlay').classList.add('open');
     setTimeout(() => document.getElementById('invBales').focus(), 300);

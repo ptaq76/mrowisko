@@ -219,4 +219,62 @@ class DashboardController extends Controller
 
         return response()->json($stock);
     }
+
+    /**
+     * Formularz "Waga wyjazdowa" — operator placu może wpisać wagę gdy biura nie ma.
+     * Pokazuje zlecenia w trakcie ważenia (częściowe) lub po zamknięciu placu bez wagi.
+     */
+    public function weighingForm()
+    {
+        $orders = Order::with(['client', 'tractor', 'trailer'])
+            ->where('is_archived', false)
+            ->whereNull('weight_netto')
+            ->where(function ($q) {
+                // Stany kwalifikujące: częściowe ważenie LUB plac zakończył pracę
+                $q->whereNotNull('weight_brutto')
+                    ->orWhere(function ($q2) {
+                        $q2->where('type', 'sale')->whereIn('status', ['loaded', 'weighed']);
+                    })
+                    ->orWhere(function ($q2) {
+                        $q2->where('type', 'pickup')->whereIn('status', ['delivered']);
+                    });
+            })
+            ->orderByDesc('updated_at')
+            ->limit(50)
+            ->get();
+
+        return view('plac.weighing', compact('orders'));
+    }
+
+    /**
+     * Zapis wagi z placu. Jeśli zlecenie ma już weight_brutto (częściowe) → kompletuje
+     * (oblicza netto, status='weighed'). Inaczej zapisuje jako częściowe (pierwsza waga).
+     */
+    public function weighingStore(Request $request, Order $order)
+    {
+        $request->validate([
+            'weight' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        $w = (float) $request->weight;
+        $update = [];
+
+        if ($order->weight_brutto !== null) {
+            // Drugi pomiar — kompletujemy ważenie
+            $w1 = (float) $order->weight_brutto;
+            $update['weight_brutto'] = max($w1, $w);
+            $update['weight_netto'] = round(abs($w1 - $w), 3);
+            // Advance do 'weighed' chyba że już 'weighed' lub 'closed'
+            if (! in_array($order->status, ['weighed', 'closed'], true)) {
+                $update['status'] = 'weighed';
+            }
+        } else {
+            // Pierwszy pomiar — częściowy
+            $update['weight_brutto'] = $w;
+        }
+
+        $order->update($update);
+
+        return response()->json(['success' => true]);
+    }
 }
