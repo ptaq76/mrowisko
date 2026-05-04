@@ -248,7 +248,9 @@ class DashboardController extends Controller
 
     /**
      * Zapis wagi z placu. Jeśli zlecenie ma już weight_brutto (częściowe) → kompletuje
-     * (oblicza netto, status='weighed'). Inaczej zapisuje jako częściowe (pierwsza waga).
+     * (oblicza netto). Inaczej zapisuje jako częściowe (pierwsza waga).
+     * UWAGA: nie zmieniamy statusu — operator musi jeszcze zrobić przyjęcie/załadunek
+     * (towary i ilości), to one przesuwają status na 'delivered'/'loaded'.
      */
     public function weighingStore(Request $request, Order $order)
     {
@@ -264,10 +266,6 @@ class DashboardController extends Controller
             $w1 = (float) $order->weight_brutto;
             $update['weight_brutto'] = max($w1, $w);
             $update['weight_netto'] = round(abs($w1 - $w), 3);
-            // Advance do 'weighed' chyba że już 'weighed' lub 'closed'
-            if (! in_array($order->status, ['weighed', 'closed'], true)) {
-                $update['status'] = 'weighed';
-            }
         } else {
             // Pierwszy pomiar — częściowy
             $update['weight_brutto'] = $w;
