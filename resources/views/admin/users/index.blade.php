@@ -55,7 +55,6 @@
                                 'admin'      => 'bg-danger',
                                 'biuro'      => 'bg-primary',
                                 'kierowca'   => 'bg-warning text-dark',
-                                'hakowiec'   => 'bg-warning text-dark',
                                 'plac'       => 'bg-success',
                                 'handlowiec' => 'bg-secondary',
                                 default      => 'bg-secondary',

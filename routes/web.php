@@ -329,22 +329,19 @@ Route::prefix('kierowca')
         Route::post('orders/{order}/weigh-confirm', [DashboardController::class, 'weighConfirm'])->name('orders.weighConfirm');
         Route::post('orders/{order}/weigh-confirm-hakowiec', [DashboardController::class, 'weighConfirmHakowiec'])->name('orders.weighConfirmHakowiec');
         Route::post('orders/{order}/drop-containers', [DashboardController::class, 'dropContainers'])->name('orders.dropContainers');
+        Route::post('orders/{order}/pickup-containers', [DashboardController::class, 'pickupContainers'])->name('orders.pickupContainers');
         Route::post('orders/{order}/receiver-weight', [DashboardController::class, 'saveReceiverWeight'])->name('orders.receiverWeight');
         Route::post('orders/{order}/packaging', [DashboardController::class, 'savePackaging'])->name('orders.packaging');
         Route::get('/kursy', [DashboardController::class, 'kursy'])->name('kursy');
         Route::post('zadania/{zadanie}/wykonaj', [ZadanieController::class, 'complete'])->name('zadania.complete');
     });
 
-// ── HAKOWIEC ──────────────────────────────────────────────────────────────────
-
-Route::prefix('hakowiec')
-    ->middleware(['auth', 'module:hakowiec'])
-    ->name('hakowiec.')
-    ->group(function () {
-        Route::get('/dashboard', [App\Http\Controllers\Hakowiec\DashboardController::class, 'index'])->name('dashboard');
-        Route::post('orders/{order}/status', [App\Http\Controllers\Hakowiec\DashboardController::class, 'setStatus'])->name('orders.status');
-        Route::post('zadania/{zadanie}/wykonaj', [ZadanieController::class, 'complete'])->name('zadania.complete');
-    });
+// ── HAKOWIEC (legacy redirect) ────────────────────────────────────────────────
+// Moduł hakowiec został scalony z kierowcą. Redirect na wszelki wypadek dla
+// userów ze starym module='hakowiec' albo bookmarków /hakowiec/*.
+Route::middleware('auth')->get('hakowiec/{any?}', fn () => redirect('/kierowca/dashboard'))
+    ->where('any', '.*')
+    ->name('hakowiec.legacy');
 
 // ── PLAC ──────────────────────────────────────────────────────────────────────
 

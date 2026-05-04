@@ -860,19 +860,6 @@
             @endforeach
         </div>
 
-        {{-- Wolne LS --}}
-        @if($freeLs->isNotEmpty())
-        <div class="quick-section">
-            <div class="quick-section-title">LS na dziś</div>
-            @foreach($freeLs as $ls)
-            <div style="font-size:11px;padding:2px 0;border-bottom:1px solid var(--gray-2)">
-                <span class="fw-bold">{{ $ls->number }}</span>
-                <span class="text-muted ms-1">{{ $ls->client?->short_name }}</span>
-            </div>
-            @endforeach
-        </div>
-        @endif
-
         {{-- ══ ZLECENIA HANDLOWCÓW ══ --}}
         @if($pickupRequests->isNotEmpty())
         <div class="quick-section" style="border-bottom: 1px solid var(--gray-2); padding-bottom: 10px;">

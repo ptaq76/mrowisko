@@ -35,7 +35,6 @@ class User extends Authenticatable
         'admin' => 'Administrator',
         'biuro' => 'Biuro',
         'kierowca' => 'Kierowca',
-        'hakowiec' => 'Hakowiec',
         'plac' => 'Plac',
         'handlowiec' => 'Handlowiec',
         'czarnypan' => 'Czarny Pan',

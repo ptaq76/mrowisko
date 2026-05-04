@@ -91,6 +91,7 @@ class MigrateOrdersSeeder extends Seeder
             'no_towary' => 0,
         ];
         $keptDespiteMissing = 0;
+        $reconstructedCount = 0;
         $skippedSamples = [];
 
         $nextOrderId = 1;
@@ -116,6 +117,8 @@ class MigrateOrdersSeeder extends Seeder
             $createdAt = null;
             $updatedAt = null;
             $operationNotes = null;
+            $dostawa = null;
+            $zaladunek = null;
             if ($planNaPlac) {
                 if ($planowanie->rodzaj === 'O') {
                     $dostawa = $dostawyByPlanNaPlac->get($planNaPlac->id);
@@ -159,33 +162,72 @@ class MigrateOrdersSeeder extends Seeder
                 continue;
             }
 
-            // Klasyfikacja statusu
-            if ($wasExecuted && $wazenie) {
-                $status = 'closed';        // pełen cykl
-            } elseif ($wasExecuted) {
-                // wykonane ale nie zważone — różny status zależnie od typu
-                $status = $type === 'pickup' ? 'delivered' : 'loaded';
-                $keptDespiteMissing++;
+            // Tara z vehicle_sets (po tractor+trailer); fallback: suma vehicles.tare_kg
+            $taraTons = null;
+            if ($planowanie->ciagnik_id) {
+                $setRow = DB::table('vehicle_sets')
+                    ->where('tractor_id', $planowanie->ciagnik_id)
+                    ->when(
+                        $planowanie->naczepa_id,
+                        fn ($q) => $q->where('trailer_id', $planowanie->naczepa_id),
+                        fn ($q) => $q->whereNull('trailer_id')
+                    )
+                    ->where('is_active', true)
+                    ->first();
+                if ($setRow) {
+                    $taraTons = (float) $setRow->tare_kg;
+                } else {
+                    $tractorTara = (float) (DB::table('vehicles')->where('id', $planowanie->ciagnik_id)->value('tare_kg') ?? 0);
+                    $trailerTara = $planowanie->naczepa_id
+                        ? (float) (DB::table('vehicles')->where('id', $planowanie->naczepa_id)->value('tare_kg') ?? 0)
+                        : 0;
+                    if ($tractorTara > 0 || $trailerTara > 0) {
+                        $taraTons = $tractorTara + $trailerTara;
+                    }
+                }
+            }
+
+            // Każde wykonane zlecenie bez wazenia w starej bazie → odtwarzamy
+            // (przynajmniej netto z towary; brutto tylko gdy znamy tarę)
+            $canReconstructWeighing = ! $wazenie && $wasExecuted;
+
+            // Klasyfikacja statusu — wszystkie wykonane → closed (mamy lub odtworzyliśmy ważenie)
+            if ($wasExecuted) {
+                $status = 'closed';
             } else {
                 $status = 'planned';       // tylko zaplanowane (świeże)
                 $keptDespiteMissing++;
             }
 
-            // Wagi: tylko jeśli wazenie istnieje
-            // W starej bazie waga1 czasem brutto, czasem pierwsze wskazanie — używamy max/abs aby było type-safe
-            $wagaBrutto = ($wazenie && $wazenie->waga1 !== null && $wazenie->waga2 !== null)
-                ? max($wazenie->waga1, $wazenie->waga2)
-                : ($wazenie->waga1 ?? null);
-            $wagaNetto = ($wazenie && $wazenie->waga1 !== null && $wazenie->waga2 !== null)
-                ? abs($wazenie->waga1 - $wazenie->waga2)
-                : null;
+            // Wagi
+            if ($wazenie && $wazenie->waga1 !== null && $wazenie->waga2 !== null) {
+                // Pełne ważenie ze starej bazy
+                $wagaBrutto = max($wazenie->waga1, $wazenie->waga2);
+                $wagaNetto = abs($wazenie->waga1 - $wazenie->waga2);
+            } elseif ($wazenie && $wazenie->waga1 !== null) {
+                // Częściowe — tylko waga1
+                $wagaBrutto = $wazenie->waga1;
+                $wagaNetto = null;
+            } elseif ($canReconstructWeighing) {
+                // Odtwarzamy z towary; brutto tylko gdy znamy tarę
+                $nettoKg = $towary->sum('waga');
+                $wagaNetto = round($nettoKg / 1000, 3);
+                $wagaBrutto = $taraTons !== null ? round($wagaNetto + $taraTons, 3) : null;
+                $reconstructedCount++;
+            } else {
+                $wagaBrutto = null;
+                $wagaNetto = null;
+            }
 
-            // Auto-archiwizacja: zamknięte zawsze, wykonane-bez-wazenia tylko gdy stare
-            $isArchived = match (true) {
-                $status === 'closed' => 1,
-                in_array($status, ['delivered', 'loaded'], true) && ! $isRecent => 1,
-                default => 0,
-            };
+            // Archiwum
+            $isArchived = 0;
+            if ($wazenie && (int) $wazenie->status === 2) {
+                $isArchived = 1; // stara baza: wazenia.status=2
+            } elseif ($type === 'pickup' && $dostawa && (int) $dostawa->status === 2) {
+                $isArchived = 1; // stara baza: dostawy.status=2 (tylko pickup)
+            } elseif ($type === 'sale' && $canReconstructWeighing) {
+                $isArchived = 1; // sale: brak osobnego sygnału w starej bazie, archiwizujemy odtworzone
+            }
 
             $orderId = $nextOrderId++;
 
@@ -254,6 +296,7 @@ class MigrateOrdersSeeder extends Seeder
         $this->command->warn('Pominięte (stare i niewykonane): brak plan_na_plac: '.$skipReasons['no_plan_na_plac']);
         $this->command->warn('Pominięte (stare i niewykonane): brak towarów:     '.$skipReasons['no_towary']);
         $this->command->info("Zachowane bez wazenia (status='delivered') lub bez wykonania ≤{$this->keepRecentDays} dni (status='planned'): {$keptDespiteMissing}");
+        $this->command->info("Odtworzone ważenia (towary+tara, od razu w archiwum): {$reconstructedCount}");
 
         if (! empty($skippedSamples)) {
             $this->command->newLine();

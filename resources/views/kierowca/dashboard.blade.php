@@ -207,12 +207,19 @@
         $statusClass = $order->weight_netto ? 'status-weighed' : 'status-' . ($order->status ?? 'planned');
         $isSale      = $order->type === 'sale';
         $totalBales  = $order->loadingItems?->sum('bales') ?? 0;
-        $isLoaded    = $order->status === 'loaded';
-        $isDone      = $order->status === 'closed' || (!$isSale && $order->status === 'weighed');
-        $isHakowiec  = $order->tractor?->subtype === 'hakowiec';
-        $hakSlots    = $order->trailer_id ? 2 : 1;
-        $dropEntries = $isHakowiec ? $order->orderContainers->where('direction', 'drop') : collect();
-        $dropDone    = $isHakowiec && $dropEntries->count() >= $hakSlots;
+        $isLoaded      = $order->status === 'loaded';
+        $isHakowiec    = $order->tractor?->subtype === 'hakowiec';
+        $hakSlots      = $order->trailer_id ? 2 : 1;
+        $dropEntries   = $isHakowiec ? $order->orderContainers->where('direction', 'drop') : collect();
+        $dropDone      = $isHakowiec && $dropEntries->count() >= $hakSlots;
+        $pickupEntries = $isHakowiec ? $order->orderContainers->where('direction', 'pickup') : collect();
+        $pickupDone    = $isHakowiec && $pickupEntries->count() >= $hakSlots;
+        // Hakowiec ma wszystko zrobione tylko gdy oba kierunki są podane.
+        $hakOK         = !$isHakowiec || ($dropDone && $pickupDone);
+        // Niedokończony hakowiec na statusie 'weighed' (typowo: biuro wpisało wagę,
+        // kierowca jeszcze musi odhaczyć kontenery)
+        $hakNeedsContainers = $isHakowiec && $order->status === 'weighed' && !($dropDone && $pickupDone);
+        $isDone        = $order->status === 'closed' || (!$isSale && $order->status === 'weighed' && $hakOK);
     @endphp
 
     <div class="order-card {{ $isSale ? 'type-sale' : 'type-pickup' }} {{ $isDone ? 'is-closed' : '' }}" id="order-{{ $order->id }}">
@@ -358,6 +365,14 @@
         </div>
         @endif
 
+        {{-- Hakowiec — biuro wpisało wagę, kierowca nadal musi odhaczyć kontenery --}}
+        @if($hakNeedsContainers)
+        <div style="padding:10px 14px;background:#fef5ec;border-top:1px solid #fcd9b8;display:flex;align-items:center;gap:8px;font-size:12px;color:#c0392b;font-weight:700;text-transform:uppercase;letter-spacing:.04em">
+            <i class="fas fa-circle-exclamation"></i>
+            Brakuje informacji o kontenerach
+        </div>
+        @endif
+
         {{-- Akcje --}}
         @if($isSale)
             @if(in_array($order->status, ['planned', 'in_progress', 'loaded']))
@@ -389,7 +404,24 @@
                     </a>
                 </div>
             @elseif($order->status === 'weighed')
-                {{-- Waga podana – teraz waga odbiorcy --}}
+                {{-- Hakowiec po wadze biura — uzupełnij kontenery --}}
+                @if($isHakowiec && !($dropDone && $pickupDone))
+                <div style="padding:12px 16px;text-align:center">
+                    @if(!$dropDone)
+                    <button onclick="openDropContainers({{ $order->id }}, {{ $hakSlots }}, false)"
+                            style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto 10px;padding:13px 16px;background:#1f3a5f;color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(31,58,95,.35)">
+                        <i class="fas fa-dolly"></i> POZOSTAWIONE KONTENERY
+                    </button>
+                    @endif
+                    @if(!$pickupDone)
+                    <button onclick="openPickupContainers({{ $order->id }}, {{ $hakSlots }}, false, {{ $order->client_id ?? 'null' }})"
+                            style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:13px 16px;background:#e67e22;color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(230,126,34,.35)">
+                        <i class="fas fa-arrow-up-from-bracket"></i> ZABRANE KONTENERY
+                    </button>
+                    @endif
+                </div>
+                @endif
+                {{-- Waga odbiorcy --}}
                 @if(!$order->weight_receiver)
                 <div style="padding:12px 16px;text-align:center">
                     <button onclick="openReceiverWeight({{ $order->id }}, null)"
@@ -427,6 +459,22 @@
                        style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:15px 16px;background:{{ $isHakowiec && !$dropDone ? '#aaa' : '#922b21' }};color:#fff;text-decoration:none;font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;box-shadow:0 4px 12px rgba(146,43,33,.35)">
                         <i class="fas fa-weight fa-lg"></i> PODAJ WAGĘ
                     </a>
+                </div>
+            @elseif($order->status === 'weighed' && $isHakowiec && !($dropDone && $pickupDone))
+                {{-- Pickup po wadze biura — hakowiec uzupełnia kontenery --}}
+                <div style="padding:12px 16px;text-align:center">
+                    @if(!$dropDone)
+                    <button onclick="openDropContainers({{ $order->id }}, {{ $hakSlots }}, false)"
+                            style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto 10px;padding:13px 16px;background:#1f3a5f;color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(31,58,95,.35)">
+                        <i class="fas fa-dolly"></i> POZOSTAWIONE KONTENERY
+                    </button>
+                    @endif
+                    @if(!$pickupDone)
+                    <button onclick="openPickupContainers({{ $order->id }}, {{ $hakSlots }}, false, {{ $order->client_id ?? 'null' }})"
+                            style="display:flex;align-items:center;justify-content:center;gap:10px;width:75%;margin:0 auto;padding:13px 16px;background:#e67e22;color:#fff;border:none;font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-radius:10px;cursor:pointer;box-shadow:0 4px 12px rgba(230,126,34,.35)">
+                        <i class="fas fa-arrow-up-from-bracket"></i> ZABRANE KONTENERY
+                    </button>
+                    @endif
                 </div>
             @endif
         @endif
@@ -494,6 +542,8 @@ async function wykonajZadanie(id) {
 }
 
 const ALL_CONTAINERS = @json($containers ?? []);
+// Mapa kontenerów dostępnych u klienta (clientId → [{id, name, client_qty}, ...])
+const PICKUP_BY_CLIENT = @json($pickupContainersByClient ?? []);
 
 function blockWeigh(e) {
     e.preventDefault();
@@ -577,6 +627,98 @@ async function openDropContainers(orderId, slots, alreadyDone) {
     if (!result.isConfirmed) return;
 
     const res = await fetch(`/kierowca/orders/${orderId}/drop-containers`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify(result.value),
+    });
+
+    const data = await res.json();
+    if (data.success) {
+        await Swal.fire({
+            icon: 'success', title: 'Zapisano',
+            timer: 1500, showConfirmButton: false,
+        });
+        location.reload();
+    } else {
+        Swal.fire({ icon: 'error', title: 'Błąd', text: data.message ?? 'Spróbuj ponownie.' });
+    }
+}
+
+async function openPickupContainers(orderId, slots, alreadyDone, clientId) {
+    const available = PICKUP_BY_CLIENT[clientId] || [];
+
+    if (available.length === 0) {
+        await Swal.fire({
+            icon: 'warning',
+            title: 'Brak kontenerów u klienta',
+            text: 'System nie pokazuje żadnych kontenerów u tego klienta. Skontaktuj się z biurem.',
+            confirmButtonColor: '#e67e22',
+        });
+        return;
+    }
+
+    const optionsHtml = ['<option value="">– wybierz kontener –</option>']
+        .concat(available.map(c => `<option value="${c.id}">${c.name} (${c.client_qty} szt.)</option>`))
+        .join('');
+
+    const fields = [];
+    fields.push(`
+        <div style="margin-bottom:14px;text-align:left">
+            <label style="display:block;font-size:12px;font-weight:800;color:#e67e22;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Samochód</label>
+            <select id="pickTractorSel" style="width:100%;padding:12px;border:2px solid #e2e5e9;border-radius:8px;font-size:16px;font-weight:700">${optionsHtml}</select>
+        </div>
+    `);
+    if (slots === 2) {
+        fields.push(`
+            <div style="margin-bottom:6px;text-align:left">
+                <label style="display:block;font-size:12px;font-weight:800;color:#e67e22;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Naczepa</label>
+                <select id="pickTrailerSel" style="width:100%;padding:12px;border:2px solid #e2e5e9;border-radius:8px;font-size:16px;font-weight:700">${optionsHtml}</select>
+            </div>
+        `);
+    }
+
+    const result = await Swal.fire({
+        title: alreadyDone ? 'Edytuj zabrane kontenery' : 'Zabrane kontenery',
+        html: fields.join(''),
+        showCancelButton: true,
+        confirmButtonText: 'Zapisz',
+        cancelButtonText: 'Anuluj',
+        confirmButtonColor: '#e67e22',
+        focusConfirm: false,
+        allowOutsideClick: false,
+        preConfirm: () => {
+            const tractorId = document.getElementById('pickTractorSel').value;
+            if (!tractorId) {
+                Swal.showValidationMessage('Wybierz kontener dla samochodu');
+                return false;
+            }
+            const payload = { tractor_container_id: tractorId };
+            if (slots === 2) {
+                const trailerId = document.getElementById('pickTrailerSel').value;
+                if (!trailerId) {
+                    Swal.showValidationMessage('Wybierz kontener dla naczepy');
+                    return false;
+                }
+                if (trailerId === tractorId) {
+                    const cont = available.find(c => String(c.id) === String(tractorId));
+                    if (!cont || Number(cont.client_qty) < 2) {
+                        Swal.showValidationMessage('Tego typu klient ma tylko 1 szt. — wybierz inny dla naczepy');
+                        return false;
+                    }
+                }
+                payload.trailer_container_id = trailerId;
+            }
+            return payload;
+        },
+    });
+
+    if (!result.isConfirmed) return;
+
+    const res = await fetch(`/kierowca/orders/${orderId}/pickup-containers`, {
         method: 'POST',
         headers: {
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,

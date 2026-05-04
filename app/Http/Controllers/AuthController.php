@@ -11,7 +11,9 @@ class AuthController extends Controller
         'admin' => '/admin/dashboard',
         'biuro' => '/biuro/dashboard',
         'kierowca' => '/kierowca/dashboard',
-        'hakowiec' => '/hakowiec/dashboard',
+        // 'hakowiec' scalony z kierowcą — gdyby ktoś miał takie module w bazie,
+        // /hakowiec/* i tak redirectuje na /kierowca/dashboard (route hakowiec.legacy).
+        'hakowiec' => '/kierowca/dashboard',
         'plac' => '/plac/dashboard',
         'handlowiec' => '/handlowiec/dashboard',
         'karchem' => '/karchem',

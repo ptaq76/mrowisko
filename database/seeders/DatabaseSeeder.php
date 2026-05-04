@@ -53,6 +53,9 @@ class DatabaseSeeder extends Seeder
 
             // Szybkie przyciski do zleceń
             OrderQuickButtonSeeder::class,
+
+            // Zadania (z starej bazy: zadania_kierowcy + zadania_plac)
+            ZadaniaSeeder::class,
         ]);
 
         $this->command->info('✅ Seedowanie zakończone pomyślnie!');

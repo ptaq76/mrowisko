@@ -160,9 +160,31 @@
     letter-spacing:.06em; text-transform:uppercase; cursor:pointer;
 }
 .btn-hak-tary:hover { background:#d35400; }
+/* Lista tar — floating panel z prawej strony viewportu, niezależnie od modala */
+#hakTaraList {
+    position: fixed;
+    top: 50%;
+    right: 24px;
+    transform: translateY(-50%);
+    width: 360px;
+    max-height: 88vh;
+    overflow-y: auto;
+    background: #fff;
+    border: 2px solid #e67e22;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.3);
+    z-index: 1100;
+}
 .hak-tara-cols {
-    display:grid; grid-template-columns:repeat(5, 1fr); gap:8px;
-    margin-bottom:8px;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+}
+.hak-tara-target {
+    text-align: center; font-size: 12px; font-weight: 700;
+    color: #e67e22; margin-bottom: 8px; padding-bottom: 8px;
+    border-bottom: 1.5px dashed #fcd9b8;
 }
 .hak-tara-col {
     background:#f8f9fa; border:1px solid #e2e5e9; border-radius:6px; padding:6px;
@@ -187,10 +209,6 @@
 .hak-tara-item .pair { font-size:12px; font-weight:700; color:#444; letter-spacing:.02em; }
 .hak-tara-item .weight { font-size:14px; font-weight:900; color:#1a1a1a; text-align:right; white-space:nowrap; }
 .hak-tara-item:hover .weight { color:#c0392b; }
-.hak-tara-target {
-    text-align:center; font-size:11px; font-weight:700; color:#888;
-    margin-bottom:6px; font-style:italic;
-}
 
 .active-orders-label { font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#888;margin-bottom:6px; }
 .active-orders { display:flex;flex-wrap:wrap;gap:5px;margin-bottom:0; }
@@ -446,7 +464,17 @@
                         <i class="fas fa-weight-hanging"></i> TARY
                     </button>
                 </div>
-                <div id="hakTaraList" style="display:none;background:#fff;border:1.5px solid #e2e5e9;border-radius:10px;padding:12px 14px;margin-bottom:10px">
+                <div id="hakTaraList" style="display:none">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;padding-bottom:8px;border-bottom:1.5px dashed #fcd9b8">
+                        <span style="font-size:12px;font-weight:900;color:#e67e22;text-transform:uppercase;letter-spacing:.06em">
+                            <i class="fas fa-weight-hanging"></i> Tary
+                        </span>
+                        <button type="button" onclick="toggleHakTaraList()"
+                                style="background:#f4f5f7;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;color:#888"
+                                title="Zamknij">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                     <div class="hak-tara-target" id="hakTaraTarget">Klik tary → ciągnik</div>
                     <div class="hak-tara-cols" id="hakTaraCols"></div>
                 </div>
@@ -808,11 +836,9 @@ function maybeAutoEnableHakowiec(btn) {
     onHakowiecToggle();
 
     if (isHakowiec) {
-        const cTara = parseFloat(btn.dataset.tractorTara) || 0;
-        const nTara = parseFloat(btn.dataset.trailerTara) || 0;
-        // Tara w kg w bazie, w modalu w tonach
-        document.getElementById('hCTara').value = cTara > 0 ? (cTara / 1000).toFixed(3) : '';
-        document.getElementById('hNTara').value = nTara > 0 ? (nTara / 1000).toFixed(3) : '';
+        // Pola tara zostają puste — operator wpisuje świadomie (kontener może być różny dla hakowca)
+        document.getElementById('hCTara').value = '';
+        document.getElementById('hNTara').value = '';
         document.getElementById('hCPlateLabel').textContent = btn.dataset.plate1 ? '['+btn.dataset.plate1+']' : '';
         document.getElementById('hNPlateLabel').textContent = btn.dataset.plate2 ? '['+btn.dataset.plate2+']' : '';
         onHakowiecCalc();

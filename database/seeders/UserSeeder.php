@@ -10,12 +10,14 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         // Mapowanie role_id → module
+        // role_id=5 (stare 'hakowiec') scalone z 'kierowca' — patrz migracja
+        // 2026_05_04_000001_migrate_hakowiec_users_to_kierowca.
         $roleMap = [
             1 => 'admin',
             2 => 'biuro',
             3 => 'plac',
             4 => 'kierowca',
-            5 => 'hakowiec',
+            5 => 'kierowca',
             6 => 'handlowiec',
             7 => 'czarnypan',
             8 => 'karchem',

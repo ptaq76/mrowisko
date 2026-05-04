@@ -111,7 +111,7 @@ class ProductionSeeder extends Seeder
                 'client_id'    => self::RECYKLER_CLIENT_ID,
                 'planned_date' => $r->data,
                 'status'       => 'closed',
-                'is_archived'  => 0,
+                'is_archived'  => 1,   // dane historyczne — od razu do archiwum, żeby nie zaśmiecały biuro/weighings
                 'weight_netto' => $weightKg / 1000,
                 'notes'        => self::SZYBKA_WAGA_MARKER,
                 'created_at'   => $r->created_at ?? $now,

@@ -104,7 +104,7 @@ class ZadanieController extends Controller
         $routeName = Route::currentRouteName();
         $userDriverId = Driver::where('user_id', auth()->user()->id)->value('id');
 
-        if (in_array($routeName, ['kierowca.zadania.complete', 'hakowiec.zadania.complete'], true)) {
+        if ($routeName === 'kierowca.zadania.complete') {
             if ($zadanie->driver_id !== $userDriverId) {
                 abort(403);
             }

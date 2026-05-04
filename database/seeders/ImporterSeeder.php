@@ -24,6 +24,7 @@ class ImporterSeeder extends Seeder
             ['id' => 8,  'name' => 'EkoTrade',      'country' => 'PL'],
             ['id' => 9,  'name' => 'RLG',           'country' => 'DE'],
             ['id' => 10, 'name' => 'Sonae Arauco',  'country' => 'DE'],
+            ['id' => 11, 'name' => 'Nordic',        'country' => 'DE'],
         ];
 
         foreach ($importers as $i) {

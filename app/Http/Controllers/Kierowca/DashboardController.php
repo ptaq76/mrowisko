@@ -71,7 +71,41 @@ class DashboardController extends Controller
                 DB::raw('COALESCE(container_stock.quantity, 0) as plac_qty'),
             ]);
 
-        return view('kierowca.dashboard', compact('driver', 'orders', 'date', 'zadania', 'containers'));
+        // Kontenery dostępne u klienta — dla modala "Zabrane kontenery"
+        // (per client_id, używane gdy biuro zważyło i kierowca-hakowiec musi odhaczyć
+        // co zabrał od klienta).
+        $pickupContainersByClient = [];
+        $hakowiecClientIds = $orders
+            ->filter(fn ($o) => $o->tractor?->subtype === 'hakowiec' && $o->client_id)
+            ->pluck('client_id')
+            ->unique()
+            ->values();
+
+        if ($hakowiecClientIds->isNotEmpty()) {
+            $rows = Container::active()
+                ->join('container_stock', 'containers.id', '=', 'container_stock.container_id')
+                ->whereIn('container_stock.client_id', $hakowiecClientIds)
+                ->where('container_stock.quantity', '>', 0)
+                ->orderBy('containers.name')
+                ->get([
+                    'containers.id',
+                    'containers.name',
+                    'container_stock.client_id',
+                    DB::raw('container_stock.quantity as client_qty'),
+                ]);
+
+            foreach ($rows as $r) {
+                $pickupContainersByClient[$r->client_id][] = [
+                    'id' => $r->id,
+                    'name' => $r->name,
+                    'client_qty' => (int) $r->client_qty,
+                ];
+            }
+        }
+
+        return view('kierowca.dashboard', compact(
+            'driver', 'orders', 'date', 'zadania', 'containers', 'pickupContainersByClient'
+        ));
     }
 
     // Formularz ważenia - sprawdza czy hakowiec i przekierowuje
@@ -378,6 +412,68 @@ class DashboardController extends Controller
         }
 
         return response()->json(['success' => true, 'message' => 'Pozostawione kontenery zapisane.']);
+    }
+
+    // Zarejestruj zabrane od klienta kontenery (hakowiec)
+    // Używane gdy biuro wpisało wagę zamiast kierowcy — kierowca dalej musi
+    // odhaczyć co zabrał, bo normalnie te dane wpadają przy weighConfirmHakowiec.
+    public function pickupContainers(Request $request, Order $order)
+    {
+        $driver = $this->getDriver();
+
+        if (! $driver || $order->driver_id !== $driver->id) {
+            return response()->json(['success' => false, 'message' => 'Brak dostępu.'], 403);
+        }
+
+        $requiredSlots = $order->trailer_id ? ['tractor', 'trailer'] : ['tractor'];
+
+        $rules = [
+            'tractor_container_id' => ['required', 'exists:containers,id'],
+        ];
+        if (in_array('trailer', $requiredSlots)) {
+            $rules['trailer_container_id'] = ['required', 'exists:containers,id'];
+        }
+
+        $request->validate($rules, [
+            'tractor_container_id.required' => 'Wybierz kontener zabrany przez samochód.',
+            'trailer_container_id.required' => 'Wybierz kontener zabrany przez naczepę.',
+        ]);
+
+        try {
+            DB::transaction(function () use ($order, $request, $requiredSlots) {
+                // Cofnij stare pickup-y (jeśli re-edycja): kontener wraca z placu do klienta
+                $oldPickups = $order->orderContainers()->where('direction', 'pickup')->get();
+                foreach ($oldPickups as $oc) {
+                    ContainerStock::moveToClient($oc->container_id, $order->client_id, 1);
+                }
+                $order->orderContainers()->where('direction', 'pickup')->delete();
+
+                $entries = [
+                    ['slot' => 'tractor', 'container_id' => (int) $request->tractor_container_id],
+                ];
+                if (in_array('trailer', $requiredSlots)) {
+                    $entries[] = ['slot' => 'trailer', 'container_id' => (int) $request->trailer_container_id];
+                }
+
+                foreach ($entries as $entry) {
+                    ContainerStock::moveToPlac($entry['container_id'], $order->client_id, 1);
+
+                    OrderContainer::create([
+                        'order_id'     => $order->id,
+                        'container_id' => $entry['container_id'],
+                        'slot'         => $entry['slot'],
+                        'direction'    => 'pickup',
+                    ]);
+                }
+            });
+        } catch (\RuntimeException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
+
+        return response()->json(['success' => true, 'message' => 'Zabrane kontenery zapisane.']);
     }
 
     // Zapisz opakowania dla zlecenia
