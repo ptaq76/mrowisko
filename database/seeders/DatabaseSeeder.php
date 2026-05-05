@@ -22,7 +22,7 @@ class DatabaseSeeder extends Seeder
             clientSeeder::class,
 
             // towary
-
+            WasteCodeSeeder::class,
             WasteFractionSeeder::class,
 
             // Kontenery

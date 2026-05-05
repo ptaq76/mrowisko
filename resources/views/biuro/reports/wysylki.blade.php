@@ -156,7 +156,7 @@ tr:hover td { background:#f8f9fa; }
                 <th>Koszt transportu</th>
                 <th>Cena na placu</th>
                 <th>Wartość</th>
-                <th>Kod towaru</th>
+                <th>Kod odpadu</th>
                 <th>Nr LS</th>
                 <th>Kierunek</th>
             </tr>
@@ -194,7 +194,11 @@ tr:hover td { background:#f8f9fa; }
             <td style="font-weight:700">{{ $ls?->importer?->name ?? '–' }}</td>
             <td>{{ $ls?->goods?->name ?? '–' }}</td>
             <td>
-                @if($dok && $dok->isNotEmpty())
+                @if($w->weight_receiver)
+                    <span style="font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:900;color:#1a1a1a">
+                        {{ number_format($w->weight_receiver, 3, ',', ' ') }} t
+                    </span>
+                @elseif($dok && $dok->isNotEmpty())
                     @php $d = $dok->first(); @endphp
                     @if($d->typ === 'reklamacja')
                         <span class="badge-rekl" title="Reklamacja">
